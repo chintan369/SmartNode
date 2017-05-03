@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items version="2" >
+
+    <item
+        jar="F:\SmartNode\Version1\SmartNode\executorproject\build\intermediates\exploded-aar\ExecutorLibrary\jars\classes.jar"
+        jumboMode="false"
+        revision="19.1.0"
+        sha1="e77619161f7aa7bf7cfff12a4c0f91889b52bed8">
+        <dex dex="F:\SmartNode\Version1\SmartNode\executorproject\build\intermediates\pre-dexed\androidTest\debug\intermediates-exploded-aar-ExecutorLibrary_857de3b61dff0150c189c4bb9007a34fc45efec9.jar" />
+    </item>
+    <item
+        jar="F:\SmartNode\Version1\SmartNode\executorproject\libs\executor.jar"
+        jumboMode="false"
+        revision="19.1.0"
+        sha1="f8e35545a21dd02c1262641faf3084aa2793bb6a">
+        <dex dex="F:\SmartNode\Version1\SmartNode\executorproject\build\intermediates\pre-dexed\androidTest\debug\executor_c72447c9661a5a77c92711c865ac564bbb59c4ca.jar" />
+    </item>
+
+</items>

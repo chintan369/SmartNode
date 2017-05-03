@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <android.support.v7.widget.Toolbar android:layout_width="match_parent"
+        android:background="#024c57"
+        android:layout_height="wrap_content"
+        android:id="@+id/toolbar"
+        xmlns:android="http://schemas.android.com/apk/res/android" >
+
+        <!--<ImageView-->
+            <!--android:layout_width="40dp"-->
+            <!--android:layout_height="40dp"-->
+            <!--android:padding="3dp"-->
+            <!--android:src="@drawable/logo"/>-->
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:padding="5dp"
+            android:textColor="#fff"
+            android:text="@string/toolbar_name"
+            android:id="@+id/txt_smartnode"
+            />
+
+
+    </android.support.v7.widget.Toolbar>
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/toolbar"
+            tools:context="com.example.seo.myapplication.AddedGridListActivity">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:layout_weight="1"
+                android:padding="10dp"
+
+                >
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:layout_weight="1"
+                    android:id="@+id/switch_view"
+                    >
+                    <LinearLayout
+                        android:id="@+id/btn_select_scene"
+                        android:layout_width="match_parent"
+                        android:layout_height="45dp"
+                        android:gravity="center"
+                        android:background="@color/colorPrimary"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="match_parent"
+                            android:padding="10dp"
+                            android:src="@drawable/scene"/>
+
+                        <TextView
+                            android:id="@+id/txt_scenes"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="13sp"
+                            android:padding="10dp"
+                            android:textColor="#FFFFFF"
+                            android:text="SCENES"/>
+
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="match_parent"
+                            android:padding="10dp"
+                            android:src="@drawable/scene"/>
+
+                    </LinearLayout>
+
+                    <GridView
+                        android:layout_marginTop="5dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center"
+                        android:id="@+id/added_switchlist"
+                        android:numColumns="2"
+                        android:listSelector="@android:color/transparent"
+                        android:columnWidth="120dp"
+                        android:horizontalSpacing="4dp"
+                        android:verticalSpacing="4dp"
+                        android:gravity="center"
+                        android:stretchMode="columnWidth"
+                        android:padding="5dp"
+                        />
+
+                </LinearLayout>
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0.5dp"
+                    android:background="#666"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginBottom="2dp"
+                    />
+
+            </LinearLayout>
+        </LinearLayout>
+</RelativeLayout>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.nivida.smartnode.test" >
+
+    <uses-sdk
+        android:minSdkVersion="15"
+        android:targetSdkVersion="15" />
+
+    <instrumentation
+        android:name="android.test.InstrumentationTestRunner"
+        android:functionalTest="false"
+        android:handleProfiling="false"
+        android:label="Tests for com.nivida.smartnode"
+        android:targetPackage="com.nivida.smartnode" />
+
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher" >
+        <uses-library android:name="android.test.runner" />
+
+        <service
+            android:name="com.robotium.recorder.executor.writer.Instructions"
+            android:enabled="true"
+            android:exported="true" >
+            <intent-filter>
+                <action android:name="com.robotium.recorder.executor.writer.Instructions" />
+            </intent-filter>
+        </service>
+    </application>
+
+</manifest>

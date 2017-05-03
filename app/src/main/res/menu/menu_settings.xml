@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/settings"
+        android:icon="@drawable/settings_100"
+        android:title="Settings"
+        app:showAsAction="always">
+        <menu>
+            <item
+                android:id="@+id/add_master"
+                android:icon="@drawable/master_new_blue"
+                android:title="Add New Module"/>
+            <!--<item
+                android:id="@+id/scheduling"
+                android:icon="@drawable/clock"
+                android:title="Scheduling"/>-->
+
+            <item android:id="@+id/myAccount"
+                android:title="My Account"
+                android:icon="@drawable/account"/>
+            <!--<item android:id="@+id/create_scene" android:title="Create Scene"
+               android:icon="@drawable/scene" />
+            <item android:id="@+id/lock_device" android:title="Lock Device"
+                android:icon="@drawable/lockwdevice"/>
+            <item android:id="@+id/energy_monitoring" android:title="Energy Monitoring"
+                android:icon="@drawable/energy"/>-->
+        </menu>
+    </item>
+</menu>

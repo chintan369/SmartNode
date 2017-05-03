@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:layout_margin="5dp"
+              android:background="@drawable/bg_shadow_white_changeaddr"
+              android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="5dp">
+
+        <TextView
+            android:id="@+id/txt_time"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center|start"
+            android:layout_weight="1"
+            android:clickable="true"
+            android:gravity="center"
+            android:padding="5dp"
+            android:text="SELECT TIME"
+            android:textColor="@color/dsb_progress_color"
+            android:textSize="22sp"
+            android:textStyle="bold"/>
+
+        <Switch
+            android:id="@+id/btn_OnOff"
+            style="@style/MySwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="5dp"
+            android:layout_gravity="center"
+            android:switchPadding="5dp"
+            android:textSize="12sp"
+            android:showText="true"
+            android:textOff="OFF"
+            android:textOn="ON"
+            />
+
+        <CheckBox
+            android:id="@+id/chk_enable"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="center|end"
+            android:buttonTint="#3ab5c5"
+            android:padding="5dp"
+            android:text="Enable"
+            android:textColor="@color/black"
+            android:textSize="12sp"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:padding="5dp">
+
+        <TextView
+            android:id="@+id/sunday"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_margin="3dp"
+            android:background="@drawable/bg_days_off"
+            android:clickable="true"
+            android:gravity="center"
+            android:padding="10dp"
+            android:text="S"
+            android:textColor="#000"/>
+
+        <TextView
+            android:id="@+id/monday"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_margin="3dp"
+            android:background="@drawable/bg_days_off"
+            android:clickable="true"
+            android:gravity="center"
+            android:padding="10dp"
+            android:text="M"
+            android:textColor="#000"/>
+
+        <TextView
+            android:id="@+id/tuesday"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_margin="3dp"
+            android:background="@drawable/bg_days_off"
+            android:clickable="true"
+            android:gravity="center"
+            android:padding="10dp"
+            android:text="T"
+            android:textColor="#000"/>
+
+        <TextView
+            android:id="@+id/wednesday"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_margin="3dp"
+            android:background="@drawable/bg_days_off"
+            android:clickable="true"
+            android:gravity="center"
+            android:padding="10dp"
+            android:text="W"
+            android:textColor="#000"/>
+
+        <TextView
+            android:id="@+id/thursday"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_margin="3dp"
+            android:background="@drawable/bg_days_off"
+            android:clickable="true"
+            android:gravity="center"
+            android:padding="10dp"
+            android:text="T"
+            android:textColor="#000"/>
+
+        <TextView
+            android:id="@+id/friday"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_margin="3dp"
+            android:background="@drawable/bg_days_off"
+            android:clickable="true"
+            android:gravity="center"
+            android:padding="10dp"
+            android:text="F"
+            android:textColor="#000"/>
+
+        <TextView
+            android:id="@+id/saturday"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_margin="3dp"
+            android:background="@drawable/bg_days_off"
+            android:clickable="true"
+            android:gravity="center"
+            android:padding="10dp"
+            android:text="S"
+            android:textColor="#000"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center|right"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        android:padding="3dp">
+
+        <ImageView
+            android:id="@+id/copy"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/copy"/>
+
+        <ImageView
+            android:id="@+id/save"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/save"/>
+
+        <ImageView
+            android:id="@+id/delete"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/delete"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:minHeight="80dp"
+        android:orientation="horizontal"
+        android:padding="5dp">
+
+        <RadioGroup
+            android:id="@+id/rdg_schType"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="5dp">
+
+            <RadioButton
+                android:id="@+id/rdo_schOnce"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:buttonTint="@color/cyan_400"
+                android:checked="true"
+                android:padding="5dp"
+                android:text="Once"
+                android:textColor="@color/grey_600"/>
+
+            <RadioButton
+                android:id="@+id/rdo_schDaily"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:buttonTint="@color/cyan_400"
+                android:padding="5dp"
+                android:text="Daily"
+                android:textColor="@color/grey_600"/>
+
+            <RadioButton
+                android:id="@+id/rdo_schRepeat"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:buttonTint="@color/cyan_400"
+                android:padding="5dp"
+                android:text="Repeat"
+                android:textColor="@color/grey_600"/>
+
+        </RadioGroup>
+
+        <CheckBox
+            android:id="@+id/chk_repeat"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:buttonTint="#3ab5c5"
+            android:padding="5dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:padding="5dp"
+            android:text="Repeat"
+            android:textColor="#000"/>
+
+        <!--<EditText
+            android:layout_width="60dp"
+            android:layout_height="40dp"
+            android:gravity="center"
+            android:text="0"
+            android:inputType="number"
+            android:id="@+id/repeat_count"
+            android:textSize="14sp"
+            android:textColor="#000"
+            android:background="@drawable/edittext_layout"/>-->
+
+        <!--<TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="10dp"
+            android:layout_margin="3dp"
+            android:gravity="center"
+            android:textColor="#000"
+            android:text="* Enter 0 for infinite repeat"/>-->
+
+    </LinearLayout>
+
+    <org.adw.library.widgets.discreteseekbar.DiscreteSeekBar
+        android:id="@+id/dimmerProgress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal|bottom"
+        android:padding="5dp"
+        android:visibility="gone"
+        app:dsb_indicatorColor="#3BB1C0"
+        app:dsb_max="5"
+        app:dsb_min="0"
+        app:dsb_progressColor="#3BB1C0"
+        app:dsb_thumbSize="10dp"
+        app:dsb_trackColor="#efefef"
+        app:dsb_trackHeight="3dp"
+        />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="1dp">
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:id="@+id/btn_save"
+            android:layout_weight="1"
+            android:textSize="12sp"
+            android:padding="5dp"
+            android:background="@color/teal_400"
+            android:textColor="@color/white"
+            android:text="Save"/>
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:id="@+id/btn_delete"
+            android:layout_weight="1"
+            android:padding="5dp"
+            android:textSize="12sp"
+            android:background="@color/red_400"
+            android:textColor="@color/white"
+            android:text="Delete"/>
+
+    </LinearLayout>
+
+</LinearLayout>

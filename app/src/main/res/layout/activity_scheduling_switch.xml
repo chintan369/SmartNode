@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <android.support.v7.widget.Toolbar android:layout_width="match_parent"
+        android:background="#024c57"
+        android:layout_height="wrap_content"
+        android:id="@+id/toolbar"
+        xmlns:android="http://schemas.android.com/apk/res/android" >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:padding="5dp"
+            android:textColor="#fff"
+            android:textAllCaps="true"
+            android:text="ADD DEVICE"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:id="@+id/txt_actionBarTitle"
+            />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:visibility="gone"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:id="@+id/img_add"
+                android:src="@drawable/add3"
+                android:layout_marginRight="10dp"
+                android:padding="3dp"
+                />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toLeftOf="@id/img_add"
+                android:layout_alignParentRight="true"
+                android:src="@drawable/home"
+                android:padding="3dp"
+                android:layout_marginRight="5dp"
+                android:id="@+id/img_home"
+                />
+
+
+
+        </RelativeLayout>
+
+
+    </android.support.v7.widget.Toolbar>
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_horizontal"
+        android:layout_below="@id/toolbar"
+        android:background="@drawable/background_gradient"
+        tools:context=".SchedulingSwitchActivity"
+        >
+
+            <!--Gridlayout xml for add slave-->
+                <GridView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:id="@+id/switchItemList"
+                    android:numColumns="auto_fit"
+                    android:columnWidth="120dp"
+                    android:horizontalSpacing="5dp"
+                    android:verticalSpacing="5dp"
+                    android:stretchMode="columnWidth"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_margin="10dp"
+                    android:padding="5dp"
+                    android:listSelector="@android:color/transparent"
+                    android:background="@android:color/transparent"
+                    />
+    </LinearLayout>
+</RelativeLayout>
+

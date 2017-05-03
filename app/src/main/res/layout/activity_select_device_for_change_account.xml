@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_select_device_for_change_account"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.nivida.smartnode.SelectDeviceForChangeAccountActivity">
+
+    <include layout="@layout/custom_actionbar"
+        android:id="@+id/toolbar"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="10dp">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:visibility="visible"
+                android:id="@+id/layout_nodevice"
+                >
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/wifi_symbol"
+                    />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:text="No Master Found"
+                    android:textColor="#024c57"
+                    android:textSize="14sp"
+                    android:id="@+id/txt_1"
+                    />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:text="Please Add Master First"
+                    android:textColor="#024c57"
+                    android:textSize="14sp"
+                    android:id="@+id/txt_2"
+                    />
+
+            </LinearLayout>
+
+            <!--Gridlayout xml for add slave-->
+
+
+                <GridView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:id="@+id/masterdevicelist"
+                    android:numColumns="auto_fit"
+                    android:columnWidth="120dp"
+                    android:horizontalSpacing="10dp"
+                    android:verticalSpacing="10dp"
+                    android:padding="10dp"
+                    android:stretchMode="columnWidth"
+                    android:layout_gravity="center_horizontal"
+                    android:listSelector="@android:color/transparent"
+                    android:background="@android:color/transparent"
+                    android:visibility="gone"
+                    />
+
+            <include layout="@layout/progressbar_spinner"
+                     android:id="@+id/progressbar" />
+        </FrameLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

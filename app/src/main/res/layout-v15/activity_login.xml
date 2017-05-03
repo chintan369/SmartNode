@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipToPadding="true"
+    android:id="@+id/rootView"
+    android:focusableInTouchMode="true"
+    android:gravity="center"
+    tools:context="com.nivida.smartnode.LoginActivity"
+    android:orientation="vertical">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+    <LinearLayout
+        android:padding="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:orientation="vertical">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/sm_new_logo_tag"
+            />
+
+        <EditText
+            android:id="@+id/edt_username"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:padding="5dp"
+            android:gravity="center_vertical"
+            android:textSize="14sp"
+            android:hint="User name"
+            android:textColor="#138491"
+            android:textColorHint="#138491"
+            android:layout_margin="6dp"
+            android:fontFamily="sans"
+            android:inputType="text"
+            android:drawableLeft="@drawable/user"
+            android:background="@drawable/edittext_bg"
+            />
+
+        <EditText
+            android:id="@+id/edt_password"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:padding="5dp"
+            android:gravity="center_vertical"
+            android:textSize="14sp"
+            android:hint="Password"
+            android:textColor="#138491"
+            android:textColorHint="#138491"
+            android:layout_margin="6dp"
+            android:fontFamily="sans"
+            android:background="@drawable/edittext_bg"
+            android:inputType="textPassword"
+            android:drawableLeft="@drawable/password"
+            />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_horizontal"
+            android:visibility="invisible"
+            android:orientation="vertical">
+
+            <RadioGroup
+                android:id="@+id/rdo_device_type"
+                android:orientation="horizontal"
+                android:padding="5dp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <RadioButton
+                    android:gravity="center_vertical"
+                    android:padding="3dp"
+                    android:textSize="14sp"
+                    android:layout_weight="1"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:id="@+id/rdo_stand_alone"
+                    android:text="Stand-alone"
+                    android:textColor="#024c57"/>
+
+                <RadioButton
+                    android:gravity="center_vertical"
+                    android:padding="3dp"
+                    android:layout_weight="1"
+                    android:textSize="14sp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/rdo_master"
+                    android:text="Master"
+                    android:checked="true"
+                    android:textColor="#024c57"/>
+
+            </RadioGroup>
+
+        </LinearLayout>
+        <Button
+            android:id="@+id/btn_login"
+            android:layout_width="120dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center_horizontal"
+            android:text="LOGIN"
+            android:background="@drawable/create_acc_layout"
+            android:textColor="#fff"
+            />
+
+
+    </LinearLayout>
+
+    </ScrollView>
+
+    <!--<LinearLayout-->
+        <!--android:id="@+id/background"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent"-->
+        <!--android:background="@drawable/login_bg"-->
+        <!--android:orientation="horizontal" />-->
+
+</LinearLayout>

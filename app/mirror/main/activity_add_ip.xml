@@ -1,0 +1,20 @@
+<!-- [ Mirror metadata ] generatedAt: 1469510993395 -->
+<!-- Generated screen file. Fill the id tags below with content with
+which to populate your previewed layout. For a complete specification
+of sample data, please see http://jimulabs.com/sample-data-specifications/ 
+
+Valid attributes on <screen> tag: theme="@style/someTheme" inEditMode="false" overlay="@drawable/mockup" -->
+<screen>
+    <_content layout="@layout/activity_add_ip">
+        <!-- TextView Examples:
+        <txt_smartnode text="@string/string_resource" />
+        <txt_smartnode text="Text literal" textSize="14sp" /> -->
+        <txt_smartnode />
+        <txt_add_ip />
+        <txt_ipaddress />
+        <txt_port />
+        <txt_hashkey />
+        <txt_cancel />
+        <txt_ok />
+    </_content>
+</screen>

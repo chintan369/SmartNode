@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:layout_width="match_parent"
+    android:layout_height="100dp"
+    android:gravity="center"
+    android:layout_gravity="center"
+    android:id="@+id/main_root"
+    android:background="@drawable/master_bg"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="Slave 1"
+                android:textSize="16sp"
+                android:textAllCaps="true"
+                android:gravity="center"
+                android:textColor="#fff"
+                android:padding="5dp"
+                android:id="@+id/txt_slave_name"
+                />
+
+            <ImageView
+                android:id="@+id/plus_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:visibility="gone"
+                android:src="@drawable/plus_math_100"/>
+
+        </FrameLayout>
+
+
+    </LinearLayout>

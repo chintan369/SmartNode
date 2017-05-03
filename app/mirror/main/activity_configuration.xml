@@ -1,0 +1,47 @@
+<!-- [ Mirror metadata ] generatedAt: 1469510993406 -->
+<!-- Generated screen file. Fill the id tags below with content with
+which to populate your previewed layout. For a complete specification
+of sample data, please see http://jimulabs.com/sample-data-specifications/ 
+
+Valid attributes on <screen> tag: theme="@style/someTheme" inEditMode="false" overlay="@drawable/mockup" -->
+<screen>
+    <_content layout="@layout/activity_configuration">
+        <!-- TextView Examples:
+        <txt_smartnode text="@string/string_resource" />
+        <txt_smartnode text="Text literal" textSize="14sp" /> -->
+        <txt_smartnode />
+        <!-- ImageView Examples:
+        <img_setting src="@drawable/image_resource" />
+        <img_setting src="relative_path/image.jpg" /> -->
+        <img_setting />
+        <txt_1 />
+        <txt_2 />
+        <drawerlist>
+            <items layout="@android:layout/simple_list_item_1" >
+                <_item>
+                    <text1>Apple</text1>
+                </_item>
+                <_item>
+                    <text1>Orange</text1>
+                </_item>
+                <_item>
+                    <text1>Pear</text1>
+                </_item>
+                <_item>
+                    <text1>Grapefruit</text1>
+                </_item>
+                <_item>
+                    <text1>Banana</text1>
+                </_item>
+                <_item>
+                    <text1>Lemon</text1>
+                </_item>
+                <_item>
+                    <text1>Carrot</text1>
+                </_item>
+            </items>
+                </drawerlist>
+        <logout_img />
+        <logout_txt />
+    </_content>
+</screen>

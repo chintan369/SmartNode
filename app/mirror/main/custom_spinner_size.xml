@@ -1,0 +1,14 @@
+<!-- [ Mirror metadata ] generatedAt: 1469510993444 -->
+<!-- Generated screen file. Fill the id tags below with content with
+which to populate your previewed layout. For a complete specification
+of sample data, please see http://jimulabs.com/sample-data-specifications/ 
+
+Valid attributes on <screen> tag: theme="@style/someTheme" inEditMode="false" overlay="@drawable/mockup" -->
+<screen>
+    <_content layout="@layout/custom_spinner_size">
+        <!-- TextView Examples:
+        <android-text1 text="@string/string_resource" />
+        <android-text1 text="Text literal" textSize="14sp" /> -->
+        <android-text1 />
+    </_content>
+</screen>

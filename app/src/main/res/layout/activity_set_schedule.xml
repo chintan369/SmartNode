@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+              android:background="@color/offwhite"
+    tools:context="com.nivida.smartnode.SetScheduleActivity">
+
+    <android.support.v7.widget.Toolbar android:layout_width="match_parent"
+        android:background="#024c57"
+        android:layout_height="wrap_content"
+        android:id="@+id/toolbar"
+        xmlns:android="http://schemas.android.com/apk/res/android" >
+
+        <TextView
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:padding="5dp"
+            android:textColor="#fff"
+            android:textAllCaps="true"
+            android:text="ADD DEVICE"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:id="@+id/txt_toolbar_title"
+            />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:id="@+id/img_add"
+                android:src="@drawable/add3"
+                android:layout_marginRight="10dp"
+                android:padding="3dp"
+                />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toLeftOf="@id/img_add"
+                android:src="@drawable/home"
+                android:padding="3dp"
+                android:layout_marginRight="5dp"
+                android:id="@+id/img_home"
+                />
+
+
+
+        </RelativeLayout>
+
+
+    </android.support.v7.widget.Toolbar>
+
+    <ListView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/scheduleList"
+        android:padding="10dp"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="10dp"
+        android:nestedScrollingEnabled="true"
+        android:descendantFocusability="beforeDescendants"/>
+
+</LinearLayout>

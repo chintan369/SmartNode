@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:focusableInTouchMode="true"
+    android:layout_gravity="center"
+    android:orientation="horizontal"
+    android:padding="10dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <TextView
+        android:id="@+id/txt_switch_name"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="10dp"
+        android:layout_margin="5dp"
+        android:layout_weight="1"
+        android:text="Switch 1"
+        android:textSize="16sp"
+        android:textColor="#000"
+        />
+
+    <Button
+        android:id="@+id/switch_onOff"
+        android:text="OFF"
+        android:padding="10dp"
+        android:layout_margin="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="2"
+        android:layout_gravity="center" />
+
+    <EditText
+        android:id="@+id/edt_dimmerValue"
+        android:layout_margin="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_weight="2"
+        android:inputType="number"
+        android:textColor="#000"
+        android:maxLength="1"
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:background="@drawable/edittext_layout"
+        android:padding="5dp"/>
+
+</LinearLayout>

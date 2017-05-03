@@ -1,0 +1,23 @@
+<!-- [ Mirror metadata ] generatedAt: 1469510993451 -->
+<!-- Generated screen file. Fill the id tags below with content with
+which to populate your previewed layout. For a complete specification
+of sample data, please see http://jimulabs.com/sample-data-specifications/ 
+
+Valid attributes on <screen> tag: theme="@style/someTheme" inEditMode="false" overlay="@drawable/mockup" -->
+<screen>
+    <_content layout="@layout/switch_dimmer_onoff">
+        <!-- TextView Examples:
+        <txt_progress text="@string/string_resource" />
+        <txt_progress text="Text literal" textSize="14sp" /> -->
+        <txt_progress />
+        <!-- ImageView Examples:
+        <switch_off src="@drawable/image_resource" />
+        <switch_off src="relative_path/image.jpg" /> -->
+        <switch_off />
+        <switch_on />
+        <power_off />
+        <fav_off />
+        <group_switch_name />
+        <group_name />
+    </_content>
+</screen>

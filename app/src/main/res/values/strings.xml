@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">SmartNode</string>
+    <string name="toolbar_name">SMARTNODE</string>
+    <string name="open">Open</string>
+    <string name="close">Close</string>
+    <string name="configure">Configure</string>
+    <string name="addslave">Add Device</string>
+
+    <string name="nointernet">No Connection Found\nPlease Connect to Network First!</string>
+    <string name="error">Some Error Occurred.\nPlease Try Again Later!</string>
+</resources>

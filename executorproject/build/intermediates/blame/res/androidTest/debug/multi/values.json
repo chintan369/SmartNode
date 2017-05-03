@@ -1,0 +1,102 @@
+[
+    {
+        "outputFile": "F:\\SmartNode\\Version1\\SmartNode\\executorproject\\build\\intermediates\\res\\merged\\androidTest\\debug\\values\\values.xml",
+        "map": [
+            {
+                "to": {
+                    "startLine": 2,
+                    "startColumn": 4,
+                    "startOffset": 55,
+                    "endColumn": 57,
+                    "endOffset": 108
+                },
+                "from": {
+                    "file": "F:\\SmartNode\\Version1\\SmartNode\\executorproject\\build\\intermediates\\exploded-aar\\ExecutorLibrary\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 6,
+                        "startColumn": 4,
+                        "startOffset": 191,
+                        "endColumn": 57,
+                        "endOffset": 244
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 3,
+                    "startColumn": 4,
+                    "startOffset": 113,
+                    "endColumn": 55,
+                    "endOffset": 164
+                },
+                "from": {
+                    "file": "F:\\SmartNode\\Version1\\SmartNode\\executorproject\\build\\intermediates\\exploded-aar\\ExecutorLibrary\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 7,
+                        "startColumn": 4,
+                        "startOffset": 249,
+                        "endColumn": 55,
+                        "endOffset": 300
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 4,
+                    "startColumn": 4,
+                    "startOffset": 169,
+                    "endColumn": 52,
+                    "endOffset": 217
+                },
+                "from": {
+                    "file": "F:\\SmartNode\\Version1\\SmartNode\\executorproject\\build\\intermediates\\exploded-aar\\ExecutorLibrary\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 11,
+                        "startColumn": 4,
+                        "startOffset": 441,
+                        "endColumn": 52,
+                        "endOffset": 489
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 5,
+                    "startColumn": 4,
+                    "startOffset": 222,
+                    "endColumn": 52,
+                    "endOffset": 270
+                },
+                "from": {
+                    "file": "F:\\SmartNode\\Version1\\SmartNode\\executorproject\\build\\intermediates\\exploded-aar\\ExecutorLibrary\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 12,
+                        "startColumn": 4,
+                        "startOffset": 494,
+                        "endColumn": 52,
+                        "endOffset": 542
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 6,
+                    "startColumn": 4,
+                    "startOffset": 275,
+                    "endColumn": 52,
+                    "endOffset": 323
+                },
+                "from": {
+                    "file": "F:\\SmartNode\\Version1\\SmartNode\\executorproject\\build\\intermediates\\exploded-aar\\ExecutorLibrary\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 13,
+                        "startColumn": 4,
+                        "startOffset": 547,
+                        "endColumn": 52,
+                        "endOffset": 595
+                    }
+                }
+            }
+        ]
+    }
+]

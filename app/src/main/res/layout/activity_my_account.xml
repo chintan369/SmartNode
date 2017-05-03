@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_my_account"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/offwhite"
+    tools:context="com.nivida.smartnode.MyAccountActivity"
+    android:orientation="vertical">
+
+    <include layout="@layout/custom_actionbar"
+             android:id="@+id/toolbar" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="10dp"
+        android:orientation="vertical">
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:padding="15dp"
+            android:layout_margin="5dp"
+            android:background="@drawable/bg_shadow_white"
+            android:text="Change Username"
+            android:textAllCaps="false"
+            android:id="@+id/btn_changeUsername"
+            android:textSize="16sp"
+            android:drawableRight="@drawable/profile_person"
+            android:gravity="center|left"/>
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:padding="15dp"
+            android:layout_margin="5dp"
+            android:background="@drawable/bg_shadow_white"
+            android:text="Change Password"
+            android:id="@+id/btn_changePIN"
+            android:textSize="16sp"
+            android:textAllCaps="false"
+            android:drawableRight="@drawable/profile_password"
+            android:gravity="center|left"/>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="5dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/layout_chnageUsername"
+                android:visibility="gone"
+                android:orientation="vertical">
+
+                <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:background="@drawable/edittext_bg"
+                    android:padding="10dp"
+                    android:textSize="16sp"
+                    android:textColor="@color/black"
+                    android:hint="New Username"
+                    android:textColorHint="@color/grey_600"
+                    android:id="@+id/edt_username"/>
+
+                <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:background="@drawable/edittext_bg"
+                    android:padding="10dp"
+                    android:textSize="16sp"
+                    android:textColor="@color/black"
+                    android:hint="User PIN"
+                    android:inputType="numberPassword"
+                    android:maxLength="4"
+                    android:textColorHint="@color/grey_600"
+                    android:id="@+id/edt_userPIN"/>
+
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:background="@color/colorPrimary"
+                    android:layout_marginTop="10dp"
+                    android:textColor="@color/white"
+                    android:text="Save"
+                    android:id="@+id/btn_saveUsername"
+                    android:textSize="16sp"/>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/layout_chnageUserPIN"
+                android:visibility="gone"
+                android:orientation="vertical">
+
+                <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:background="@drawable/edittext_bg"
+                    android:padding="10dp"
+                    android:textSize="16sp"
+                    android:textColor="@color/black"
+                    android:inputType="numberPassword"
+                    android:maxLength="4"
+                    android:hint="Old PIN"
+                    android:textColorHint="@color/grey_600"
+                    android:id="@+id/edt_olduserPIN"/>
+
+                <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:background="@drawable/edittext_bg"
+                    android:padding="10dp"
+                    android:textSize="16sp"
+                    android:inputType="numberPassword"
+                    android:maxLength="4"
+                    android:layout_marginTop="10dp"
+                    android:textColor="@color/black"
+                    android:hint="New PIN"
+                    android:textColorHint="@color/grey_600"
+                    android:id="@+id/edt_newuserPIN"/>
+
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:background="@color/colorPrimary"
+                    android:layout_marginTop="10dp"
+                    android:textColor="@color/white"
+                    android:text="Save"
+                    android:id="@+id/btn_saveUserPIN"
+                    android:textSize="16sp"/>
+
+            </LinearLayout>
+
+        </FrameLayout>
+
+
+    </LinearLayout>
+
+</LinearLayout>

@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:focusableInTouchMode="true"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <android.support.v7.widget.Toolbar android:layout_width="match_parent"
+        android:background="#024c57"
+        android:layout_height="wrap_content"
+        android:id="@+id/toolbar"
+        xmlns:android="http://schemas.android.com/apk/res/android" >
+
+        <!--<ImageView-->
+            <!--android:layout_width="40dp"-->
+            <!--android:layout_height="40dp"-->
+            <!--android:padding="3dp"-->
+            <!--android:src="@drawable/logo"/>-->
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:padding="5dp"
+            android:textColor="#fff"
+            android:text="CONFIGURATION"
+            android:id="@+id/txt_smartnode"
+            />
+
+        <!--<RelativeLayout-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="wrap_content">-->
+
+            <!--<ImageView-->
+                <!--android:layout_width="44dp"-->
+                <!--android:layout_height="44dp"-->
+                <!--android:layout_alignParentRight="true"-->
+                <!--android:id="@+id/img_cart"-->
+                <!--android:src="@drawable/setting_icon"-->
+                <!--android:layout_marginRight="10dp"-->
+                <!--android:padding="3dp"-->
+                <!--/>-->
+
+        <!--</RelativeLayout>-->
+
+
+    </android.support.v7.widget.Toolbar>
+    <android.support.v4.widget.DrawerLayout android:layout_width="match_parent"
+        android:layout_below="@id/toolbar"
+        android:layout_height="match_parent"
+        android:id="@+id/drawerlayout"
+        xmlns:android="http://schemas.android.com/apk/res/android" >
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#fff"
+            tools:context="com.example.seo.myapplication.Add_IpActivity">
+
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                >
+                <ImageView
+                    android:layout_width="280dp"
+                    android:layout_height="60dp"
+                    android:src="@drawable/sm_full_logo"
+                    android:layout_marginTop="8dp"
+                    />
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_below="@id/toolbar"
+                    android:padding="10dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <TextView
+                        android:id="@+id/txt_add_ip"
+                        android:layout_width="match_parent"
+                        android:layout_height="45dp"
+                        android:textAllCaps="false"
+                        android:text="ADD IP"
+                        android:textSize="16sp"
+                        android:textColor="#ffffff"
+                        android:padding="10dp"
+                        android:background="#024c57"
+                        android:gravity="center_horizontal"
+                        />
+
+                    <!--<GridView-->
+                        <!--android:id="@+id/groupGrid"-->
+                        <!--android:layout_marginTop="10dp"-->
+                        <!--android:layout_width="match_parent"-->
+                        <!--android:layout_height="match_parent"-->
+                        <!--android:numColumns="auto_fit"-->
+                        <!--android:columnWidth="90dp"-->
+                        <!--android:horizontalSpacing="10dp"-->
+                        <!--android:verticalSpacing="10dp"-->
+                        <!--android:gravity="center"-->
+                        <!--android:stretchMode="columnWidth"/>-->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="5dp"
+                        android:layout_weight="1"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginRight="5dp"
+                        >
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="IP Address"
+                            android:textSize="14sp"
+                            android:id="@+id/txt_ipaddress"
+                            android:layout_weight="3"
+                            />
+                        <EditText
+                            android:layout_width="match_parent"
+                            android:layout_height="40dp"
+                            android:layout_weight="1"
+                            android:hint="Add IP Address"
+                            android:textSize="14sp"
+                            android:digits="0123456789."
+                            android:id="@+id/edt_ipaddress"
+                            android:background="@drawable/edittext_layout"
+                            android:inputType="text"
+                            android:paddingLeft="5dp"
+                            android:maxLength="15"
+                            />
+                    </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="5dp"
+                        android:layout_weight="1"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginRight="5dp"
+                        >
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Port"
+                            android:textSize="14sp"
+                            android:id="@+id/txt_port"
+                            android:layout_weight="3"
+                            />
+                        <EditText
+                            android:layout_width="match_parent"
+                            android:layout_height="40dp"
+                            android:layout_weight="1"
+                            android:hint="Add Port Number"
+                            android:textSize="14sp"
+                            android:id="@+id/edt_port"
+                            android:inputType="number"
+                            android:paddingLeft="5dp"
+                            android:maxLength="4"
+                            android:background="@drawable/edittext_layout"
+                            />
+                    </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="5dp"
+                        android:layout_weight="1"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginRight="5dp"
+                        >
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Hash Key"
+                            android:textSize="14sp"
+                            android:id="@+id/txt_hashkey"
+                            android:layout_weight="3"
+                            />
+                        <EditText
+                            android:layout_width="match_parent"
+                            android:layout_height="40dp"
+                            android:layout_weight="1"
+                            android:hint="Add Hash Key"
+                            android:textSize="14sp"
+                            android:id="@+id/edt_hashkey"
+                            android:inputType="textPassword"
+                            android:paddingLeft="5dp"
+                            android:background="@drawable/edittext_layout"
+                            />
+                    </LinearLayout>
+                    <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center|bottom"
+                    android:layout_weight="2"
+                    >
+
+                   <LinearLayout
+                       android:id="@+id/btn_cancel"
+                       android:clickable="true"
+                       android:background="@color/colorPrimary"
+                       android:layout_width="match_parent"
+                       android:gravity="center"
+                       android:layout_weight="1"
+                       android:layout_margin="5dp"
+                       android:layout_height="45dp">
+
+                       <ImageView
+                           android:layout_width="50dp"
+                           android:layout_height="50dp"
+                           android:src="@drawable/cancel_1"/>
+
+                       <TextView
+                           android:layout_width="wrap_content"
+                           android:layout_height="wrap_content"
+                           android:text="CANCEL"
+                           android:id="@+id/txt_cancel"
+                           android:textColor="@color/white"
+                           android:textSize="16sp"/>
+
+                   </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/btn_ok"
+                            android:clickable="true"
+                            android:layout_width="match_parent"
+                            android:layout_height="45dp"
+                            android:layout_margin="5dp"
+                            android:layout_weight="1"
+                            android:background="@color/colorPrimary"
+                            android:gravity="center">
+
+                            <ImageView
+                                android:layout_width="50dp"
+                                android:layout_height="50dp"
+                                android:src="@drawable/tick_1" />
+
+                            <TextView
+                                android:id="@+id/txt_ok"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="OK"
+                                android:textColor="@color/white"
+                                android:textSize="16sp" />
+
+                        </LinearLayout>
+                    <!--android:background="@drawable/layout_button"-->
+                    <!--android:backgroundTint="#99ff3300"-->
+                    <!--android:backgroundTint="#9999ff33"-->
+                    </LinearLayout>
+
+
+                </LinearLayout>
+
+
+            </LinearLayout>
+            </ScrollView>
+        </LinearLayout>
+        <!--<LinearLayout-->
+            <!--android:layout_width="240dp"-->
+            <!--android:layout_height="match_parent"-->
+            <!--android:layout_gravity="left"-->
+            <!--android:orientation="vertical"-->
+            <!--android:background="#233132"-->
+
+            <!--&gt;-->
+            <!--<LinearLayout-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:background="#233132"-->
+                <!--android:orientation="vertical"-->
+                <!--android:gravity="center_horizontal"-->
+                <!--&gt;-->
+
+                <!--<ImageView-->
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:layout_height="110dp"-->
+                    <!--android:src="@drawable/drawer_inner_icon"-->
+                    <!--android:padding="5dp"-->
+                    <!--/>-->
+                <!--<TextView-->
+                    <!--android:layout_width="wrap_content"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:textSize="16sp"-->
+                    <!--android:textColor="#fff"-->
+                    <!--android:text="@string/toolbar_name"-->
+                    <!--android:layout_marginTop="4dp"-->
+                    <!--android:id="@+id/drawer_txt_1"-->
+                    <!--/>-->
+
+            <!--</LinearLayout>-->
+
+            <!--&lt;!&ndash;<ListView&ndash;&gt;-->
+            <!--&lt;!&ndash;android:background="#000"&ndash;&gt;-->
+            <!--&lt;!&ndash;android:layout_width="250dp"&ndash;&gt;-->
+            <!--&lt;!&ndash;android:layout_height="match_parent"&ndash;&gt;-->
+            <!--&lt;!&ndash;android:layout_gravity="left"&ndash;&gt;-->
+            <!--&lt;!&ndash;android:id="@+id/drawerlist"&ndash;&gt;-->
+
+            <!--&lt;!&ndash;android:footerDividersEnabled="false"&ndash;&gt;-->
+            <!--&lt;!&ndash;android:headerDividersEnabled="false"&ndash;&gt;-->
+
+            <!--&lt;!&ndash;/>&ndash;&gt;-->
+            <!--<GridView-->
+                <!--android:layout_marginTop="5dp"-->
+                <!--android:layout_width="240dp"-->
+                <!--android:layout_height="match_parent"-->
+                <!--android:layout_gravity="left"-->
+                <!--android:id="@+id/drawerlist"-->
+                <!--android:numColumns="2"-->
+                <!--android:columnWidth="120dp"-->
+                <!--android:horizontalSpacing="0dp"-->
+                <!--android:verticalSpacing="4dp"-->
+                <!--android:gravity="center"-->
+                <!--android:stretchMode="columnWidth"-->
+                <!--android:padding="0dp" android:background="#233132"-->
+                <!--/>-->
+
+
+        <!--</LinearLayout>-->
+    </android.support.v4.widget.DrawerLayout>
+</RelativeLayout>

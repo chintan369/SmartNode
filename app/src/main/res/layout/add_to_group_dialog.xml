@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!--<TextView-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:padding="10dp"-->
+        <!--android:text="Add Slave to which Group ?"-->
+        <!--android:textSize="16dp"/>-->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingTop="5dp"
+        >
+
+        <RadioGroup
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_weight="1"
+            android:padding="5dp"
+            android:id="@+id/radiogroup_type"
+            >
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Existing group"
+                android:layout_weight="1"
+                android:selectAllOnFocus="true"
+                android:id="@+id/radio_exist"
+                android:checked="true"
+                android:buttonTint="#3ab5c5" />
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="New Group"
+                android:layout_weight="1"
+                android:id="@+id/radio_new"
+                android:buttonTint="#3ab5c5"
+                />
+
+        </RadioGroup>
+    </LinearLayout>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#8C8B8A"
+        android:layout_margin="5dp"
+        >
+
+    </View>
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <LinearLayout
+            android:layout_width="match_parent"
+          android:padding="5dp"
+            android:layout_height="wrap_content"
+android:visibility="visible"
+            android:id="@+id/layout_existing_group"
+            >
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_weight="1"
+                android:gravity="center_vertical"
+                >
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:padding="5dp"
+                    android:text="Select Group :"
+                    android:layout_weight="2"
+                    android:textSize="14sp"
+                    />
+                <Spinner
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/spinner_bg"
+                    android:spinnerMode="dropdown"
+                    android:overlapAnchor="false"
+                    android:id="@+id/spinner_group"
+                    >
+
+                </Spinner>
+
+            </LinearLayout>
+        </LinearLayout>
+
+        <!--Layout for new group-->
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="5dp"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:id="@+id/layout_new_group"
+            >
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:padding="5dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:layout_weight="2"
+                    android:text="Group Name"/>
+
+                <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:id="@+id/edt_groupname"
+                    android:textSize="16sp"
+                    android:padding="5dp"
+                    android:background="@drawable/edittext_layout"
+                    android:layout_weight="1"/>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:gravity="center"
+                android:padding="5dp"
+
+                >
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:layout_weight="2"
+                    android:text="Select Image"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:layout_weight="1">
+
+                    <com.github.siyamed.shapeimageview.CircularImageView
+                        android:clickable="true"
+                        android:gravity="center"
+                        android:id="@+id/img__select_group"
+                        android:padding="5dp"
+                        android:layout_width="100dp"
+                        android:layout_height="100dp"
+                        android:src="@drawable/add_group"
+                        app:siBorderWidth="3dp"
+                        app:siBorderColor="#bdbdbd"/>
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
+    </FrameLayout>
+
+</LinearLayout>

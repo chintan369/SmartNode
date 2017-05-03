@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools"
+          package="com.nivida.smartnode">
+
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.MANAGE_DOCUMENTS"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.CALL_PHONE"/>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE"/>
+    <uses-permission android:name="android.permission.BIND_ACCESSIBILITY_SERVICE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission
+        android:name="android.permission.WRITE_SECURE_SETTINGS"
+        tools:ignore="ProtectedPermissions"/>
+    <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher2"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:hardwareAccelerated="false"
+        android:largeHeap="true"
+        android:theme="@style/AppTheme.ToolBarSupport">
+        <activity
+            android:name=".SplashActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".Add_IpActivity"
+            android:parentActivityName=".ConfigurationActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.ToolBarSupport">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ConfigurationActivity"/>
+        </activity>
+        <activity
+            android:name=".ConfigurationActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.ToolBarSupport"/>
+        <activity
+            android:name=".LoginActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar"/>
+        <activity
+            android:name=".MasterGroupActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.ToolBarSupport"/>
+        <activity
+            android:name=".SingleGroupActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.ToolBarSupport"/>
+        <activity
+            android:name=".AddSlaveActivity"
+            android:parentActivityName=".MasterGroupActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.ToolBarSupport">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MasterGroupActivity"/>
+        </activity>
+        <activity
+            android:name=".AddSwitchActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.ToolBarSupport"/>
+        <activity
+            android:name=".GroupSwitchOnOffActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.ToolBarSupport"/>
+        <activity
+            android:name=".AboutUsActivity"
+            android:parentActivityName=".MasterGroupActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.ToolBarSupport">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MasterGroupActivity"/>
+        </activity>
+        <activity
+            android:name=".ContactUsActivity"
+            android:parentActivityName=".MasterGroupActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.ToolBarSupport">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MasterGroupActivity"/>
+        </activity>
+        <activity
+            android:name=".HelpActivity"
+            android:parentActivityName=".MasterGroupActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.ToolBarSupport">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MasterGroupActivity"/>
+        </activity>
+        <activity
+            android:name=".FavouriteActivity"
+            android:parentActivityName=".MasterGroupActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.ToolBarSupport">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MasterGroupActivity"/>
+        </activity>
+        <activity
+            android:name=".AddMasterActivity"
+            android:configChanges="screenSize|orientation|keyboard"
+            android:theme="@style/AppTheme.ToolBarSupport"/>
+
+        <service android:name=".services.AddMasterService"/>
+        <service android:name=".services.AddDeviceService"/>
+        <service android:name=".services.AddSwitchService"/>
+        <service android:name=".services.GroupSwitchService"/>
+
+        <activity android:name=".AddSwitch2Activity"/>
+        <activity
+            android:name=".SceneActivity"
+            android:parentActivityName=".GroupSwitchOnOffActivity"
+            android:theme="@style/AppTheme.ToolBarSupport">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".GroupSwitchOnOffActivity"/>
+        </activity>
+        <activity
+            android:name=".SceneEditActivity"
+            android:parentActivityName=".SceneActivity"
+            android:theme="@style/AppTheme.ToolBarSupport"
+            android:windowSoftInputMode="adjustPan">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".SceneActivity"/>
+        </activity>
+        <activity
+            android:name=".SchedulingActivity"
+            android:theme="@style/AppTheme.ToolBarSupport"/>
+        <activity
+            android:name=".SchedulingSwitchActivity"
+            android:parentActivityName=".SchedulingActivity"
+            android:theme="@style/AppTheme.ToolBarSupport">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".SchedulingActivity"/>
+        </activity>
+        <activity
+            android:name=".SetScheduleActivity"
+            android:parentActivityName=".SchedulingSwitchActivity"
+            android:theme="@style/AppTheme.ToolBarSupport"
+            android:windowSoftInputMode="adjustPan">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".SchedulingSwitchActivity"/>
+        </activity>
+        <activity android:name=".WifiManagerActivity">
+        </activity>
+
+        <service
+            android:name=".services.UDPService"
+            android:exported="false"
+            android:stopWithTask="false"/>
+
+        <activity android:name=".EnergyMonitoringActivity"
+            android:configChanges="orientation|screenSize|keyboard"/>
+
+        <receiver android:name=".NetworkChangeReceiver">
+            <intent-filter>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
+                <action android:name="android.net.wifi.WIFI_STATE_CHANGED"/>
+            </intent-filter>
+        </receiver>
+
+        <activity android:name=".MyAccountActivity">
+        </activity>
+        <activity android:name=".SelectDeviceForChangeAccountActivity">
+        </activity>
+        <activity android:name=".CheckScheduleNTimeActivity">
+        </activity>
+
+        <service
+            android:name=".TimerService"
+            android:exported="false">
+        </service>
+    </application>
+
+</manifest>

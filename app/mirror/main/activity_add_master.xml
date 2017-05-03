@@ -1,0 +1,74 @@
+<!-- [ Mirror metadata ] generatedAt: 1469510993398 -->
+<!-- Generated screen file. Fill the id tags below with content with
+which to populate your previewed layout. For a complete specification
+of sample data, please see http://jimulabs.com/sample-data-specifications/ 
+
+Valid attributes on <screen> tag: theme="@style/someTheme" inEditMode="false" overlay="@drawable/mockup" -->
+<screen>
+    <_content layout="@layout/activity_add_master">
+        <!-- TextView Examples:
+        <txt_smartnode text="@string/string_resource" />
+        <txt_smartnode text="Text literal" textSize="14sp" /> -->
+        <txt_smartnode />
+        <!-- ImageView Examples:
+        <img_add src="@drawable/image_resource" />
+        <img_add src="relative_path/image.jpg" /> -->
+        <img_add />
+        <img_home />
+        <txt_1 />
+        <txt_2 />
+        <txt_slave />
+        <slavelist>
+            <items layout="@android:layout/simple_list_item_1" >
+                <_item>
+                    <text1>Vancouver</text1>
+                </_item>
+                <_item>
+                    <text1>Cairo</text1>
+                </_item>
+                <_item>
+                    <text1>New York</text1>
+                </_item>
+                <_item>
+                    <text1>San Francisco</text1>
+                </_item>
+                <_item>
+                    <text1>Seattle</text1>
+                </_item>
+                <_item>
+                    <text1>Hong Kong</text1>
+                </_item>
+                <_item>
+                    <text1>Tokyo</text1>
+                </_item>
+            </items>
+                </slavelist>
+        <drawerlist>
+            <items layout="@android:layout/simple_list_item_1" >
+                <_item>
+                    <text1>Apple</text1>
+                </_item>
+                <_item>
+                    <text1>Orange</text1>
+                </_item>
+                <_item>
+                    <text1>Pear</text1>
+                </_item>
+                <_item>
+                    <text1>Grapefruit</text1>
+                </_item>
+                <_item>
+                    <text1>Banana</text1>
+                </_item>
+                <_item>
+                    <text1>Lemon</text1>
+                </_item>
+                <_item>
+                    <text1>Carrot</text1>
+                </_item>
+            </items>
+                </drawerlist>
+        <logout_img />
+        <logout_txt />
+    </_content>
+</screen>

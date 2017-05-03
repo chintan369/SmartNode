@@ -1,0 +1,22 @@
+<!-- [ Mirror metadata ] generatedAt: 1469510993448 -->
+<!-- Generated screen file. Fill the id tags below with content with
+which to populate your previewed layout. For a complete specification
+of sample data, please see http://jimulabs.com/sample-data-specifications/ 
+
+Valid attributes on <screen> tag: theme="@style/someTheme" inEditMode="false" overlay="@drawable/mockup" -->
+<screen>
+    <_content layout="@layout/custom_switch_onoff">
+        <!-- ImageView Examples:
+        <switch_off src="@drawable/image_resource" />
+        <switch_off src="relative_path/image.jpg" /> -->
+        <switch_off />
+        <switch_on />
+        <power_off />
+        <fav_off />
+        <!-- TextView Examples:
+        <group_switch_name text="@string/string_resource" />
+        <group_switch_name text="Text literal" textSize="14sp" /> -->
+        <group_switch_name />
+        <group_name />
+    </_content>
+</screen>

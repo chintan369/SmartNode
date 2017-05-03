@@ -1,0 +1,14 @@
+<!-- [ Mirror metadata ] generatedAt: 1469510993440 -->
+<!-- Generated screen file. Fill the id tags below with content with
+which to populate your previewed layout. For a complete specification
+of sample data, please see http://jimulabs.com/sample-data-specifications/ 
+
+Valid attributes on <screen> tag: theme="@style/someTheme" inEditMode="false" overlay="@drawable/mockup" -->
+<screen>
+    <_content layout="@layout/custom_dimmer_list">
+        <!-- TextView Examples:
+        <txt_dimmer text="@string/string_resource" />
+        <txt_dimmer text="Text literal" textSize="14sp" /> -->
+        <txt_dimmer />
+    </_content>
+</screen>

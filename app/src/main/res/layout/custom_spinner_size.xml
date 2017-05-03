@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/text1"
+    style="?android:attr/spinnerItemStyle"
+    android:layout_width="match_parent"
+    android:layout_height="40dp"
+    android:background="@drawable/spinner_click_changer"
+    android:ellipsize="marquee"
+    android:padding="5dp"
+    android:singleLine="true"
+    android:textAlignment="inherit"
+    android:textSize="16sp"
+    android:textColor="@drawable/text_color_changer" />
+<!--
+<TextView android:layout_height="fill_parent"
+    android:layout_width="fill_parent"
+    android:textSize="16sp"
+    android:singleLine="true"
+    android:id="@+id/txt_spinner_size"
+    android:textColor="#757575"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:padding="6dp"
+    />
+-->
+
+    <!--<?xml version="1.0" encoding="utf-8"?>-->
+    <!--<TextView-->
+    <!--xmlns:android="http://schemas.android.com/apk/res/android"-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:id="@+id/txt_spinner_size"-->
+    <!--android:textSize="16sp"-->
+    <!--android:gravity="left"-->
+    <!--android:textColor="#757575"-->
+    <!--android:padding="3dip"-->
+
+    <!--/>-->

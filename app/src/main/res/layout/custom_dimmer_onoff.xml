@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="150dp"
+    android:layout_margin="10dp"
+    android:layout_height="match_parent">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:layout_gravity="center">
+
+        <com.nivida.smartnode.utils.CircularSeekBar
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:id="@+id/dimmerProgress"
+            app:start_angle="180"
+            app:end_angle="180"
+            app:circle_x_radius="100dp"
+            app:circle_y_radius="100dp"
+            app:use_custom_radii="true"
+            android:background="@drawable/dimmer_bg"
+            app:progress="0"
+            android:layout_gravity="center"
+            app:max="6"
+            app:pointer_alpha_ontouch="50"
+            app:pointer_color="#FFFFFF"
+            app:pointer_radius="2dp"
+            app:circle_stroke_width="3dp"
+            app:pointer_halo_color="#444"
+            app:circle_progress_color="#3BB1C0"
+            app:circle_color="@android:color/transparent"/>
+
+        <ImageView
+            android:id="@+id/fav_off"
+            android:clickable="true"
+            android:src="@drawable/hearts_grey"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:layout_gravity="start|top"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:padding="5dp"
+            android:textSize="16sp"
+            android:textColor="#3AA1A0"
+            android:id="@+id/txt_progress"
+            android:layout_gravity="center"/>
+
+        <ImageView
+            android:id="@+id/power_off"
+            android:clickable="true"
+            android:layout_marginTop="5dp"
+            android:src="@drawable/shutdown_thin_grey"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|top" />
+
+    </FrameLayout>
+
+    <View
+        android:layout_width="120dp"
+        android:layout_gravity="center"
+        android:layout_height="1dip"
+        android:background="#000" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_weight="2"
+        android:gravity="center"
+        >
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Bulb"
+            android:id="@+id/group_dimmer_name"
+            android:textSize="18sp"
+            android:textColor="#3BB2C1"
+            android:gravity="center_horizontal"
+            />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Main Room"
+            android:id="@+id/group_name"
+            android:textSize="16sp"
+            android:textColor="#666"
+            android:gravity="center_horizontal"
+            />
+
+    </LinearLayout>
+
+
+</LinearLayout>

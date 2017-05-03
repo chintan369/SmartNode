@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="150dp"
+    android:layout_margin="10dp"
+    android:layout_height="match_parent">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:padding="10dp"
+        android:background="@drawable/switch_bg"
+        android:layout_gravity="center">
+
+        <ImageView
+            android:id="@+id/switch_off"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:src="@drawable/fan"/>
+
+        <ImageView
+            android:id="@+id/switch_on"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:src="@drawable/fan_on"
+            android:visibility="gone"/>
+
+        <ImageView
+            android:id="@+id/power_off"
+            android:clickable="true"
+            android:layout_marginTop="5dp"
+            android:layout_marginRight="2dp"
+            android:src="@drawable/shutdown_thin_grey"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|top" />
+
+        <ImageView
+            android:id="@+id/fav_off"
+            android:clickable="true"
+            android:layout_marginTop="5dp"
+            android:layout_marginLeft="2dp"
+            android:src="@drawable/hearts_grey"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start|top"/>
+
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_weight="2"
+        android:gravity="center"
+        >
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Bulb"
+            android:id="@+id/group_switch_name"
+            android:textSize="18sp"
+            android:gravity="center_horizontal"
+            android:textColor="#3BB2C1"
+            />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Main Room"
+            android:textIsSelectable="false"
+            android:id="@+id/group_name"
+            android:textSize="16sp"
+            android:gravity="center_horizontal"
+            />
+
+    </LinearLayout>
+
+
+</LinearLayout>
