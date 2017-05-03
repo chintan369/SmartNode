@@ -1574,7 +1574,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public void setSwitchIsOnById(int switchId, boolean onoff) {
         synchronized (Lock){
             try {
-                SQLiteDatabase db = this.getWritableDatabase();
+                SQLiteDatabase db = SQLiteDatabase.openDatabase(DATABASE_NAME, null, SQLiteDatabase.NO_LOCALIZED_COLLATORS);
 
                 ContentValues contentValues = new ContentValues();
                 if (onoff) contentValues.put(SWITCH_IS_ON, 1);

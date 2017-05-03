@@ -532,10 +532,10 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
             Log.e("command", command);
 
             if (NetworkUtility.isOnline(getApplicationContext())) {
-                if (preference.isOnline() || (!preference.isOnline() && !preference.getCurrentIPAddr().equalsIgnoreCase(databaseHandler.getMasterIPBySlaveID(slaveID)))) {
-                    new PublishMessage(command, slaveID).execute();
-                } else {
+                if (preference.getCurrentIPAddr().equalsIgnoreCase(databaseHandler.getMasterIPBySlaveID(slaveID))) {
                     new SendUDP(command).execute();
+                } else {
+                    new PublishMessage(command, slaveID).execute();
                 }
             } else {
                 C.Toast(getApplicationContext(), "Failed To get Device Time due to no Internet Connection");
@@ -693,10 +693,12 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
         Log.e("create SCH", "Called");
         forAddingNewItem = false;
         if (NetworkUtility.isOnline(getApplicationContext())) {
-            if (preference.isOnline() || (!preference.isOnline() && !preference.getCurrentIPAddr().equalsIgnoreCase(databaseHandler.getMasterIPBySlaveID(slaveID)))) {
-                new PublishMessage(createCommand, slaveID).execute();
-            } else {
+
+            if(preference.getCurrentIPAddr().equalsIgnoreCase(databaseHandler.getMasterIPBySlaveID(slaveID))){
                 new SendUDP(createCommand).execute();
+            }
+            else {
+                new PublishMessage(createCommand, slaveID).execute();
             }
         } else {
             C.Toast(getApplicationContext(), getString(R.string.nointernet));
