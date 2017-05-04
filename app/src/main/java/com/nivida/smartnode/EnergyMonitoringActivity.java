@@ -39,6 +39,7 @@ import com.nivida.smartnode.beans.Bean_EnergySlave;
 import com.nivida.smartnode.beans.Bean_SlaveGroup;
 import com.nivida.smartnode.beans.Bean_Switch;
 import com.nivida.smartnode.model.DatabaseHandler;
+import com.nivida.smartnode.model.IPDb;
 import com.nivida.smartnode.services.AddDeviceService;
 import com.nivida.smartnode.services.GroupSwitchService;
 import com.nivida.smartnode.services.UDPService;
@@ -247,15 +248,19 @@ public class EnergyMonitoringActivity extends AppCompatActivity implements Energ
             }
         }
 
+        List<String> ipList=new IPDb(this).ipList();
+
         if (slaveGroups.size() > 0) {
             if (NetworkUtility.isOnline(getApplicationContext())) {
                 for (int i = 0; i < slaveGroups.size(); i++) {
                     String command = getUDPCommand(slaveGroups, i);
                     Log.e("command", command);
-                    if (preference.isOnline() || (!preference.isOnline() && !preference.getCurrentIPAddr().equalsIgnoreCase(databaseHandler.getMasterIPBySlaveID(slaveGroups.get(i).getHex_id())))) {
-                        new SendMQTTCommand(command,slaveGroups.get(i).getHex_id()).execute();
-                    } else {
+
+                    if(ipList.contains(databaseHandler.getMasterIPBySlaveID(slaveGroups.get(i).getHex_id()))){
                         new SendUDP(command).execute();
+                    }
+                    else {
+                        new SendMQTTCommand(command,slaveGroups.get(i).getHex_id()).execute();
                     }
                 }
             } else {

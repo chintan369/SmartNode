@@ -26,6 +26,8 @@ import com.nivida.smartnode.a.Cmd;
 import com.nivida.smartnode.a.Status;
 import com.nivida.smartnode.app.AppConstant;
 import com.nivida.smartnode.app.AppPreference;
+import com.nivida.smartnode.model.DatabaseHandler;
+import com.nivida.smartnode.model.IPDb;
 import com.nivida.smartnode.services.AddDeviceService;
 import com.nivida.smartnode.services.GroupSwitchService;
 import com.nivida.smartnode.services.UDPService;
@@ -44,6 +46,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
+import java.util.List;
 
 import static android.view.View.GONE;
 
@@ -278,31 +281,16 @@ public class MyAccountActivity extends AppCompatActivity {
 
     private void sendChangePINCommand(String command) {
         if(NetworkUtility.isOnline(getApplicationContext())){
-            if(preference.isOnline()){
-                edt_newuserPIN.setText("");
-                edt_olduserPIN.setText("");
-                try{
-                    mqttClient=new MqttClient(AppConstant.MQTT_BROKER_URL,clientId,new MemoryPersistence());
-                    MqttConnectOptions connectOptions=new MqttConnectOptions();
-                    connectOptions.setUserName(AppConstant.MQTT_USERNAME);
-                    connectOptions.setPassword(AppConstant.getPassword());
-                    mqttClient.connect(connectOptions);
 
-                    Log.e("Command Fired UPD :",command);
-
-                    MqttMessage mqttMessage=new MqttMessage(command.getBytes());
-                    mqttMessage.setRetained(true);
-                    mqttClient.publish(preference.getTopic()+AppConstant.MQTT_PUBLISH_TOPIC,mqttMessage);
-                    Log.e("topic msg",preference.getTopic()+AppConstant.MQTT_PUBLISH_TOPIC+" "+mqttMessage);
-
-
-                } catch (MqttException e) {
-                    Log.e("Exception : ",e.getMessage());
-                    e.printStackTrace();
-                }
+            List<String> ipList=new IPDb(this).ipList();
+            DatabaseHandler db=new DatabaseHandler(this);
+            edt_newuserPIN.setText("");
+            edt_olduserPIN.setText("");
+            if(ipList.contains(db.getMasterIPBySlaveID(masterID))){
+                new SendUDP(command).execute();
             }
             else {
-                new SendUDP(command).execute();
+                new SendMQTT(db.getSlaveTopic(masterID)+AppConstant.MQTT_PUBLISH_TOPIC,command).execute();
             }
 
             C.Toast(getApplicationContext(),"Please Wait while Updating your PIN...");
@@ -310,6 +298,41 @@ public class MyAccountActivity extends AppCompatActivity {
         else {
             Toast.makeText(getApplicationContext(), "No internet connection found,\nplease check your connection first",
                     Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private class SendMQTT extends AsyncTask<Void, Void, Void>{
+
+        String topic="";
+        String command="";
+
+        public SendMQTT(String topic, String command) {
+            this.topic = topic;
+            this.command = command;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            try{
+                mqttClient=new MqttClient(AppConstant.MQTT_BROKER_URL,clientId,new MemoryPersistence());
+                MqttConnectOptions connectOptions=new MqttConnectOptions();
+                connectOptions.setUserName(AppConstant.MQTT_USERNAME);
+                connectOptions.setPassword(AppConstant.getPassword());
+                mqttClient.connect(connectOptions);
+
+                Log.e("Command Fired UPD :",command);
+
+                MqttMessage mqttMessage=new MqttMessage(command.getBytes());
+                mqttMessage.setRetained(true);
+                mqttClient.publish(topic,mqttMessage);
+                //Log.e("topic msg",preference.getTopic()+AppConstant.MQTT_PUBLISH_TOPIC+" "+mqttMessage);
+
+
+            } catch (MqttException e) {
+                Log.e("Exception : ",e.getMessage());
+                e.printStackTrace();
+            }
+            return null;
         }
     }
 
