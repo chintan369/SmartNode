@@ -39,6 +39,7 @@ import com.nivida.smartnode.beans.Bean_Master;
 import com.nivida.smartnode.beans.Bean_Scenes;
 import com.nivida.smartnode.beans.Bean_Switch;
 import com.nivida.smartnode.model.DatabaseHandler;
+import com.nivida.smartnode.model.IPDb;
 import com.nivida.smartnode.services.AddDeviceService;
 import com.nivida.smartnode.services.UDPService;
 import com.nivida.smartnode.utils.NetworkUtility;
@@ -366,6 +367,7 @@ public class SceneActivity extends AppCompatActivity {
     private void generateCommandsForUpdateSpecific(int scene_id) {
 
         List<Bean_Switch> switchList=dbhandler.getSceneSwitches(scene_id,groupid);
+        List<String> ipList=new IPDb(this).ipList();
         updateCommands.clear();
 
         ArrayList<String> slaveIDsInGrp=new ArrayList<>();
@@ -415,7 +417,7 @@ public class SceneActivity extends AppCompatActivity {
 
                 updateCommands.add(object.toString());
 
-                if(preference.getCurrentIPAddr().equals(dbhandler.getSlaveIPAddr(slaveIDsInGrp.get(i)))){
+                if(ipList.contains(dbhandler.getSlaveIPAddr(slaveIDsInGrp.get(i)))){
                     new SendUDP(object.toString()).execute();
                 }
                 else {
@@ -463,6 +465,7 @@ public class SceneActivity extends AppCompatActivity {
 
     private void generateCommandsForUpdate(boolean onOff) {
         updateCommands.clear();
+        List<String> ipList=new IPDb(this).ipList();
 
         ArrayList<String> slaveIDsInGrp=new ArrayList<>();
 
@@ -513,7 +516,7 @@ public class SceneActivity extends AppCompatActivity {
 
                 updateCommands.add(object.toString());
 
-                if(preference.getCurrentIPAddr().equals(dbhandler.getSlaveIPAddr(slaveIDsInGrp.get(i)))){
+                if(ipList.contains(dbhandler.getSlaveIPAddr(slaveIDsInGrp.get(i)))){
                     new SendUDP(object.toString()).execute();
                 }
                 else {

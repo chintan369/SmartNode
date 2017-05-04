@@ -650,7 +650,7 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
                 Log.e("Command Fired :", command);
 
                 MqttMessage mqttMessage = new MqttMessage(command.getBytes());
-                mqttMessage.setRetained(true);
+                mqttMessage.setRetained(false);
                 mqttClient.publish(topic, mqttMessage);
                 //Log.e("topic msg", databaseHandler.getSlaveTopic(slaveID) + AppConstant.MQTT_PUBLISH_TOPIC + " " + mqttMessage);
                 //mqttClient.disconnect();
