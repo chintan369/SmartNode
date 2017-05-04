@@ -581,28 +581,14 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
             Log.e("command", command);
 
             if (NetworkUtility.isOnline(getApplicationContext())) {
-                if (preference.isOnline()) {
-                    try {
-                        mqttClient = new MqttClient(AppConstant.MQTT_BROKER_URL, clientId, new MemoryPersistence());
-                        MqttConnectOptions connectOptions = new MqttConnectOptions();
-                        connectOptions.setUserName(AppConstant.MQTT_USERNAME);
-                        connectOptions.setPassword(AppConstant.getPassword());
-                        mqttClient.connect(connectOptions);
 
-                        Log.e("Command Fired :", command);
+                List<String> ipList=new IPDb(this).ipList();
 
-                        MqttMessage mqttMessage = new MqttMessage(command.getBytes());
-                        mqttMessage.setRetained(true);
-                        mqttClient.publish(databaseHandler.getSlaveTopic(slaveID) + AppConstant.MQTT_PUBLISH_TOPIC, mqttMessage);
-                        Log.e("topic msg", databaseHandler.getSlaveTopic(slaveID) + AppConstant.MQTT_PUBLISH_TOPIC + " " + mqttMessage);
-                        //mqttClient.disconnect();
-
-                    } catch (MqttException e) {
-                        Log.e("Exception : ", e.getMessage());
-                        e.printStackTrace();
-                    }
-                } else {
+                if(ipList.contains(databaseHandler.getMasterIPBySlaveID(slaveID))){
                     new SendUDP(command).execute();
+                }
+                else {
+                    new SendMQTT(databaseHandler.getSlaveTopic(slaveID) + AppConstant.MQTT_PUBLISH_TOPIC,command).execute();
                 }
             } else {
                 C.Toast(getApplicationContext(), getString(R.string.nointernet));
@@ -639,6 +625,43 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
 
         AlertDialog b = dialogBuilder.create();
         b.show();*/
+    }
+
+    private class SendMQTT extends AsyncTask<Void, Void, Void>{
+
+        String topic="";
+        String command="";
+
+        public SendMQTT(String topic, String command) {
+            this.topic = topic;
+            this.command = command;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+
+            try {
+                mqttClient = new MqttClient(AppConstant.MQTT_BROKER_URL, clientId, new MemoryPersistence());
+                MqttConnectOptions connectOptions = new MqttConnectOptions();
+                connectOptions.setUserName(AppConstant.MQTT_USERNAME);
+                connectOptions.setPassword(AppConstant.getPassword());
+                mqttClient.connect(connectOptions);
+
+                Log.e("Command Fired :", command);
+
+                MqttMessage mqttMessage = new MqttMessage(command.getBytes());
+                mqttMessage.setRetained(true);
+                mqttClient.publish(topic, mqttMessage);
+                //Log.e("topic msg", databaseHandler.getSlaveTopic(slaveID) + AppConstant.MQTT_PUBLISH_TOPIC + " " + mqttMessage);
+                //mqttClient.disconnect();
+
+            } catch (MqttException e) {
+                Log.e("Exception : ", e.getMessage());
+                e.printStackTrace();
+            }
+
+            return null;
+        }
     }
 
     private void showChangeSwitchIconDialog(final int groupid, final int switchID, String switch_name) {
