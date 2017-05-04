@@ -57,6 +57,7 @@ import com.nivida.smartnode.beans.Bean_MasterGroup;
 import com.nivida.smartnode.beans.Bean_SlaveGroup;
 import com.nivida.smartnode.beans.Bean_Switch;
 import com.nivida.smartnode.model.DatabaseHandler;
+import com.nivida.smartnode.model.IPDb;
 import com.nivida.smartnode.services.AddDeviceService;
 import com.nivida.smartnode.services.AddSwitchService;
 import com.nivida.smartnode.services.UDPService;
@@ -170,12 +171,11 @@ public class AddSwitchActivity extends AppCompatActivity {
         //Log.e("enc Text",EncryptionECB.encrypt(STSCommand,encKey));
        // Log.e("Dec Text",EncryptionECB.decrypt(EncryptionECB.encrypt(STSCommand,encKey),encKey));
 
-
-        if (preference.isOnline()) {
-
-            new PublishMessage(STSCommand).execute();
-        } else {
+        List<String> ipList=new IPDb(this).ipList();
+        if (ipList.contains(databaseHandler.getMasterIPBySlaveID(slave_hex_id))) {
             new SendUDP(STSCommand, databaseHandler.getMasterIPBySlaveID(slave_hex_id)).execute();
+        } else {
+            new PublishMessage(STSCommand).execute();
         }
 
 
