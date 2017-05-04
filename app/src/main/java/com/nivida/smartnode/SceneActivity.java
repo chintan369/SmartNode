@@ -119,6 +119,8 @@ public class SceneActivity extends AppCompatActivity {
         //publishMessage=new PublishMessage();
 
         fetchIDs();
+
+        Log.e("Keval PC","Edited");
     }
 
     private void startReceiver() {
