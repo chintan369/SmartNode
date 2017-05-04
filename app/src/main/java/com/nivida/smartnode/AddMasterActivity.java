@@ -139,7 +139,7 @@ public class AddMasterActivity extends AppCompatActivity {
 
         manager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
 
-        startAddMasterService();
+        //startAddMasterService();
         Log.e("AppConst ", AppConstant.CMD_GET_MASTER_TOKEN);
 
 
@@ -765,7 +765,7 @@ public class AddMasterActivity extends AppCompatActivity {
                     preference.setIpaddress(this.ipAddress);
                     packet = new DatagramPacket(senddata, senddata.length, server_addr);
                     socket.setReuseAddress(true);
-                    //socket.setBroadcast(true);
+                    socket.setBroadcast(true);
                     socket.send(packet);
                     Log.e("Packet","Sent");
                 }

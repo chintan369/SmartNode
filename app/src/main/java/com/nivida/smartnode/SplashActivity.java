@@ -81,7 +81,7 @@ public class SplashActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
-
+        startService(new Intent(getApplicationContext(), UDPService.class));
         try {
             Process process = new ProcessBuilder()
                     .command("logcat", "-c")

@@ -190,7 +190,11 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                         Log.e("Call from", "MQTT");
                     } else {*/
 
-                        if (preference.getCurrentIPAddr().equalsIgnoreCase(databaseHandler.getMasterIPBySlaveID(slaveIds.get(i)))) {
+                    String slaveIPAddress=databaseHandler.getMasterIPBySlaveID(slaveIds.get(i));
+
+                    //Log.e("IP Addr",preference.getCurrentIPAddr()+" --> "+slaveIPAddress);
+
+                        if (preference.getCurrentIPAddr().equalsIgnoreCase(slaveIPAddress)) {
                             String mqttCommand = AppConstant.START_CMD_STATUS_OF_SLAVE + slaveIds.get(i) + AppConstant.CMD_KEY_TOKEN + databaseHandler.getSlaveToken(slaveIds.get(i)) + AppConstant.END_CMD_STATUS_OF_SLAVE;
                             new SendUDP(mqttCommand).execute();
                             Log.e("Call from", "UDP" + "\n" + mqttCommand);
@@ -894,9 +898,9 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                 socket.disconnect();
                 socket.close();
             } catch (SocketException s) {
-                //Log.e("Exception", "->" + s.getLocalizedMessage());
+                Log.e("Exception", "->" + s.getLocalizedMessage());
             } catch (IOException e) {
-                //Log.e("Exception", "->" + e.getLocalizedMessage());
+                Log.e("Exception", "->" + e.getLocalizedMessage());
             }
             return null;
         }
