@@ -35,6 +35,7 @@ import com.nivida.smartnode.app.AppPreference;
 import com.nivida.smartnode.beans.Bean_Switch;
 import com.nivida.smartnode.beans.Bean_SwitchIcons;
 import com.nivida.smartnode.model.DatabaseHandler;
+import com.nivida.smartnode.model.IPDb;
 import com.nivida.smartnode.services.AddDeviceService;
 import com.nivida.smartnode.services.AddMasterService;
 import com.nivida.smartnode.utils.CircularSeekBar;
@@ -550,7 +551,9 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
                 Log.e("Online Sts", "" + preference.isOnline());
                 Log.e("Command", command);
 
-                if(preference.getCurrentIPAddr().equals(databaseHandler.getMasterIPBySlaveID(slave_hex_id))){
+                List<String> ipList=new IPDb(context).ipList();
+
+                if(ipList.contains(databaseHandler.getMasterIPBySlaveID(slave_hex_id))){
                     switchSelection.sendUDPCommand(command);
                 }
                 else {
@@ -680,7 +683,9 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
             Log.e("Online Sts",""+preference.isOnline());
             Log.e("Command",mqttCommand);
 
-            if(preference.getCurrentIPAddr().equals(databaseHandler.getMasterIPBySlaveID(slave_hex_id))){
+            List<String> ipList=new IPDb(context).ipList();
+
+            if(ipList.contains(databaseHandler.getMasterIPBySlaveID(slave_hex_id))){
                 switchSelection.sendUDPCommand(mqttCommand);
             }
             else {

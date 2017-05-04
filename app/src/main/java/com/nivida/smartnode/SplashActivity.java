@@ -30,6 +30,7 @@ import com.nivida.smartnode.app.AppConstant;
 import com.nivida.smartnode.app.AppPreference;
 import com.nivida.smartnode.beans.Bean_SlaveGroup;
 import com.nivida.smartnode.model.DatabaseHandler;
+import com.nivida.smartnode.model.IPDb;
 import com.nivida.smartnode.services.AddDeviceService;
 import com.nivida.smartnode.services.CheckStatusService;
 import com.nivida.smartnode.services.GroupSwitchService;
@@ -81,6 +82,7 @@ public class SplashActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
+        new IPDb(this).deleteIP();
         startService(new Intent(getApplicationContext(), UDPService.class));
         try {
             Process process = new ProcessBuilder()

@@ -8,6 +8,7 @@ import android.util.Log;
 import com.nivida.smartnode.a.Status;
 import com.nivida.smartnode.app.AppPreference;
 import com.nivida.smartnode.model.DatabaseHandler;
+import com.nivida.smartnode.model.IPDb;
 
 import org.json.JSONObject;
 
@@ -32,6 +33,7 @@ public class UDPService extends IntentService {
     public static final String MESSAGEJSON = "jsondata";
     public static final String DEVICEIP = "deviceip";
     DatabaseHandler db;
+    IPDb ipDb;
 
     ArrayList<Integer> recivedSerials=new ArrayList<>();
 
@@ -49,6 +51,7 @@ public class UDPService extends IntentService {
     protected void onHandleIntent(Intent intent) {
         preference=new AppPreference(getApplicationContext());
         db=new DatabaseHandler(getApplicationContext());
+        ipDb=new IPDb(getApplicationContext());
         recivedSerials.clear();
 
         while (true){
@@ -123,6 +126,7 @@ public class UDPService extends IntentService {
 
                             Log.e("Packet :", "Received In Service");
                             Log.e("Received IP :", recvpacket.getAddress().getHostAddress());
+                            ipDb.addIP(recvpacket.getAddress().getHostAddress());
                             Log.e("UDP Data :", text);
                         }
 

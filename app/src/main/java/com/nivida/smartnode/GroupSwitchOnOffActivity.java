@@ -43,6 +43,7 @@ import com.nivida.smartnode.app.AppPreference;
 import com.nivida.smartnode.beans.Bean_SlaveGroup;
 import com.nivida.smartnode.beans.Bean_Switch;
 import com.nivida.smartnode.model.DatabaseHandler;
+import com.nivida.smartnode.model.IPDb;
 import com.nivida.smartnode.services.AddDeviceService;
 import com.nivida.smartnode.services.GroupSwitchService;
 import com.nivida.smartnode.services.UDPService;
@@ -194,7 +195,9 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
 
                     //Log.e("IP Addr",preference.getCurrentIPAddr()+" --> "+slaveIPAddress);
 
-                        if (preference.getCurrentIPAddr().equalsIgnoreCase(slaveIPAddress)) {
+                    List<String> ipList=new IPDb(this).ipList();
+
+                        if (ipList.contains(slaveIPAddress)) {
                             String mqttCommand = AppConstant.START_CMD_STATUS_OF_SLAVE + slaveIds.get(i) + AppConstant.CMD_KEY_TOKEN + databaseHandler.getSlaveToken(slaveIds.get(i)) + AppConstant.END_CMD_STATUS_OF_SLAVE;
                             new SendUDP(mqttCommand).execute();
                             Log.e("Call from", "UDP" + "\n" + mqttCommand);
@@ -754,7 +757,10 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
             Log.e("command", command);
 
             if (NetworkUtility.isOnline(getApplicationContext())) {
-                if(preference.getCurrentIPAddr().equals(databaseHandler.getMasterIPBySlaveID(slaveID))){
+
+                List<String> ipList=new IPDb(this).ipList();
+
+                if(ipList.contains(databaseHandler.getMasterIPBySlaveID(slaveID))){
                     new SendUDP(command).execute();
                 }
                 else {
