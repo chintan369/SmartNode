@@ -359,22 +359,11 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
                         new SendUDP(object.toString()).execute();
                     }
                     else {
-
+                        new GetLiveStatus(slaveIds.get(i)).execute();
                     }
 
                 } catch (JSONException e) {
                     e.printStackTrace();
-                }
-
-
-                if(preference.isOnline()){
-                    new GetLiveStatus(slaveIds.get(i)).execute();
-                    Log.e("Call from","MQTT");
-                }
-                else {
-                    String mqttCommand=AppConstant.START_CMD_STATUS_OF_SLAVE+slaveIds.get(i)+AppConstant.CMD_KEY_TOKEN+preference.getToken()+AppConstant.END_CMD_STATUS_OF_SLAVE;
-                    new SendUDP(mqttCommand).execute();
-                    Log.e("Call from","UDP");
                 }
             }
         }
