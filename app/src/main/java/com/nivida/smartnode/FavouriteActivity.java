@@ -40,6 +40,7 @@ import com.nivida.smartnode.app.AppConstant;
 import com.nivida.smartnode.app.AppPreference;
 import com.nivida.smartnode.beans.Bean_Switch;
 import com.nivida.smartnode.model.DatabaseHandler;
+import com.nivida.smartnode.model.IPDb;
 import com.nivida.smartnode.services.AddDeviceService;
 import com.nivida.smartnode.services.GroupSwitchService;
 import com.nivida.smartnode.services.UDPService;
@@ -345,7 +346,26 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
     private void getLiveSwitchStatus() {
         if(netcheck.isOnline()){
             List<String> slaveIds=databaseHandler.getSlaveHexIdsForFavourite();
+            List<String> ipList=new IPDb(this).ipList();
             for(int i=0; i<slaveIds.size() ; i++){
+
+                JSONObject object=new JSONObject();
+                try {
+                    object.put("cmd",Cmd.STS);
+                    object.put("slave",slaveIds.get(i));
+                    object.put("token",databaseHandler.getSlaveToken(slaveIds.get(i)));
+
+                    if(ipList.contains(databaseHandler.getMasterIPBySlaveID(slaveIds.get(i)))){
+                        new SendUDP(object.toString()).execute();
+                    }
+                    else {
+
+                    }
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
 
                 if(preference.isOnline()){
                     new GetLiveStatus(slaveIds.get(i)).execute();
@@ -757,10 +777,13 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
         new SendUDP(command).execute();
     }
 
-    public class GetLiveStatus extends AsyncTask {
+    public class GetLiveStatus extends AsyncTask<Void,Void,Void> {
 
         ProgressDialog loadingView;
         String slave_hex_id="";
+
+        String topic="";
+        String message="";
 
         public GetLiveStatus(String slave_hex_id){
             loadingView=new ProgressDialog(FavouriteActivity.this);
@@ -771,13 +794,18 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
             this.slave_hex_id=slave_hex_id;
         }
 
+        public GetLiveStatus(String topic, String message){
+            this.topic=topic;
+            this.message=message;
+        }
+
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
         }
 
         @Override
-        protected Object doInBackground(Object[] params) {
+        protected Void doInBackground(Void[] params) {
             try {
                 mqttClient=new MqttClient(AppConstant.MQTT_BROKER_URL,clientId,new MemoryPersistence());
                 MqttConnectOptions connectOptions=new MqttConnectOptions();
@@ -799,7 +827,7 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
         }
 
         @Override
-        protected void onPostExecute(Object o) {
+        protected void onPostExecute(Void o) {
             loadingView.dismiss();
         }
     }

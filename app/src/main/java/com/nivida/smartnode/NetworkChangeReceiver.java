@@ -9,6 +9,7 @@ import android.util.Log;
 import com.nivida.smartnode.a.C;
 import com.nivida.smartnode.app.AppConstant;
 import com.nivida.smartnode.app.AppPreference;
+import com.nivida.smartnode.model.IPDb;
 import com.nivida.smartnode.utils.NetworkUtility;
 
 import java.io.IOException;
@@ -40,6 +41,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
         }
         else if(conn==TYPE_MOBILE){
             preference.setOnline(false);
+            new IPDb(context).deleteIP();
         }
 
         //C.Toast(context,NetworkUtility.getConnectivityStatusString(context));
@@ -101,6 +103,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 
                 Log.e("Recived IP :", recvpacket.getAddress().getHostAddress());
                 preference.setIpaddress(recvpacket.getAddress().getHostAddress());
+                preference.setCurrentIPAddr(recvpacket.getAddress().getHostAddress());
 
                 text = new String(recieve_data, 0, recvpacket.getLength());
                 preference.setOnline(false);

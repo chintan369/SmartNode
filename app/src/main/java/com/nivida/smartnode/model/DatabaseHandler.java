@@ -1277,7 +1277,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         List<Bean_Switch> switchList = new ArrayList<>();
         synchronized (Lock){
             try {
-                SQLiteDatabase db = this.getReadableDatabase();
+                SQLiteDatabase db = this.getWritableDatabase();
 
                 Cursor cursor = db.query(TABLE_SWITCHES, new String[]{SWITCH_GEN_ID, SWITCH_NAME, SWITCH_IS_ON, SWITCH_IN_GRP, SWITCH_IS_FAV, IS_SWITCH,
                                 DIMMER_VALUE, SWITCH_IN_SLAVE, SWITCH_BUTTON_NUM, SWITCH_ICON, SWITCH_USERLOCK, SWITCH_TOUCHLOCK, SWITCH_HAS_SCHEDULE},

@@ -764,26 +764,7 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                     new SendUDP(command).execute();
                 }
                 else {
-                    try {
-                        mqttClient = new MqttClient(AppConstant.MQTT_BROKER_URL, clientId, new MemoryPersistence());
-                        MqttConnectOptions connectOptions = new MqttConnectOptions();
-                        connectOptions.setUserName(AppConstant.MQTT_USERNAME);
-                        connectOptions.setPassword(AppConstant.getPassword());
-                        mqttClient.connect(connectOptions);
-
-                        //Log.e("Command Fired :", command);
-
-                        MqttMessage mqttMessage = new MqttMessage(command.getBytes());
-                        mqttMessage.setQos(0);
-                        mqttMessage.setRetained(false);
-                        mqttClient.publish(databaseHandler.getSlaveTopic(slaveID) + AppConstant.MQTT_PUBLISH_TOPIC, mqttMessage);
-                        //Log.e("topic msg", preference.getTopic() + AppConstant.MQTT_PUBLISH_TOPIC + " " + mqttMessage);
-                        //mqttClient.disconnect();
-
-                    } catch (MqttException e) {
-                        Log.e("Exception : ", e.getMessage());
-                        e.printStackTrace();
-                    }
+                  new SendMQTT(databaseHandler.getSlaveTopic(slaveID) + AppConstant.MQTT_PUBLISH_TOPIC,command).execute();
                 }
             } else {
                 C.Toast(getApplicationContext(), getString(R.string.nointernet));
@@ -916,6 +897,42 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
             super.onPostExecute(text);
             //progressbar.setVisibility(View.GONE);
 
+        }
+    }
+
+    public class SendMQTT extends AsyncTask<Void, Void, Void>{
+
+        String topic="";
+        String command="";
+
+        public SendMQTT(String topic, String command) {
+            this.topic = topic;
+            this.command = command;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            try {
+                mqttClient = new MqttClient(AppConstant.MQTT_BROKER_URL, clientId, new MemoryPersistence());
+                MqttConnectOptions connectOptions = new MqttConnectOptions();
+                connectOptions.setUserName(AppConstant.MQTT_USERNAME);
+                connectOptions.setPassword(AppConstant.getPassword());
+                mqttClient.connect(connectOptions);
+
+                //Log.e("Command Fired :", command);
+
+                MqttMessage mqttMessage = new MqttMessage(command.getBytes());
+                mqttMessage.setQos(0);
+                mqttMessage.setRetained(false);
+                mqttClient.publish(topic, mqttMessage);
+                //Log.e("topic msg", preference.getTopic() + AppConstant.MQTT_PUBLISH_TOPIC + " " + mqttMessage);
+                //mqttClient.disconnect();
+
+            } catch (MqttException e) {
+                Log.e("Exception : ", e.getMessage());
+                e.printStackTrace();
+            }
+            return null;
         }
     }
 }
