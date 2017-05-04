@@ -882,7 +882,7 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                /* if (preference.getIpaddress().isEmpty() || !C.isValidIP(preference.getIpaddress())) {*/
                 server_addr = new InetSocketAddress(C.getBroadcastAddress(getApplicationContext()).getHostAddress(), 13001);
                 packet = new DatagramPacket(senddata, senddata.length, server_addr);
-                socket.setReuseAddress(true);
+                //socket.setReuseAddress(true);
                 socket.setBroadcast(true);
                 socket.send(packet);
                 Log.e("Packet", "Sent");
