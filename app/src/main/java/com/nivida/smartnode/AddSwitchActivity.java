@@ -163,22 +163,7 @@ public class AddSwitchActivity extends AppCompatActivity {
 
         String STSCommand = AppConstant.START_CMD_STATUS_OF_SLAVE + slave_hex_id + AppConstant.CMD_KEY_TOKEN + databaseHandler.getSlaveToken(slave_hex_id) + AppConstant.END_CMD_STATUS_OF_SLAVE;
 
-        JSONObject object=new JSONObject();
 
-        try{
-            object.put("cmd", Cmd.STS);
-            object.put("token",databaseHandler.getSlaveToken(slave_hex_id));
-            object.put("slave",slave_hex_id);
-
-            List<String> ipList=new IPDb(this).ipList();
-            if (ipList.contains(databaseHandler.getMasterIPBySlaveID(slave_hex_id))) {
-                new SendUDP(STSCommand, databaseHandler.getMasterIPBySlaveID(slave_hex_id)).execute();
-            } else {
-                new PublishMessage(STSCommand).execute();
-            }
-        }catch (JSONException j){
-
-        }
         //generateSwitchDataFromJSON();
         fetchid();
         txt_smartnode.setTypeface(tf);
@@ -186,6 +171,28 @@ public class AddSwitchActivity extends AppCompatActivity {
         txt_cancel.setTypeface(tf);
         txt_addtogroup.setTypeface(tf);
 
+    }
+
+    private void sendSTSCommand(){
+        JSONObject object=new JSONObject();
+
+        try{
+            object.put("cmd", Cmd.STS);
+            object.put("token",databaseHandler.getSlaveToken(slave_hex_id));
+            object.put("slave",slave_hex_id);
+
+            String slaveIP=databaseHandler.getMasterIPBySlaveID(slave_hex_id);
+
+            List<String> ipList=new IPDb(this).ipList();
+            if (ipList.contains(slaveIP)) {
+                Log.e("IP For Slave",slaveIP);
+                new SendUDP(object.toString(), slaveIP).execute();
+            } else {
+                new PublishMessage(object.toString()).execute();
+            }
+        }catch (JSONException j){
+
+        }
     }
 
     private void startAddSwitchService() {
@@ -343,6 +350,7 @@ public class AddSwitchActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         registerReceiver(receiver, new IntentFilter(AddDeviceService.NOTIFICATION));
+        sendSTSCommand();
         Log.e("Reciever :", "Registered");
     }
 
@@ -870,12 +878,13 @@ public class AddSwitchActivity extends AppCompatActivity {
                 Log.e("IP Address", "->" + this.ipAddress);
 
                 /*if (this.ipAddress.isEmpty() || !C.isValidIP(this.ipAddress)) {*/
-                    server_addr = new InetSocketAddress(C.getBroadcastAddress(getApplicationContext()).getHostAddress(), 13001);
+                    //server_addr = new InetSocketAddress(C.getBroadcastAddress(getApplicationContext()).getHostAddress(), 13001);
+                    server_addr = new InetSocketAddress(ipAddress, 13001);
                     packet = new DatagramPacket(senddata, senddata.length, server_addr);
                     socket.setReuseAddress(true);
                     socket.setBroadcast(true);
                     socket.send(packet);
-                    Log.e("Packet", "Sent with IP");
+                    //Log.e("Packet", "Sent with IP");
                 /*} else {
                     server_addr = new InetSocketAddress(preference.getIpaddress(), 13001);
                     packet = new DatagramPacket(senddata, senddata.length, server_addr);

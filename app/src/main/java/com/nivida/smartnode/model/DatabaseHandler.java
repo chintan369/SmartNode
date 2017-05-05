@@ -54,7 +54,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             R.drawable.air_conditioner_off, R.drawable.stepper_motor_off, R.drawable.fan_off};
 
     //Define Database version
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     // Put your Database name
     private static final String DATABASE_NAME = Environment.getExternalStorageDirectory() + "/Smartnode/" + "smartnodedb.db";

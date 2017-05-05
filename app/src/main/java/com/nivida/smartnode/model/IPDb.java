@@ -17,7 +17,7 @@ import java.util.List;
 
 public class IPDb extends SQLiteOpenHelper {
     public static final String DB_NAME= Environment.getExternalStorageDirectory()+"/SmartNode/"+"ipdb.db";
-    public static final int DB_VER=1;
+    public static final int DB_VER=2;
 
     public static final String TABLE_IP="ipaddr";
 
