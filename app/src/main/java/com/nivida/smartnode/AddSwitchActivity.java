@@ -46,6 +46,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.nivida.smartnode.a.C;
+import com.nivida.smartnode.a.Cmd;
 import com.nivida.smartnode.a.Status;
 import com.nivida.smartnode.adapter.CustomAdapter;
 import com.nivida.smartnode.adapter.DimmerListAdapter;
@@ -162,27 +163,23 @@ public class AddSwitchActivity extends AppCompatActivity {
 
         String STSCommand = AppConstant.START_CMD_STATUS_OF_SLAVE + slave_hex_id + AppConstant.CMD_KEY_TOKEN + databaseHandler.getSlaveToken(slave_hex_id) + AppConstant.END_CMD_STATUS_OF_SLAVE;
 
-        //Log.e("STS Command", STSCommand);
+        JSONObject object=new JSONObject();
 
-        String encKey = databaseHandler.getEncryptionKeyBySlaveID(slave_hex_id);
+        try{
+            object.put("cmd", Cmd.STS);
+            object.put("token",databaseHandler.getSlaveToken(slave_hex_id));
+            object.put("slave",slave_hex_id);
 
-        //Log.e("encKey Str",EncryptionECB.convertHexToString(encKey));
+            List<String> ipList=new IPDb(this).ipList();
+            if (ipList.contains(databaseHandler.getMasterIPBySlaveID(slave_hex_id))) {
+                new SendUDP(STSCommand, databaseHandler.getMasterIPBySlaveID(slave_hex_id)).execute();
+            } else {
+                new PublishMessage(STSCommand).execute();
+            }
+        }catch (JSONException j){
 
-        //Log.e("enc Text",EncryptionECB.encrypt(STSCommand,encKey));
-       // Log.e("Dec Text",EncryptionECB.decrypt(EncryptionECB.encrypt(STSCommand,encKey),encKey));
-
-        List<String> ipList=new IPDb(this).ipList();
-        if (ipList.contains(databaseHandler.getMasterIPBySlaveID(slave_hex_id))) {
-            new SendUDP(STSCommand, databaseHandler.getMasterIPBySlaveID(slave_hex_id)).execute();
-        } else {
-            new PublishMessage(STSCommand).execute();
         }
-
-
-        generateSwitchDataFromJSON();
-        //publishCommandForSwitches(slave_hex_id);
-
-        //dimmerListAdapter=new DimmerListAdapter(getApplicationContext(),databaseHandler.getAllUnusedDimmers());
+        //generateSwitchDataFromJSON();
         fetchid();
         txt_smartnode.setTypeface(tf);
         txt_switchlisting.setTypeface(tf);

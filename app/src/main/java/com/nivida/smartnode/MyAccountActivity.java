@@ -70,6 +70,8 @@ public class MyAccountActivity extends AppCompatActivity {
     String subscribedMessage = "";
     BroadcastReceiver receiver;
 
+    DatabaseHandler db;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,6 +83,7 @@ public class MyAccountActivity extends AppCompatActivity {
         masterID = intent.getStringExtra("masterID");
         userType = intent.getStringExtra("userType");
 
+        db=new DatabaseHandler(this);
         preference = new AppPreference(getApplicationContext());
 
         setUpToolbar();
@@ -174,7 +177,7 @@ public class MyAccountActivity extends AppCompatActivity {
                         object.put("slave", masterID);
                         object.put("rename_user", username);
                         object.put("pin", userPIN);
-                        object.put("token", preference.getToken());
+                        object.put("token", db.getSlaveToken(masterID));
                     } catch (Exception e) {
                         Log.e("Exception", e.getMessage());
                     }
@@ -204,7 +207,7 @@ public class MyAccountActivity extends AppCompatActivity {
                         object.put("slave", masterID);
                         object.put("old", oldUserPIN);
                         object.put("new", newUserPIN);
-                        object.put("token", preference.getToken());
+                        object.put("token", db.getSlaveToken(masterID));
 
                         sendChangePINCommand(object.toString());
 
