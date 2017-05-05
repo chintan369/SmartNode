@@ -129,22 +129,6 @@ public class UDPService extends IntentService {
                             ipDb.addIP(recvpacket.getAddress().getHostAddress());
                             Log.e("UDP Data :", text);
                         }
-
-                        /*if(!recivedSerials.contains(serialnum)){
-                            recivedSerials.add(serialnum);
-                            serial=serialnum;
-                            currentIP=recvpacket.getAddress().getHostAddress();
-                            preference.setCurrentIPAddr(currentIP);
-                            if(object.has("slave")){
-                                String slaveID=object.getString("slave");
-
-                            }
-
-
-                            Log.e("Packet :", "Received In Service");
-                            Log.e("Received IP :", recvpacket.getAddress().getHostAddress());
-                            Log.e("UDP Data :", text);
-                        }*/
                     }catch (Exception e){
                         Log.e("Exception",e.getMessage());
                     }
