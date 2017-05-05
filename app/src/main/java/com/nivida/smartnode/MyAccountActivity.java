@@ -57,17 +57,17 @@ public class MyAccountActivity extends AppCompatActivity {
     Button btn_changeUsername, btn_changePIN;
 
     LinearLayout layout_chnageUsername, layout_chnageUserPIN;
-    Button btn_saveUserPIN,btn_saveUsername;
+    Button btn_saveUserPIN, btn_saveUsername;
     EditText edt_username, edt_userPIN, edt_olduserPIN, edt_newuserPIN;
 
     AppPreference preference;
 
-    String masterID="";
-    String userType="";
+    String masterID = "";
+    String userType = "";
 
     MqttClient mqttClient;
-    String clientId="";
-    String subscribedMessage="";
+    String clientId = "";
+    String subscribedMessage = "";
     BroadcastReceiver receiver;
 
     @Override
@@ -75,13 +75,13 @@ public class MyAccountActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my_account);
 
-        clientId=MqttClient.generateClientId();
+        clientId = MqttClient.generateClientId();
 
-        Intent intent=getIntent();
-        masterID=intent.getStringExtra("masterID");
-        userType=intent.getStringExtra("userType");
+        Intent intent = getIntent();
+        masterID = intent.getStringExtra("masterID");
+        userType = intent.getStringExtra("userType");
 
-        preference=new AppPreference(getApplicationContext());
+        preference = new AppPreference(getApplicationContext());
 
         setUpToolbar();
         startReceiver();
@@ -108,24 +108,24 @@ public class MyAccountActivity extends AppCompatActivity {
     }
 
     private void fetchIDs() {
-        btn_changeUsername=(Button) findViewById(R.id.btn_changeUsername);
-        btn_changePIN=(Button) findViewById(R.id.btn_changePIN);
-        btn_saveUserPIN=(Button) findViewById(R.id.btn_saveUserPIN);
-        btn_saveUsername=(Button) findViewById(R.id.btn_saveUsername);
+        btn_changeUsername = (Button) findViewById(R.id.btn_changeUsername);
+        btn_changePIN = (Button) findViewById(R.id.btn_changePIN);
+        btn_saveUserPIN = (Button) findViewById(R.id.btn_saveUserPIN);
+        btn_saveUsername = (Button) findViewById(R.id.btn_saveUsername);
 
-        edt_username=(EditText) findViewById(R.id.edt_username);
-        edt_userPIN=(EditText) findViewById(R.id.edt_userPIN);
-        edt_olduserPIN=(EditText) findViewById(R.id.edt_olduserPIN);
-        edt_newuserPIN=(EditText) findViewById(R.id.edt_newuserPIN);
+        edt_username = (EditText) findViewById(R.id.edt_username);
+        edt_userPIN = (EditText) findViewById(R.id.edt_userPIN);
+        edt_olduserPIN = (EditText) findViewById(R.id.edt_olduserPIN);
+        edt_newuserPIN = (EditText) findViewById(R.id.edt_newuserPIN);
 
-        layout_chnageUsername=(LinearLayout) findViewById(R.id.layout_chnageUsername);
-        layout_chnageUserPIN=(LinearLayout) findViewById(R.id.layout_chnageUserPIN);
+        layout_chnageUsername = (LinearLayout) findViewById(R.id.layout_chnageUsername);
+        layout_chnageUserPIN = (LinearLayout) findViewById(R.id.layout_chnageUserPIN);
 
         btn_changeUsername.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                C.Toast(getApplicationContext(),"This Feature will Available Soon");
+                C.Toast(getApplicationContext(), "This Feature will Available Soon");
 
                 /*if(layout_chnageUsername.getVisibility()==View.VISIBLE){
                     layout_chnageUsername.setVisibility(GONE);
@@ -141,11 +141,10 @@ public class MyAccountActivity extends AppCompatActivity {
         btn_changePIN.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(layout_chnageUserPIN.getVisibility()==View.VISIBLE){
+                if (layout_chnageUserPIN.getVisibility() == View.VISIBLE) {
                     layout_chnageUserPIN.setVisibility(GONE);
                     btn_changeUsername.setVisibility(View.VISIBLE);
-                }
-                else {
+                } else {
                     layout_chnageUserPIN.setVisibility(View.VISIBLE);
                     btn_changeUsername.setVisibility(GONE);
                 }
@@ -155,32 +154,29 @@ public class MyAccountActivity extends AppCompatActivity {
         btn_saveUsername.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String username=edt_username.getText().toString().trim();
-                String userPIN=edt_userPIN.getText().toString().trim();
+                String username = edt_username.getText().toString().trim();
+                String userPIN = edt_userPIN.getText().toString().trim();
 
-                if(username.isEmpty()){
-                    C.Toast(getApplicationContext(),"Please Enter Username");
-                }
-                else if(userPIN.isEmpty() || userPIN.length()<4){
-                    C.Toast(getApplicationContext(),"Please Enter your 4 Digit PIN");
-                }
-                else {
-                    JSONObject object=new JSONObject();
+                if (username.isEmpty()) {
+                    C.Toast(getApplicationContext(), "Please Enter Username");
+                } else if (userPIN.isEmpty() || userPIN.length() < 4) {
+                    C.Toast(getApplicationContext(), "Please Enter your 4 Digit PIN");
+                } else {
+                    JSONObject object = new JSONObject();
 
-                    try{
-                        if(userType.equalsIgnoreCase(Cmd.LIN)){
-                            object.put("cmd",Cmd.USR);
-                        }
-                        else {
-                            object.put("cmd",Cmd.UNM);
+                    try {
+                        if (userType.equalsIgnoreCase(Cmd.LIN)) {
+                            object.put("cmd", Cmd.USR);
+                        } else {
+                            object.put("cmd", Cmd.UNM);
                         }
 
-                        object.put("slave",masterID);
-                        object.put("rename_user",username);
-                        object.put("pin",userPIN);
-                        object.put("token",preference.getToken());
-                    }catch (Exception e){
-                        Log.e("Exception",e.getMessage());
+                        object.put("slave", masterID);
+                        object.put("rename_user", username);
+                        object.put("pin", userPIN);
+                        object.put("token", preference.getToken());
+                    } catch (Exception e) {
+                        Log.e("Exception", e.getMessage());
                     }
                 }
             }
@@ -189,33 +185,31 @@ public class MyAccountActivity extends AppCompatActivity {
         btn_saveUserPIN.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String oldUserPIN=edt_olduserPIN.getText().toString().trim();
-                String newUserPIN=edt_newuserPIN.getText().toString().trim();
+                String oldUserPIN = edt_olduserPIN.getText().toString().trim();
+                String newUserPIN = edt_newuserPIN.getText().toString().trim();
 
-                if(oldUserPIN.isEmpty() || oldUserPIN.length()<4){
-                    C.Toast(getApplicationContext(),"Please Enter 4 Digit Old PIN ");
-                }
-                else if(newUserPIN.isEmpty() || newUserPIN.length()<4){
-                    C.Toast(getApplicationContext(),"Please Enter 4 Digit New PIN");
-                }
-                else {
-                    JSONObject object=new JSONObject();
+                if (oldUserPIN.isEmpty() || oldUserPIN.length() < 4) {
+                    C.Toast(getApplicationContext(), "Please Enter 4 Digit Old PIN ");
+                } else if (newUserPIN.isEmpty() || newUserPIN.length() < 4) {
+                    C.Toast(getApplicationContext(), "Please Enter 4 Digit New PIN");
+                } else {
+                    JSONObject object = new JSONObject();
 
-                    try{
-                        if(userType.equalsIgnoreCase(Cmd.LIN))
-                            object.put("cmd",Cmd.PIN);
+                    try {
+                        if (userType.equalsIgnoreCase(Cmd.LIN))
+                            object.put("cmd", Cmd.PIN);
                         else
-                            object.put("cmd",Cmd.UPI);
+                            object.put("cmd", Cmd.UPI);
 
-                        object.put("slave",masterID);
-                        object.put("old",oldUserPIN);
-                        object.put("new",newUserPIN);
-                        object.put("token",preference.getToken());
+                        object.put("slave", masterID);
+                        object.put("old", oldUserPIN);
+                        object.put("new", newUserPIN);
+                        object.put("token", preference.getToken());
 
                         sendChangePINCommand(object.toString());
 
-                    }catch (Exception e){
-                        Log.e("Exception",e.getMessage());
+                    } catch (Exception e) {
+                        Log.e("Exception", e.getMessage());
                     }
                 }
             }
@@ -223,30 +217,26 @@ public class MyAccountActivity extends AppCompatActivity {
     }
 
     private void startReceiver() {
-        receiver=new BroadcastReceiver() {
+        receiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                Bundle bundle=intent.getExtras();
+                Bundle bundle = intent.getExtras();
 
-                if(bundle!=null){
+                if (bundle != null) {
 
-                    subscribedMessage=bundle.getString(AddDeviceService.MESSAGETOSEND);
-                    String UDPMessage=bundle.getString(UDPService.MESSAGEJSON);
+                    subscribedMessage = bundle.getString(AddDeviceService.MESSAGETOSEND);
+                    String UDPMessage = bundle.getString(UDPService.MESSAGEJSON);
 
-                    Log.e("JSOn fr group ", ""+subscribedMessage);
-                    if(UDPMessage!=null){
+                    Log.e("JSOn fr group ", "" + subscribedMessage);
+                    if (UDPMessage != null) {
                         handleCommands(UDPMessage);
-                    }
-                    else if(subscribedMessage==null){
+                    } else if (subscribedMessage == null) {
                         Log.e("JSON Message", "Null");
-                    }
-                    else if(subscribedMessage.equals("")){
+                    } else if (subscribedMessage.equals("")) {
                         Toast.makeText(getApplicationContext(), "Sorry, Device is not ready yet.", Toast.LENGTH_SHORT).show();
-                    }
-                    else if(subscribedMessage.contains("master")){
-                        Log.e("From Grp actvty ","Device Started...");
-                    }
-                    else {
+                    } else if (subscribedMessage.contains("master")) {
+                        Log.e("From Grp actvty ", "Device Started...");
+                    } else {
                         handleCommands(subscribedMessage);
                     }
                 }
@@ -255,56 +245,51 @@ public class MyAccountActivity extends AppCompatActivity {
     }
 
     private void handleCommands(String message) {
-        try{
-            JSONObject object=new JSONObject(message);
-            String cmd=object.getString("cmd");
-            if(cmd.equalsIgnoreCase(Cmd.PIN)){
-                if(object.has("status") && object.getString("status").equalsIgnoreCase(Status.SUCCESS)){
-                    C.Toast(getApplicationContext(),"Your PIN Changed Successfully.");
+        try {
+            JSONObject object = new JSONObject(message);
+            String cmd = object.getString("cmd");
+            if (cmd.equalsIgnoreCase(Cmd.PIN)) {
+                if (object.has("status") && object.getString("status").equalsIgnoreCase(Status.SUCCESS)) {
+                    C.Toast(getApplicationContext(), "Your PIN Changed Successfully.");
+                } else {
+                    C.Toast(getApplicationContext(), "Sorry, Some Error Occured\nPlease Try Again Later!");
                 }
-                else {
-                    C.Toast(getApplicationContext(),"Sorry, Some Error Occured\nPlease Try Again Later!");
-                }
-            }
-            else if(cmd.equalsIgnoreCase(Cmd.UPI)){
-                if(object.has("status") && object.getString("status").equalsIgnoreCase(Status.SUCCESS)){
-                    C.Toast(getApplicationContext(),"Your PIN Changed Successfully.");
-                }
-                else {
-                    C.Toast(getApplicationContext(),"Either you enetred incorrect Old PIN or might be device is offline.\nPlease Try Again Later!");
+            } else if (cmd.equalsIgnoreCase(Cmd.UPI)) {
+                if (object.has("status") && object.getString("status").equalsIgnoreCase(Status.SUCCESS)) {
+                    C.Toast(getApplicationContext(), "Your PIN Changed Successfully.");
+                } else {
+                    C.Toast(getApplicationContext(), "Either you enetred incorrect Old PIN or might be device is offline.\nPlease Try Again Later!");
                 }
             }
-        }catch (Exception e){
-            Log.e("Exception",e.getMessage());
+        } catch (Exception e) {
+            Log.e("Exception", e.getMessage());
         }
     }
 
     private void sendChangePINCommand(String command) {
-        if(NetworkUtility.isOnline(getApplicationContext())){
+        if (NetworkUtility.isOnline(getApplicationContext())) {
 
-            List<String> ipList=new IPDb(this).ipList();
-            DatabaseHandler db=new DatabaseHandler(this);
+            List<String> ipList = new IPDb(this).ipList();
+            DatabaseHandler db = new DatabaseHandler(this);
             edt_newuserPIN.setText("");
             edt_olduserPIN.setText("");
-            if(ipList.contains(db.getMasterIPBySlaveID(masterID))){
+            if (ipList.contains(db.getMasterIPBySlaveID(masterID))) {
                 new SendUDP(command).execute();
-            }
-            else {
-                new SendMQTT(db.getSlaveTopic(masterID)+AppConstant.MQTT_PUBLISH_TOPIC,command).execute();
+            } else {
+                new SendMQTT(db.getSlaveTopic(masterID) + AppConstant.MQTT_PUBLISH_TOPIC, command).execute();
             }
 
-            C.Toast(getApplicationContext(),"Please Wait while Updating your PIN...");
-        }
-        else {
+            C.Toast(getApplicationContext(), "Please Wait while Updating your PIN...");
+        } else {
             Toast.makeText(getApplicationContext(), "No internet connection found,\nplease check your connection first",
                     Toast.LENGTH_SHORT).show();
         }
     }
 
-    private class SendMQTT extends AsyncTask<Void, Void, Void>{
+    private class SendMQTT extends AsyncTask<Void, Void, Void> {
 
-        String topic="";
-        String command="";
+        String topic = "";
+        String command = "";
 
         public SendMQTT(String topic, String command) {
             this.topic = topic;
@@ -313,23 +298,23 @@ public class MyAccountActivity extends AppCompatActivity {
 
         @Override
         protected Void doInBackground(Void... params) {
-            try{
-                mqttClient=new MqttClient(AppConstant.MQTT_BROKER_URL,clientId,new MemoryPersistence());
-                MqttConnectOptions connectOptions=new MqttConnectOptions();
+            try {
+                mqttClient = new MqttClient(AppConstant.MQTT_BROKER_URL, clientId, new MemoryPersistence());
+                MqttConnectOptions connectOptions = new MqttConnectOptions();
                 connectOptions.setUserName(AppConstant.MQTT_USERNAME);
                 connectOptions.setPassword(AppConstant.getPassword());
                 mqttClient.connect(connectOptions);
 
-                Log.e("Command Fired UPD :",command);
+                Log.e("Command Fired UPD :", command);
 
-                MqttMessage mqttMessage=new MqttMessage(command.getBytes());
+                MqttMessage mqttMessage = new MqttMessage(command.getBytes());
                 mqttMessage.setRetained(true);
-                mqttClient.publish(topic,mqttMessage);
+                mqttClient.publish(topic, mqttMessage);
                 //Log.e("topic msg",preference.getTopic()+AppConstant.MQTT_PUBLISH_TOPIC+" "+mqttMessage);
 
 
             } catch (MqttException e) {
-                Log.e("Exception : ",e.getMessage());
+                Log.e("Exception : ", e.getMessage());
                 e.printStackTrace();
             }
             return null;
@@ -339,26 +324,26 @@ public class MyAccountActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        registerReceiver(receiver,new IntentFilter(GroupSwitchService.NOTIFICATION));
-        Log.e("Reciever :","Registered");
+        registerReceiver(receiver, new IntentFilter(GroupSwitchService.NOTIFICATION));
+        Log.e("Reciever :", "Registered");
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         unregisterReceiver(receiver);
-        Log.e("Reciever :","UnRegistered");
+        Log.e("Reciever :", "UnRegistered");
     }
 
     private class SendUDP extends AsyncTask<Void, Void, String> {
         String message;
         String masterName;
         String type;
-        boolean showMaster=true;
+        boolean showMaster = true;
 
         public SendUDP(String message) {
             this.message = message;
-            showMaster=true;
+            showMaster = true;
         }
 
         @Override
@@ -372,15 +357,13 @@ public class MyAccountActivity extends AppCompatActivity {
                 InetSocketAddress server_addr;
                 DatagramPacket packet;
 
-                Log.e("IP Address Saved","->"+preference.getIpaddress());
-
                 /*if (preference.getIpaddress().isEmpty() || !C.isValidIP(preference.getIpaddress())) {*/
-                    server_addr = new InetSocketAddress(C.getBroadcastAddress(getApplicationContext()).getHostAddress(), 13001);
-                    packet = new DatagramPacket(senddata, senddata.length, server_addr);
-                    socket.setReuseAddress(true);
-                    socket.setBroadcast(true);
-                    socket.send(packet);
-                    Log.e("Packet","Sent");
+                server_addr = new InetSocketAddress(C.getBroadcastAddress(getApplicationContext()).getHostAddress(), 13001);
+                packet = new DatagramPacket(senddata, senddata.length, server_addr);
+                socket.setReuseAddress(true);
+                socket.setBroadcast(true);
+                socket.send(packet);
+                Log.e("Packet", "Sent");
                 /*} else {
                     server_addr = new InetSocketAddress(preference.getIpaddress(), 13001);
                     packet = new DatagramPacket(senddata, senddata.length, server_addr);
@@ -403,7 +386,7 @@ public class MyAccountActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        Intent intent=new Intent(getApplicationContext(),SelectDeviceForChangeAccountActivity.class);
+        Intent intent = new Intent(getApplicationContext(), SelectDeviceForChangeAccountActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(intent);
         finish();
