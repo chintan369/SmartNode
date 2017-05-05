@@ -165,7 +165,7 @@ public class SceneActivity extends AppCompatActivity {
             String cmd=object.getString("cmd");
             int serialNum=object.getInt("serial");
 
-            if(cmd.equalsIgnoreCase(Cmd.SET)){
+            /*if(cmd.equalsIgnoreCase(Cmd.SET)){
                 fireTime++;
                 if(fireTime==switchList.size()){
                     if(dialog.isShowing())
@@ -175,7 +175,8 @@ public class SceneActivity extends AppCompatActivity {
                     fireTime=0;
                 }
             }
-            else if(cmd.equals(Cmd.STS) && updateCommands.size()>0){
+            else */
+            if(cmd.equals(Cmd.STS) && updateCommands.size()>0){
                fireTime++;
                if(fireTime==dbhandler.getSlaveHexIdsForGroup(groupid).size()){
                    updateCommands.clear();
