@@ -126,6 +126,8 @@ public class AddMasterActivity extends AppCompatActivity {
 
     ConnectivityManager manager;
 
+    boolean isCalledToShowMST=false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -194,12 +196,19 @@ public class AddMasterActivity extends AppCompatActivity {
                                 String deviceID=String.valueOf(object.getInt("device_id"));
 
                                 if(!master_deviceIDs.contains(deviceID)){
+
+                                    Log.e("Master Device ID","New One");
+
                                     master_names.add(object.getString("m_name"));
                                     master_ips.add(ipAddress);
                                     master_deviceIDs.add(deviceID);
                                     spn_adp.notifyDataSetChanged();
-                                    if(b==null || !b.isShowing())
+                                }
+                                if(b==null || !b.isShowing()){
+                                    if(isCalledToShowMST)
+                                    {
                                         showDialog(object.getString("type"));
+                                    }
                                 }
 
                                 //master_names.clear();
@@ -208,7 +217,7 @@ public class AddMasterActivity extends AppCompatActivity {
                             else if(command.equalsIgnoreCase(Cmd.LIN) && !b.isShowing()){
                                 String status=object.getString("status");
                                 Log.e("Status",status+"->");
-                                if(status.equalsIgnoreCase(Status.SUCCESS)){
+                                if(status.equalsIgnoreCase(Status.SUCCESS) && !selectedMasterName.isEmpty()){
                                     Bean_Master master=new Bean_Master();
                                     master.setId(databaseHandler.getLastIDForMaster()+1);
                                     master.setName(selectedMasterName);
@@ -246,6 +255,7 @@ public class AddMasterActivity extends AppCompatActivity {
                                             databaseHandler.addSlaveItem(beanSlaveGroup);
                                         }
                                         C.Toast(getApplicationContext(),"Device Added Successfully");
+                                        selectedMasterName="";
                                     }
                                     masterDeviceAdapter.notifyDataSetChanged();
                                     if(databaseHandler.getMastersCounts()>1){
@@ -260,7 +270,7 @@ public class AddMasterActivity extends AppCompatActivity {
                             else if(command.equalsIgnoreCase(Cmd.ULN) && !b.isShowing()){
                                 String status=object.getString("status");
                                 Log.e("Status",status+"->");
-                                if(status.equalsIgnoreCase(Status.SUCCESS)){
+                                if(status.equalsIgnoreCase(Status.SUCCESS) && !selectedMasterName.isEmpty()){
                                     Bean_Master master=new Bean_Master();
                                     master.setId(databaseHandler.getLastIDForMaster()+1);
                                     master.setName(selectedMasterName);
@@ -300,6 +310,7 @@ public class AddMasterActivity extends AppCompatActivity {
                                             databaseHandler.addSlaveItem(beanSlaveGroup);
                                         }
                                         C.Toast(getApplicationContext(),"Device Added Successfully");
+                                        selectedMasterName="";
                                     }
                                     masterDeviceAdapter.notifyDataSetChanged();
                                     if(databaseHandler.getMastersCounts()>1){
@@ -843,6 +854,7 @@ public class AddMasterActivity extends AppCompatActivity {
             if(manager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).isConnectedOrConnecting()){
                 if(!dialog.isShowing())
                     dialog.show();
+                isCalledToShowMST=true;
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
@@ -870,8 +882,10 @@ public class AddMasterActivity extends AppCompatActivity {
     }
 
     private void showAddNewSlaveDialog(final String type) {
+        isCalledToShowMST=false;
         isDialogShowing=true;
         dialogBuilder = new AlertDialog.Builder(this);
+        dialogBuilder.setCancelable(false);
         LayoutInflater inflater = this.getLayoutInflater();
         final View dialogView = inflater.inflate(R.layout.custom_dialog_addnewmaster, null);
         dialogBuilder.setView(dialogView);
