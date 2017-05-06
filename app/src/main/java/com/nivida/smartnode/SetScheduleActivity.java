@@ -29,6 +29,7 @@ import com.nivida.smartnode.app.AppPreference;
 import com.nivida.smartnode.beans.Bean_ScheduleItem;
 import com.nivida.smartnode.beans.Bean_Switch;
 import com.nivida.smartnode.model.DatabaseHandler;
+import com.nivida.smartnode.model.IPDb;
 import com.nivida.smartnode.services.AddDeviceService;
 import com.nivida.smartnode.services.AddMasterService;
 import com.nivida.smartnode.services.UDPService;
@@ -220,6 +221,10 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
                             C.Toast(getApplicationContext(), "No Slot Available To Create Schedule");
                         }
                     } else {
+
+                        List<String> ipList=new IPDb(this).ipList();
+                        boolean isOnLAN=ipList.contains(databaseHandler.getMasterIPBySlaveID(slaveHexID));
+
                         for (int i = 0; i < availableSlots.length(); i+=2) {
                             scheduleList.removeFooterView(footerViewLoaidng);
 
@@ -245,10 +250,10 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
 
                                     Log.e("Command Get", command.toString());
 
-                                    if (preference.isOnline() || (!preference.isOnline() && !preference.getCurrentIPAddr().equalsIgnoreCase(databaseHandler.getMasterIPBySlaveID(databaseHandler.getSlaveHexIDForSwitch(switchID)))))
-                                        new PublishMessage(command.toString(), databaseHandler.getSlaveHexIDForSwitch(switchID)).execute();
-                                    else
+                                    if (isOnLAN)
                                         new SendUDP(command.toString()).execute();
+                                    else
+                                        new PublishMessage(command.toString(), slaveHexID).execute();
 
                                     forAddingNewItem = true;
 
