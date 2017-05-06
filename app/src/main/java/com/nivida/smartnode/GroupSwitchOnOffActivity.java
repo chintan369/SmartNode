@@ -171,7 +171,13 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
     private void getLiveSwitchStatus() {
         if (netcheck.isOnline()) {
 
-            dialog.show();
+            try{
+                dialog.show();
+            }
+            catch (Exception e){
+                Log.e("Window","Leaked");
+            }
+
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {

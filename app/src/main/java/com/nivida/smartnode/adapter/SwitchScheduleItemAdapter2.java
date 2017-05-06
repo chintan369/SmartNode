@@ -163,6 +163,8 @@ public class SwitchScheduleItemAdapter2 extends BaseAdapter {
             scheduleItemList.get(position).setSingleDay(getCurrentDay()-1,"Y");
         }
 
+        Log.e("Slot Num",scheduleItemList.get(position).getSlot_num());
+
 
 
         if(databaseHandler.isSwitch(scheduleItem.getSwitch_btn_num(), scheduleItem.getSlave_id())){

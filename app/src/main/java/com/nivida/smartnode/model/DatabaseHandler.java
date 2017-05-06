@@ -2862,7 +2862,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             try{
                 SQLiteDatabase db=this.getWritableDatabase();
 
-                db.delete(TABLE_SCHEDULE,SCH_SW_BTN_NUM+"=? AND "+SCH_SLAVE_ID+"=?",new String[]{slaveHexID,switchButtonNumber});
+                ContentValues cv=new ContentValues();
+                cv.put(SCH_SLOT_NUM, "26");
+                cv.put(SCH_IS_ENABLE, 0);
+
+                db.update(TABLE_SCHEDULE, cv, SCH_SW_BTN_NUM + "=? AND " + SCH_SLAVE_ID + "=?", new String[]{switchButtonNumber, slaveHexID});
 
                 db.close();
             }

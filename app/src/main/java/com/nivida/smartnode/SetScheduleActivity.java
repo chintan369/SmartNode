@@ -270,6 +270,7 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
 
                         if(!isFoundAny){
                             databaseHandler.setSwitchHasNoSchedule(slaveHexID,switchButtonNumber);
+                            adapter.notifyDataSetChanged();
                         }
                     }
                 } else if (tag.equalsIgnoreCase("I")) {
