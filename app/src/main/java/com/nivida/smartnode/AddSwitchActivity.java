@@ -137,6 +137,8 @@ public class AddSwitchActivity extends AppCompatActivity {
     boolean isUserCredentialTrue = false;
     NetworkUtility netcheck;
 
+    boolean isSwitchesListed=false;
+
     int key[] = {0x01, 0x01, 0x01, 0xAA, 0xAA, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01};
     char[] keys={1,1,1,'A','A',1};
 
@@ -223,12 +225,20 @@ public class AddSwitchActivity extends AppCompatActivity {
             try {
                 JSONObject jsonDevice = new JSONObject(subscribedMessage);
                 String cmd = jsonDevice.getString("cmd");
-                if (cmd.equals("STS")) {
+                if (cmd.equals("STS") && !isSwitchesListed) {
 
                     if (jsonDevice.has("status") && jsonDevice.getString("status").contains(Status.ERROR)) {
                         C.Toast(getApplicationContext(), "Please Login Again Due to Some Problem Occured...");
                         return;
                     }
+
+                    String slaveIDIn=jsonDevice.getString("slave");
+
+                    if(!slaveIDIn.equals(slave_hex_id)){
+                        return;
+                    }
+
+                    isSwitchesListed=true;
 
                     String buttons = jsonDevice.getString("button");
                     button_list.clear();
