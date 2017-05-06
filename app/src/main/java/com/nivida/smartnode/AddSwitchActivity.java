@@ -868,6 +868,8 @@ public class AddSwitchActivity extends AppCompatActivity {
         protected String doInBackground(Void[] params) {
 
             try {
+
+                Log.e("Message",message);
                 DatagramSocket socket = new DatagramSocket(13001);
                 byte[] senddata = new byte[message.length()];
                 senddata = message.getBytes();
@@ -877,14 +879,16 @@ public class AddSwitchActivity extends AppCompatActivity {
 
                 Log.e("IP Address", "->" + this.ipAddress);
 
+                Log.e("Brodacast IP",C.getBroadcastAddress(getApplicationContext()).getHostAddress());
+
                 /*if (this.ipAddress.isEmpty() || !C.isValidIP(this.ipAddress)) {*/
-                    //server_addr = new InetSocketAddress(C.getBroadcastAddress(getApplicationContext()).getHostAddress(), 13001);
-                    server_addr = new InetSocketAddress(ipAddress, 13001);
+                    server_addr = new InetSocketAddress(C.getBroadcastAddress(getApplicationContext()).getHostAddress(), 13001);
+                    //server_addr = new InetSocketAddress(ipAddress, 13001);
                     packet = new DatagramPacket(senddata, senddata.length, server_addr);
                     socket.setReuseAddress(true);
                     socket.setBroadcast(true);
                     socket.send(packet);
-                    //Log.e("Packet", "Sent with IP");
+                    Log.e("Packet", "Sent with IP");
                 /*} else {
                     server_addr = new InetSocketAddress(preference.getIpaddress(), 13001);
                     packet = new DatagramPacket(senddata, senddata.length, server_addr);
