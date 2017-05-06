@@ -40,6 +40,7 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
+import org.eclipse.paho.client.mqttv3.util.Strings;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -333,47 +334,53 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
 
     private void setDeviceTimeOnServer(String mobileHour, String mobileMinute, final String mobileDate, final String slave) {
 
-        builder.setTitle("Change Device Time");
-        builder.setMessage("Your device time is inaccurate. Do you want to change it as in your mobile ?");
-        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                try {
-                    JSONObject object = new JSONObject();
-                    object.put("cmd", Cmd.SCH);
-                    object.put("slave", slave);
-                    object.put("token", databaseHandler.getSlaveToken(slave));
+        if(dialog==null || !dialog.isShowing()){
+            builder.setTitle("Change Device Time");
+            builder.setMessage("Your device time is inaccurate. Do you want to change it as in your mobile ?");
+            builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    try {
+                        JSONObject object = new JSONObject();
+                        object.put("cmd", Cmd.SCH);
+                        object.put("slave", slaveHexID);
+                        object.put("token", slaveToken);
 
-                    String data = "T-";
-                    data += new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date()) + "-";
-                    data += Calendar.getInstance().get(Calendar.DAY_OF_WEEK) + "-";
-                    data += new SimpleDateFormat("dd/MM/yy", Locale.getDefault()).format(new Date());
+                        String data = "T-";
+                        data += new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date()) + "-";
+                        data += Calendar.getInstance().get(Calendar.DAY_OF_WEEK) + "-";
+                        data += new SimpleDateFormat("dd/MM/yy", Locale.getDefault()).format(new Date());
 
-                    object.put("data", data);
+                        object.put("data", data);
 
-                    String command = object.toString();
-                    Log.e("command", command);
+                        String command = object.toString();
+                        Log.e("command", command);
 
-                    if (preference.isOnline() || (!preference.isOnline() && !preference.getCurrentIPAddr().equalsIgnoreCase(databaseHandler.getMasterIPBySlaveID(slave)))) {
-                        new PublishMessage(command, slave).execute();
-                    } else {
-                        new SendUDP(command).execute();
+                        List<String> ipList=new IPDb(getApplicationContext()).ipList();
+
+                        if (ipList.contains(databaseHandler.getMasterIPBySlaveID(slaveHexID))) {
+                            new SendUDP(command).execute();
+                        } else {
+                            new PublishMessage(command, slaveHexID).execute();
+                        }
+                    } catch (Exception e) {
+                        Log.e("Exception", e.getMessage());
                     }
-                } catch (Exception e) {
-                    Log.e("Exception", e.getMessage());
+                    dialog.dismiss();
                 }
-                dialog.dismiss();
-            }
-        });
-        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
+            });
+            builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            });
 
-        dialog = builder.create();
-        dialog.show();
+            dialog = builder.create();
+            dialog.show();
+        }
+
+
     }
 
     private void handleCommands(String json) {
@@ -544,8 +551,10 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
             String command = object.toString();
             Log.e("command", command);
 
+            List<String> ipList=new IPDb(this).ipList();
+
             if (NetworkUtility.isOnline(getApplicationContext())) {
-                if (preference.getCurrentIPAddr().equalsIgnoreCase(databaseHandler.getMasterIPBySlaveID(slaveID))) {
+                if (ipList.contains(databaseHandler.getMasterIPBySlaveID(slaveHexID))) {
                     new SendUDP(command).execute();
                 } else {
                     new PublishMessage(command, slaveID).execute();
