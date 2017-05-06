@@ -701,12 +701,19 @@ public class SwitchScheduleItemAdapter2 extends BaseAdapter {
 
                 data += scheduleItem.getDimmerValue()+"-";
 
-                if(scheduleItem.getRepeat()<10){
+                if(scheduleItem.isOnce()){
+                    data += "01";
+                }
+                else {
+                    data += "00";
+                }
+
+                /*if(scheduleItem.getRepeat()<10){
                     data += "0"+scheduleItem.getRepeat();
                 }
                 else {
                     data += scheduleItem.getRepeat();
-                }
+                }*/
 
                 object.put("data",data);
 

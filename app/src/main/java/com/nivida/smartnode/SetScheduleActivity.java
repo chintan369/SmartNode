@@ -203,12 +203,15 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
                         boolean isAnyAvail = false;
                         String NN = "26";
                         //To get Information which slot is available for creating schudule
-                        for (int i = 0; i < availableSlots.length(); i++) {
-                            boolean isAvail = String.valueOf(availableSlots.charAt(i)).equalsIgnoreCase("N");
+                        for (int i = 0; i < availableSlots.length(); i+=2) {
+
+                            String currentSwitchNumber=String.valueOf(availableSlots.charAt(i))+String.valueOf(availableSlots.charAt(i+1));
+
+                            boolean isAvail = currentSwitchNumber.equals("00");
 
                             if (isAvail) {
-                                NN = String.valueOf(i);
-                                if (i < 10)
+                                NN = String.valueOf(i/2);
+                                if ((i/2) < 10)
                                     NN = "0" + NN;
                                 isAnyAvail = true;
                                 break;
@@ -682,6 +685,7 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
     public void getAllSlotsInfo(String slaveID) {
         forAvailInfo = false;
         if (NetworkUtility.isOnline(getApplicationContext())) {
+            List<String> ipList=new IPDb(this).ipList();
             try {
                 JSONObject object = new JSONObject();
                 object.put("cmd", Cmd.SCH);
@@ -711,10 +715,11 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
     public void createSchedule(int position, String createCommand, String slaveID) {
 
         Log.e("create SCH", "Called");
+        List<String> ipList=new IPDb(this).ipList();
         forAddingNewItem = false;
         if (NetworkUtility.isOnline(getApplicationContext())) {
 
-            if(preference.getCurrentIPAddr().equalsIgnoreCase(databaseHandler.getMasterIPBySlaveID(slaveID))){
+            if(ipList.contains(databaseHandler.getMasterIPBySlaveID(slaveID))){
                 new SendUDP(createCommand).execute();
             }
             else {
