@@ -90,6 +90,9 @@ public class SceneActivity extends AppCompatActivity {
     NetworkUtility netcheck;
     PublishMessage publishMessage;
 
+    Handler handler;
+    Runnable runnable;
+
     ProgressDialog dialog;
 
     int fireTime=0;
@@ -112,6 +115,18 @@ public class SceneActivity extends AppCompatActivity {
 
         //startAddSwitchService();
         startReceiver();
+
+        handler=new Handler();
+        runnable=new Runnable() {
+            @Override
+            public void run() {
+                if(dialog.isShowing()){
+                    updateCommands.clear();
+                    dialog.dismiss();
+                    C.Toast(getApplicationContext(),"It might Device not Responding or Your Connection is Poor.\nPlease Try Again Later!");
+                }
+            }
+        };
 
         Intent intent=getIntent();
         groupid=intent.getIntExtra("group_id",0);
@@ -182,6 +197,9 @@ public class SceneActivity extends AppCompatActivity {
                    updateCommands.clear();
                    if(dialog.isShowing()){
                        dialog.dismiss();
+                   }
+                   if(handler!=null){
+                       handler.removeCallbacks(runnable);
                    }
                    C.Toast(getApplicationContext(),"Scene Activated Successfully!");
                    fireTime=0;
@@ -272,16 +290,7 @@ public class SceneActivity extends AppCompatActivity {
                 int scene_id=sceneAdapter.getSceneID(position);
 
                 dialog.show();
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        if(dialog.isShowing()){
-                            updateCommands.clear();
-                            dialog.dismiss();
-                            C.Toast(getApplicationContext(),"It might Device not Responding or Your Connection is Poor.\nPlease Try Again Later!");
-                        }
-                    }
-                },13000);
+                handler.postDelayed(runnable,13000);
                 if(scene_id==1){
                     setAllSwitchesOn();
                     //Set All Switches ON
