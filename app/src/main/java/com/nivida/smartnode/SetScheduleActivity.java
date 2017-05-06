@@ -229,8 +229,6 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
                         for (int i = 0; i < availableSlots.length(); i+=2) {
                             scheduleList.removeFooterView(footerViewLoaidng);
 
-                            ArrayList<String> usedSlots=new ArrayList<>();
-
                             String currentSlotNum=String.valueOf(availableSlots.charAt(i))+String.valueOf(availableSlots.charAt(i+1));
 
                             if(currentSlotNum.equals(switchButtonNumber)){
