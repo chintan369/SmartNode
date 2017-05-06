@@ -222,6 +222,18 @@ public class SwitchScheduleItemAdapter2 extends BaseAdapter {
             txt_time.setEnabled(false);
             layout_days.setEnabled(false);
             layout_repeatTime.setEnabled(false);
+
+            monday.setEnabled(false);
+            tuesday.setEnabled(false);
+            wednesday.setEnabled(false);
+            thursday.setEnabled(false);
+            friday.setEnabled(false);
+            saturday.setEnabled(false);
+            sunday.setEnabled(false);
+
+            //To be Continued....
+            dimmer_value.setEnabled(false);
+            btn_OnOff.setEnabled(false);
         }
         else {
             chk_enable.setChecked(false);
@@ -616,6 +628,14 @@ public class SwitchScheduleItemAdapter2 extends BaseAdapter {
                 scheduleItemList.get(i).setSchEnabled(false);
                 break;
             }
+        }
+        notifyDataSetChanged();
+    }
+
+    public void setHasNoSchedule() {
+        for(int i=0; i<scheduleItemList.size(); i++){
+            scheduleItemList.get(i).setSlot_num("26");
+            scheduleItemList.get(i).setSchEnabled(false);
         }
         notifyDataSetChanged();
     }

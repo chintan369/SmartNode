@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
+import android.os.Handler;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -269,8 +270,7 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
                         }
 
                         if(!isFoundAny){
-                            databaseHandler.setSwitchHasNoSchedule(slaveHexID,switchButtonNumber);
-                            adapter.notifyDataSetChanged();
+                            adapter.setHasNoSchedule();
                         }
                     }
                 } else if (tag.equalsIgnoreCase("I")) {
