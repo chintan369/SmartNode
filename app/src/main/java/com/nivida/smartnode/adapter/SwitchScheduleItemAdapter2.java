@@ -13,6 +13,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Switch;
@@ -20,6 +21,7 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import com.kyleduo.switchbutton.SwitchButton;
 import com.nivida.smartnode.R;
 import com.nivida.smartnode.a.C;
 import com.nivida.smartnode.a.Cmd;
@@ -119,7 +121,7 @@ public class SwitchScheduleItemAdapter2 extends BaseAdapter {
 
 
         final TextView txt_time=(TextView) view.findViewById(R.id.txt_time);
-        final Switch btn_OnOff=(Switch) view.findViewById(R.id.btn_OnOff);
+        final SwitchButton btn_OnOff=(SwitchButton) view.findViewById(R.id.btn_OnOff);
 
         txt_time.setTypeface(C.raleway(context));
 
@@ -132,6 +134,9 @@ public class SwitchScheduleItemAdapter2 extends BaseAdapter {
         final TextView thursday=(TextView) view.findViewById(R.id.thursday);
         final TextView friday=(TextView) view.findViewById(R.id.friday);
         final TextView saturday=(TextView) view.findViewById(R.id.saturday);
+
+        LinearLayout layout_days=(LinearLayout) view.findViewById(R.id.layout_days);
+        LinearLayout layout_repeatTime=(LinearLayout) view.findViewById(R.id.layout_repeatTime);
 
         RadioGroup rdg_schType=(RadioGroup) view.findViewById(R.id.rdg_schType);
         RadioButton rdo_schOnce=(RadioButton) view.findViewById(R.id.rdo_schOnce);
@@ -212,8 +217,9 @@ public class SwitchScheduleItemAdapter2 extends BaseAdapter {
         if(scheduleItemList.get(position).isSchEnabled()){
             chk_enable.setChecked(true);
 
-
-
+            txt_time.setEnabled(false);
+            layout_days.setEnabled(false);
+            layout_repeatTime.setEnabled(false);
         }
         else {
             chk_enable.setChecked(false);
@@ -598,6 +604,18 @@ public class SwitchScheduleItemAdapter2 extends BaseAdapter {
 
 
         return view;
+    }
+
+    public void updateScheduleDeleted(String slotNumber, String slave) {
+        databaseHandler.updateScheduleSlot(slotNumber, slave);
+        for(int i=0; i<scheduleItemList.size(); i++){
+            if(scheduleItemList.get(i).getSlot_num().equals(slotNumber)){
+                scheduleItemList.get(i).setSlot_num("26");
+                scheduleItemList.get(i).setSchEnabled(false);
+                break;
+            }
+        }
+        notifyDataSetChanged();
     }
 
     public interface OnScheduleViewSelection{

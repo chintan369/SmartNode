@@ -304,8 +304,8 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
                         }
                     } else {
                         if (dataItems[2].equalsIgnoreCase("EMPTY")) {
-                            databaseHandler.updateScheduleSlot(dataItems[1], slave);
-                            adapter.notifyDataSetChanged();
+                            C.Toast(getApplicationContext(),"Schedule Removed Successfully");
+                            adapter.updateScheduleDeleted(dataItems[1], slave);
                         }
                     }
                 } else if (tag.equalsIgnoreCase("N")) {
