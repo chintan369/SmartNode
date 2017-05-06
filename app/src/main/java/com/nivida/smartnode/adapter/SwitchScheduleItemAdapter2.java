@@ -211,6 +211,9 @@ public class SwitchScheduleItemAdapter2 extends BaseAdapter {
 
         if(scheduleItemList.get(position).isSchEnabled()){
             chk_enable.setChecked(true);
+
+
+
         }
         else {
             chk_enable.setChecked(false);
