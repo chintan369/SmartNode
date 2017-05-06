@@ -98,6 +98,10 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
     AlertDialog.Builder builder;
     AlertDialog dialog;
 
+    String switchButtonNumber="";
+    String slaveHexID="";
+    String slaveToken="";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -114,7 +118,9 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
         groupid = intent.getIntExtra("group_id", 0);
         switchID = intent.getIntExtra("switchID", 0);
         switchName = intent.getStringExtra("switchName");
-
+        switchButtonNumber=databaseHandler.getSwitchButtonNum(switchID);
+        slaveHexID=databaseHandler.getSlaveHexIDForSwitch(switchID);
+        slaveToken=databaseHandler.getSlaveToken(slaveHexID);
         footerViewLoaidng=getLayoutInflater().inflate(R.layout.list_footer_loading,null);
 
         startServices();
@@ -214,24 +220,26 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
                             C.Toast(getApplicationContext(), "No Slot Available To Create Schedule");
                         }
                     } else {
-                        for (int i = 0; i < availableSlots.length(); i++) {
+                        for (int i = 0; i < availableSlots.length(); i+=2) {
                             scheduleList.removeFooterView(footerViewLoaidng);
-                            boolean isUsed = String.valueOf(availableSlots.charAt(i)).equalsIgnoreCase("Y");
 
-                            if (isUsed) {
+                            ArrayList<String> usedSlots=new ArrayList<>();
 
+                            String currentSlotNum=String.valueOf(availableSlots.charAt(i))+String.valueOf(availableSlots.charAt(i+1));
+
+                            if(currentSlotNum.equals(switchButtonNumber)){
                                 try {
 
                                     JSONObject command = new JSONObject();
                                     command.put("cmd", Cmd.SCH);
-                                    command.put("slave",databaseHandler.getSlaveHexIDForSwitch(switchID));
-                                    command.put("token", preference.getToken());
+                                    command.put("slave",slaveHexID);
+                                    command.put("token", slaveToken);
 
                                     String getData = "G-";
-                                    if (i < 10)
-                                        getData += "0" + i;
+                                    if ((i/2) < 10)
+                                        getData += "0" + (i/2);
                                     else
-                                        getData += i;
+                                        getData += (i/2);
 
                                     command.put("data", getData);
 
