@@ -229,12 +229,15 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
                         List<String> ipList=new IPDb(this).ipList();
                         boolean isOnLAN=ipList.contains(databaseHandler.getMasterIPBySlaveID(slaveHexID));
 
+                        boolean isFoundAny=false;
+
                         for (int i = 0; i < availableSlots.length(); i+=2) {
                             scheduleList.removeFooterView(footerViewLoaidng);
 
                             String currentSlotNum=String.valueOf(availableSlots.charAt(i))+String.valueOf(availableSlots.charAt(i+1));
 
                             if(currentSlotNum.equals(switchButtonNumber)){
+                                isFoundAny=true;
                                 try {
 
                                     JSONObject command = new JSONObject();
@@ -263,6 +266,10 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
                                     Log.e("Exception", e.getMessage());
                                 }
                             }
+                        }
+
+                        if(!isFoundAny){
+                            databaseHandler.setSwitchHasNoSchedule(slaveHexID,switchButtonNumber);
                         }
                     }
                 } else if (tag.equalsIgnoreCase("I")) {

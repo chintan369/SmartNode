@@ -2856,4 +2856,21 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         return hasLock;
     }
+
+    public synchronized void setSwitchHasNoSchedule(String slaveHexID, String switchButtonNumber) {
+        synchronized (Lock){
+            try{
+                SQLiteDatabase db=this.getWritableDatabase();
+
+                db.delete(TABLE_SCHEDULE,SCH_SW_BTN_NUM+"=? AND "+SCH_SLAVE_ID+"=?",new String[]{slaveHexID,switchButtonNumber});
+
+                db.close();
+            }
+            catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
+                Log.e("Exception",e.getMessage());
+            }
+        }
+
+
+    }
 }
