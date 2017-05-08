@@ -143,7 +143,7 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
 
         if (!serviceIsRunning()) {
             final Intent intent = new Intent(this, AddDeviceService.class);
-            startService(intent);
+            //startService(intent);
         }
     }
 

@@ -236,7 +236,7 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
 
         if (!serviceIsRunning()) {
             Intent intent = new Intent(this, AddDeviceService.class);
-            //startService(intent);
+            startService(intent);
         }
     }
 
@@ -827,8 +827,10 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                 mqttClient.disconnect();
 
             } catch (MqttException e) {
+                Log.e("MQTT Exception",e.getMessage());
                 e.printStackTrace();
             } catch (Exception e) {
+                Log.e("Exception",e.getMessage());
                 e.printStackTrace();
             }
             return null;

@@ -34,9 +34,11 @@ public class AddDeviceService extends IntentService implements PushCallBack.Mess
 
     int serial=0;
 
+    String TAG="";
+
     public AddDeviceService() {
         super("AddDeviceService");
-
+        TAG="AddDeviceService";
 
     }
 
@@ -83,7 +85,7 @@ public class AddDeviceService extends IntentService implements PushCallBack.Mess
     public void sendMessage(String message) {
         subscribedMessage=message;
         //Log.e("MQTT Sub msg :",subscribedMessage);
-        Log.e("MQTT :", message);
+        Log.e(TAG, message);
         try{
             JSONObject object=new JSONObject(message);
             if(object.has("serial")){

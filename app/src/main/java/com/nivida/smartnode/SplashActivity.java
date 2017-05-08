@@ -36,6 +36,7 @@ import com.nivida.smartnode.services.CheckStatusService;
 import com.nivida.smartnode.services.GroupSwitchService;
 import com.nivida.smartnode.services.UDPService;
 import com.nivida.smartnode.utils.CustomEncryption;
+import com.nivida.smartnode.utils.NetworkUtility;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -83,7 +84,11 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
         new IPDb(this).deleteIP();
-        startService(new Intent(getApplicationContext(), UDPService.class));
+
+        if(NetworkUtility.isOnline(this)){
+            startService(new Intent(getApplicationContext(), UDPService.class));
+        }
+
         try {
             Process process = new ProcessBuilder()
                     .command("logcat", "-c")
