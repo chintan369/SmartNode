@@ -200,7 +200,7 @@ public class AddSwitchActivity extends AppCompatActivity {
     private void startAddSwitchService() {
         if (!serviceIsRunning()) {
             final Intent intent = new Intent(this, AddDeviceService.class);
-            startService(intent);
+            //startService(intent);
         }
     }
 

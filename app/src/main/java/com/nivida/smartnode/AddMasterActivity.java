@@ -374,7 +374,7 @@ public class AddMasterActivity extends AppCompatActivity {
     private void startAddMasterService() {
         if (!serviceIsRunning()) {
             final Intent intent = new Intent(this, AddMasterService.class);
-            startService(intent);
+            //startService(intent);
         }
     }
 

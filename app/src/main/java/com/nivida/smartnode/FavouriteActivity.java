@@ -95,6 +95,7 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
     ArrayList<String> buttonUserLock = new ArrayList<>();
     ArrayList<String> buttonTouchLock = new ArrayList<>();
     List<Bean_Switch> switchListToAdd=new ArrayList<>();
+    ArrayList<String> scheduleInfo = new ArrayList<>();
 
 
 
@@ -151,7 +152,7 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
 
         if(!serviceIsRunning()){
             Intent intent=new Intent(this, AddDeviceService.class);
-            startService(intent);
+            //startService(intent);
         }
     }
 
@@ -387,10 +388,12 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
             buttonStatus.clear();
             buttonUserLock.clear();
             buttonTouchLock.clear();
+            scheduleInfo.clear();
 
             String userLock=jsonSwitches.getString("user_locked");
             String touchLock=jsonSwitches.getString("touch_lock");
             String buttons=jsonSwitches.getString("button");
+            String schedules = jsonSwitches.getString("schedule_info");
             int j=0;
             for(int i=0; i<buttons.length() ; i+=2){
                 button_list.add(String.valueOf(buttons.charAt(i))+String.valueOf(buttons.charAt(i+1)));
@@ -420,6 +423,10 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
                 buttonTouchLock.add(String.valueOf(touchLock.charAt(i)));
             }
 
+            for (int i = 0; i < schedules.length(); i += 2) {
+                scheduleInfo.add(String.valueOf(schedules.charAt(i)) + String.valueOf(schedules.charAt(i + 1)));
+            }
+
             switchListToAdd.clear();
 
             for(int i=0;i<button_list.size();i++){
@@ -438,6 +445,14 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
                 }
 
                 databaseHandler.updateSwitchInFavourite(slave_id,button_list.get(i),onOff,dval,type,buttonUserLock.get(i),buttonTouchLock.get(i));
+
+                int scheduleCount = Integer.parseInt(scheduleInfo.get(i));
+
+                if (scheduleCount > 0) {
+                    databaseHandler.setSwitchHasSchedule(slave_id, button_list.get(i), true);
+                } else {
+                    databaseHandler.setSwitchHasSchedule(slave_id, button_list.get(i), false);
+                }
             }
             switchDimmerOnOffAdapter.notifyDataSetChanged();
 
