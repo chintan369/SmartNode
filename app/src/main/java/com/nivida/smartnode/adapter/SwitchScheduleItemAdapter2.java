@@ -231,7 +231,9 @@ public class SwitchScheduleItemAdapter2 extends BaseAdapter {
             saturday.setEnabled(false);
             sunday.setEnabled(false);
 
-            //To be Continued....
+            rdo_schDaily.setEnabled(false);
+            rdo_schOnce.setEnabled(false);
+            rdo_schRepeat.setEnabled(false);
             dimmer_value.setEnabled(false);
             btn_OnOff.setEnabled(false);
         }
