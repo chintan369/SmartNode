@@ -239,6 +239,24 @@ public class SwitchScheduleItemAdapter2 extends BaseAdapter {
         }
         else {
             chk_enable.setChecked(false);
+
+            txt_time.setEnabled(true);
+            layout_days.setEnabled(true);
+            layout_repeatTime.setEnabled(true);
+
+            monday.setEnabled(true);
+            tuesday.setEnabled(true);
+            wednesday.setEnabled(true);
+            thursday.setEnabled(true);
+            friday.setEnabled(true);
+            saturday.setEnabled(true);
+            sunday.setEnabled(true);
+
+            rdo_schDaily.setEnabled(true);
+            rdo_schOnce.setEnabled(true);
+            rdo_schRepeat.setEnabled(true);
+            dimmer_value.setEnabled(true);
+            btn_OnOff.setEnabled(true);
         }
 
         if(scheduleItemList.get(position).isRepeated()){

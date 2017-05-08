@@ -95,6 +95,8 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
 
     ArrayList<String> scheduleInfo = new ArrayList<>();
 
+    List<String> slaveIds=new ArrayList<>();
+
     //Define MQTT variables here
     public static final String SERVICE_CLASSNAME = "com.nivida.smartnode.services.AddDeviceService";
     public static final String UDPSERVICE_CLASSNAME = "com.nivida.smartnode.services.UDPService";
@@ -122,6 +124,7 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
         clientId = MqttClient.generateClientId();
         Intent intent = getIntent();
         groupid = intent.getIntExtra("group_id", 0);
+        slaveIds = databaseHandler.getSlaveHexIdsForGroup(groupid);
 
         dialog = new ProgressDialog(this);
         dialog.setIndeterminate(true);
@@ -189,7 +192,6 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
             }, 10000);
 
             try {
-                List<String> slaveIds = databaseHandler.getSlaveHexIdsForGroup(groupid);
                 for (int i = 0; i < slaveIds.size(); i++) {
                     isFirstTimeEntered = true;
                     /*if (preference.isOnline()) {
