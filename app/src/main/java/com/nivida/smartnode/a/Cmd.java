@@ -28,4 +28,6 @@ public class Cmd {
     public static final String UUP="UUP";
     public static final String SET="SET";
     public static final String SCENE="000";
+
+    public static final String INVALID_TOKEN="token_invalid";
 }

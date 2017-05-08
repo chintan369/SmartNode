@@ -137,6 +137,8 @@ public class UDPService extends IntentService {
                     count=1;
                 }
             }catch (SocketException s){
+
+
                 //Log.e("Exception UDP",s.getMessage());
                 if(client_socket!=null){
                     client_socket.disconnect();
@@ -156,8 +158,9 @@ public class UDPService extends IntentService {
             }catch (IOException i){
                 //Log.e("IO Exception","->"+i.getMessage());
                 if(client_socket!=null){
-                    client_socket.disconnect();
-                    client_socket.close();
+                    //client_socket.disconnect();
+                    //client_socket.close();
+                    client_socket=null;
                 }
                 client_socket=null;
                 preference.setOnline(true);
@@ -183,8 +186,6 @@ public class UDPService extends IntentService {
     @Override
     public void onDestroy() {
         if(client_socket!=null){
-            client_socket.disconnect();
-            client_socket.close();
             client_socket=null;
         }
         super.onDestroy();

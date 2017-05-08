@@ -169,7 +169,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
 
-        db.setLocale(Locale.getDefault());
+        db.setLocale(Locale.ENGLISH);
+        db.setLockingEnabled(true);
 
         String createTableGroup = "CREATE TABLE " + TABLE_GROUPS + "(" +
                 GROUP_GEN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +

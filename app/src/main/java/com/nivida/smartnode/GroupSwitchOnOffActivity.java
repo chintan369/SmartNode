@@ -301,6 +301,11 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
         try {
             JSONObject jsonDevice = new JSONObject(json);
             String cmd = jsonDevice.getString("cmd");
+            if(jsonDevice.has("status") && jsonDevice.getString("status").equalsIgnoreCase(Cmd.INVALID_TOKEN)){
+                C.Toast(this,"Token is Invalid\nPlease Login again to refresh token!");
+                return;
+            }
+
             if (cmd.equals("SET")) {
                 Log.e("Command :", "SET Found");
                 slave_hex_id = jsonDevice.getString("slave");

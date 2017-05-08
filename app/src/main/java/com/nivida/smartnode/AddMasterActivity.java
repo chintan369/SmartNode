@@ -53,6 +53,7 @@ import com.nivida.smartnode.app.AppPreference;
 import com.nivida.smartnode.beans.Bean_Master;
 import com.nivida.smartnode.beans.Bean_SlaveGroup;
 import com.nivida.smartnode.model.DatabaseHandler;
+import com.nivida.smartnode.model.IPDb;
 import com.nivida.smartnode.services.AddMasterService;
 import com.nivida.smartnode.services.UDPService;
 import com.nivida.smartnode.utils.NetworkUtility;
@@ -675,25 +676,27 @@ public class AddMasterActivity extends AppCompatActivity {
 
                                 String command="";
 
+                                String slaveID=databaseHandler.getSlaveHexIdForMaster(master_id);
+
                                 JSONObject object=new JSONObject();
                                 try {
                                     object.put("cmd",Cmd.MRN);
                                     object.put("data",renameMaster);
-                                    object.put("token",databaseHandler.getSlaveToken(databaseHandler.getSlaveHexIdForMaster(master_id)));
+                                    object.put("token",databaseHandler.getSlaveToken(slaveID));
                                     command=object.toString();
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
 
-                                if(preference.getCurrentIPAddr().equals(databaseHandler.getMasterIPById(master_id))){
-                                    new SendUDP(command);
+                                List<String> ipList=new IPDb(getApplicationContext()).ipList();
 
+                                Log.e("Command",command);
+
+                                if(ipList.contains(databaseHandler.getMasterIPBySlaveID(slaveID))){
+                                    new SendUDP(command);
                                 }
                                 else {
-
                                     new SendRenameForMaster(renameMaster).execute();
-
-                                    /*new SendUDP(AppConstant.START_CMD_RENAME_MASTER + renameMaster +AppConstant.CMD_KEY_TOKEN+preference.getToken()+ AppConstant.END_CMD_RENAME_MASTER,"","",masterLocalIP).execute();*/
                                 }
 
                                 //Log.e("MRN cmd",sts);
@@ -1103,7 +1106,7 @@ public class AddMasterActivity extends AppCompatActivity {
             toolbar.setNavigationIcon(R.drawable.drawer_icon);
             isDrawerOpen = false;
         } else {
-            stopService(new Intent(getApplicationContext(),UDPService.class));
+            //stopService(new Intent(getApplicationContext(),UDPService.class));
             Intent intent = new Intent(getApplicationContext(), MasterGroupActivity.class);
             startActivity(intent);
             finish();
