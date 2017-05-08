@@ -678,10 +678,12 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
                 String command = object.toString();
                 Log.e("Command", command);
 
-                if (preference.isOnline() || (!preference.isOnline() && !preference.getCurrentIPAddr().equalsIgnoreCase(databaseHandler.getMasterIPBySlaveID(scheduleItem.getSlave_id())))) {
-                    new PublishMessage(command, scheduleItem.getSlave_id()).execute();
-                } else {
+                List<String> ipList=new IPDb(this).ipList();
+
+                if (ipList.contains(databaseHandler.getMasterIPBySlaveID(scheduleItem.getSlave_id()))) {
                     new SendUDP(command).execute();
+                } else {
+                    new PublishMessage(command, scheduleItem.getSlave_id()).execute();
                 }
             } catch (Exception e) {
                 Log.e("Exception", e.getMessage());
