@@ -16,6 +16,7 @@ import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Environment;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
@@ -57,6 +58,7 @@ import com.nivida.smartnode.utils.Utility;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -499,9 +501,11 @@ public class MasterGroupActivity extends AppCompatActivity implements MasterGrid
                         }
                         else
                         {
+                            int groupID=dbhandler.getGroupLastId()==99 ? dbhandler.getGroupLastId()+2 : dbhandler.getGroupLastId()+ 1;
+
                             int groupCount=dbhandler.getGroupDataCounts();
                             Bean_MasterGroup beanMasterGroup=new Bean_MasterGroup();
-                            beanMasterGroup.setId(dbhandler.getGroupLastId()==99 ? dbhandler.getGroupLastId()+2 : dbhandler.getGroupLastId()+ 1);
+                            beanMasterGroup.setId(groupID);
                             beanMasterGroup.setName(edt_groupname.getText().toString());
                             beanMasterGroup.setBitmap(thePic);
                             beanMasterGroup.setHasSwitches("0");
@@ -510,7 +514,9 @@ public class MasterGroupActivity extends AppCompatActivity implements MasterGrid
                                 beanMasterGroup.setId(1);
                             }
 
-
+                            String groupNameID=beanMasterGroup.getName().replace(" ","_")+"_"+beanMasterGroup.getId();
+                            String imagePath=saveGroupImageToLocal(thePic,groupNameID);
+                            beanMasterGroup.setImgLocalPath(imagePath);
 
                             //Toast.makeText(MasterGroupActivity.this, ""+dbhandler.getGroupLastId(), Toast.LENGTH_SHORT).show();
                             dbhandler.addMasterGroupItem(beanMasterGroup);
@@ -524,6 +530,38 @@ public class MasterGroupActivity extends AppCompatActivity implements MasterGrid
             }
         });
         b.show();
+    }
+
+    private String saveGroupImageToLocal(Bitmap groupPic,String groupNameID) {
+        String imagePath="";
+
+        String rootDirectory=Environment.getExternalStorageDirectory()+"/SmartNode/Groups/";
+        File rootDir= new File(rootDirectory);
+        if(!rootDir.exists()) rootDir.mkdir();
+
+        String imageName=groupNameID+".jpg";
+
+        File imageFile=new File(rootDir,imageName);
+
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(imageFile);
+            // Use the compress method on the BitMap object to write image to the OutputStream
+            groupPic.compress(Bitmap.CompressFormat.JPEG, 50, fos);
+            imagePath=imageFile.getAbsolutePath();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if(fos!=null) {
+                try {
+                    fos.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return imagePath;
     }
 
     public void selectImage(){

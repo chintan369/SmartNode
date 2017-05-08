@@ -236,7 +236,7 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
 
         if (!serviceIsRunning()) {
             Intent intent = new Intent(this, AddDeviceService.class);
-            startService(intent);
+            //startService(intent);
         }
     }
 
@@ -411,7 +411,7 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
             slave_id = jsonSwitches.getString("slave");
 
             try {
-                List<Bean_Switch> switchesInDB = databaseHandler.getAllSwitches(groupid, slave_id);
+                //List<Bean_Switch> switchesInDB = databaseHandler.getAllSwitches(groupid, slave_id);
 
                 button_list.clear();
                 buttonType.clear();

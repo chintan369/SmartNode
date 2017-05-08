@@ -27,6 +27,7 @@ import com.nivida.smartnode.beans.Bean_MasterGroup;
 import com.nivida.smartnode.model.DatabaseHandler;
 import com.nivida.smartnode.utils.BitmapUtility;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -84,10 +85,20 @@ public class MasterGridAdpater extends BaseAdapter {
 
         final Bean_MasterGroup masterGroup=masterGroupList.get(position);
 
-        Glide.with(context)
-                .load(BitmapUtility.getBytes(masterGroup.getBitmap()))
-                .asBitmap()
-                .into(img_item);
+        String groupImage=masterGroup.getImgLocalPath();
+
+        if(groupImage.isEmpty()){
+            Glide.with(context)
+                    .load(R.drawable.room_group_default)
+                    .into(img_item);
+        }
+        else {
+            Glide.with(context)
+                    .load(new File(groupImage))
+                    .into(img_item);
+        }
+
+
         txt_item.setText(masterGroup.getName());
 
         view.setClickable(true);

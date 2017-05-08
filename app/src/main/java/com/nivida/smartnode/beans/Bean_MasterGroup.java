@@ -11,6 +11,7 @@ public class Bean_MasterGroup {
     String name;
     Bitmap bitmap;
     String hasSwitches="0";
+    String imgLocalPath="";
 
     public Bean_MasterGroup() {
     }
@@ -58,5 +59,13 @@ public class Bean_MasterGroup {
 
     public void setHasSwitches(String hasSwitches) {
         this.hasSwitches = hasSwitches;
+    }
+
+    public String getImgLocalPath() {
+        return imgLocalPath;
+    }
+
+    public void setImgLocalPath(String imgLocalPath) {
+        this.imgLocalPath = imgLocalPath;
     }
 }

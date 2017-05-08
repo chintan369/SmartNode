@@ -15,6 +15,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.nivida.smartnode.R;
+import com.nivida.smartnode.a.C;
 import com.nivida.smartnode.beans.Bean_Dimmer;
 import com.nivida.smartnode.beans.Bean_Master;
 import com.nivida.smartnode.beans.Bean_MasterGroup;
@@ -169,7 +170,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         String createTableGroup = "CREATE TABLE " + TABLE_GROUPS + "(" +
                 GROUP_GEN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
-                GROUP_NAME + " TEXT," + GROUP_IMAGE + " BLOB," + GROUP_HAS_SWITCHES + " TEXT" + ")";
+                GROUP_NAME + " TEXT," + GROUP_IMAGE + " TEXT," + GROUP_HAS_SWITCHES + " TEXT" + ")";
 
         String createTableMaster = "CREATE TABLE " + TABLE_MASTER + "(" +
                 MASTER_GEN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -456,7 +457,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                         Bean_MasterGroup masterGroup = new Bean_MasterGroup();
                         masterGroup.setId(cursor.getInt(0));
                         masterGroup.setName(cursor.getString(1));
-                        masterGroup.setBitmap(BitmapUtility.getBitmap(cursor.getBlob(2)));
+                        masterGroup.setImgLocalPath(cursor.getString(2));
                         masterGroup.setHasSwitches(cursor.getString(3));
                         masterGroupList.add(masterGroup);
                     } while (cursor.moveToNext());
@@ -490,7 +491,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                             Bean_MasterGroup masterGroup = new Bean_MasterGroup();
                             masterGroup.setId(cursor.getInt(0));
                             masterGroup.setName(cursor.getString(1));
-                            masterGroup.setBitmap(BitmapUtility.getBitmap(cursor.getBlob(2)));
+                            masterGroup.setImgLocalPath(cursor.getString(2));
                             masterGroup.setHasSwitches(cursor.getString(3));
                             masterGroupList.add(masterGroup);
                         }
@@ -523,7 +524,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 }
 
                 contentValues.put(GROUP_NAME, names[i]);
-                contentValues.put(GROUP_IMAGE, BitmapUtility.getBytes(image));
+
+                String imageName=names[i].replace(" ","_")+"_"+(i+1);
+                String imagePath= C.saveGroupImageToLocal(image,imageName);
+
+                contentValues.put(GROUP_IMAGE, imagePath);
                 contentValues.put(GROUP_HAS_SWITCHES, "0");
 
                 db.insert(TABLE_GROUPS, null, contentValues);
@@ -721,7 +726,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             ContentValues contentValues = new ContentValues();
             contentValues.put(GROUP_GEN_ID, beanMasterGroup.getId());
             contentValues.put(GROUP_NAME, beanMasterGroup.getName());
-            contentValues.put(GROUP_IMAGE, BitmapUtility.getBytes(beanMasterGroup.getBitmap()));
+            contentValues.put(GROUP_IMAGE, beanMasterGroup.getImgLocalPath());
             contentValues.put(GROUP_HAS_SWITCHES, beanMasterGroup.getHasSwitches());
 
             db.insert(TABLE_GROUPS, null, contentValues);

@@ -19,6 +19,7 @@ import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -562,6 +563,10 @@ public class AddSwitchActivity extends AppCompatActivity {
                                    group.setId(1);
                                 }
 
+                                String groupNameID=group.getName().replace(" ","_")+"_"+group.getId();
+                                String imagePath=saveGroupImageToLocal(add_group_icon,groupNameID);
+                                group.setImgLocalPath(imagePath);
+
                                 databaseHandler.addMasterGroupItem(group);
 
                                 Log.e("Last ID","--"+databaseHandler.getGroupLastId());
@@ -592,6 +597,38 @@ public class AddSwitchActivity extends AppCompatActivity {
             }
         });
         b.show();
+    }
+
+    private String saveGroupImageToLocal(Bitmap groupPic,String groupNameID) {
+        String imagePath="";
+
+        String rootDirectory= Environment.getExternalStorageDirectory()+"/SmartNode/Groups/";
+        File rootDir= new File(rootDirectory);
+        if(!rootDir.exists()) rootDir.mkdir();
+
+        String imageName=groupNameID+".jpg";
+
+        File imageFile=new File(rootDir,imageName);
+
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(imageFile);
+            // Use the compress method on the BitMap object to write image to the OutputStream
+            groupPic.compress(Bitmap.CompressFormat.JPEG, 50, fos);
+            imagePath=imageFile.getAbsolutePath();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if(fos!=null) {
+                try {
+                    fos.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return imagePath;
     }
 
     public Bitmap resizeImage(String path) {
