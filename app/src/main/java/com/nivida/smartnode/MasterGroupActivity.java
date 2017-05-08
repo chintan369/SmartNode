@@ -113,7 +113,7 @@ public class MasterGroupActivity extends AppCompatActivity implements MasterGrid
         try{
             masterGroupList=dbhandler.getAllMasterGroupData();
         }catch (Exception e){
-            C.connectionError(getApplicationContext());
+            //C.connectionError(getApplicationContext());
         }
 
 
@@ -513,9 +513,10 @@ public class MasterGroupActivity extends AppCompatActivity implements MasterGrid
                             if(groupCount<2){
                                 beanMasterGroup.setId(1);
                             }
+                            img_selectgroup.setDrawingCacheEnabled(true);
 
                             String groupNameID=beanMasterGroup.getName().replace(" ","_")+"_"+beanMasterGroup.getId();
-                            String imagePath=saveGroupImageToLocal(thePic,groupNameID);
+                            String imagePath=C.saveGroupImageToLocal(img_selectgroup.getDrawingCache(),groupNameID);
                             beanMasterGroup.setImgLocalPath(imagePath);
 
                             //Toast.makeText(MasterGroupActivity.this, ""+dbhandler.getGroupLastId(), Toast.LENGTH_SHORT).show();

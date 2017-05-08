@@ -1,5 +1,7 @@
 package com.nivida.smartnode;
 
+import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
@@ -13,7 +15,9 @@ import android.content.res.Configuration;
 import android.graphics.Typeface;
 import android.net.ConnectivityManager;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -74,6 +78,8 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static android.content.pm.PackageManager.PERMISSION_GRANTED;
+
 public class AddMasterActivity extends AppCompatActivity {
 
     DrawerLayout drawerLayout;
@@ -128,6 +134,9 @@ public class AddMasterActivity extends AppCompatActivity {
 
     boolean isCalledToShowMST=false;
 
+    String[] perms = { Manifest.permission.SYSTEM_ALERT_WINDOW,Manifest.permission.WRITE_SETTINGS,Manifest.permission.WRITE_SECURE_SETTINGS,Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_PHONE_STATE,Manifest.permission.ACCESS_NETWORK_STATE};
+    private int code=1;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -138,6 +147,10 @@ public class AddMasterActivity extends AppCompatActivity {
         dialog.setTitle("Please Wait");
         dialog.setIndeterminate(true);
         dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+
+
+        if(isMarshmallowPlusDevice())
+            isPermissionRequestRequired(this, perms, code);
 
         manager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
 
@@ -1238,5 +1251,31 @@ public class AddMasterActivity extends AppCompatActivity {
         protected void onPostExecute(String s) {
             statusDialog.dismiss();
         }
+    }
+
+    public static boolean isMarshmallowPlusDevice() {
+
+        return Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP_MR1;
+    }
+
+    @TargetApi(Build.VERSION_CODES.M)
+    public static boolean isPermissionRequestRequired(Activity activity, @NonNull String[] permissions, int requestCode) {
+        if (isMarshmallowPlusDevice() && permissions.length > 0) {
+            List<String> newPermissionList = new ArrayList<>();
+            for (String permission : permissions) {
+                if (PERMISSION_GRANTED != activity.checkSelfPermission(permission)) {
+                    newPermissionList.add(permission);
+
+                }
+            }
+            if (newPermissionList.size() > 0) {
+                activity.requestPermissions(newPermissionList.toArray(new String[newPermissionList.size()]), requestCode);
+                return true;
+            }
+
+
+        }
+
+        return false;
     }
 }

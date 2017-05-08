@@ -31,6 +31,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by Chintak Patel on 14-Jul-16.
@@ -55,7 +56,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             R.drawable.air_conditioner_off, R.drawable.stepper_motor_off, R.drawable.fan_off};
 
     //Define Database version
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 4;
 
     // Put your Database name
     private static final String DATABASE_NAME = Environment.getExternalStorageDirectory() + "/Smartnode/" + "smartnodedb.db";
@@ -167,6 +168,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
+
+        db.setLocale(Locale.getDefault());
 
         String createTableGroup = "CREATE TABLE " + TABLE_GROUPS + "(" +
                 GROUP_GEN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -1312,8 +1315,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 cursor.close();
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                getAllSwitchesByGroupId(groupid);
+                //waitFor();
+                //getAllSwitchesByGroupId(groupid);
             }
         }
 
@@ -2786,10 +2789,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     private void waitFor() {
 
-        while (this.getReadableDatabase().isDbLockedByCurrentThread())
+        /*while (this.getReadableDatabase().isDbLockedByCurrentThread())
         {
             //TODO NOTHING
-        }
+        }*/
         /*try {
             wait(500);
         } catch (InterruptedException | IllegalMonitorStateException e1) {

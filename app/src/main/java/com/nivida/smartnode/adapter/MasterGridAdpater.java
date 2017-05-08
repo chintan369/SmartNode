@@ -87,15 +87,27 @@ public class MasterGridAdpater extends BaseAdapter {
 
         String groupImage=masterGroup.getImgLocalPath();
 
-        if(groupImage.isEmpty()){
+        if(masterGroup.getName().toLowerCase().equalsIgnoreCase("Add New Group")){
+            Glide.with(context).load(R.drawable.add_new).into(img_item);
+        }
+        else if(groupImage.isEmpty()){
             Glide.with(context)
-                    .load(R.drawable.room_group_default)
-                    .into(img_item);
+                    .load(R.drawable.room_group_default);
         }
         else {
-            Glide.with(context)
-                    .load(new File(groupImage))
-                    .into(img_item);
+            File file=new File(groupImage);
+            if(file.exists()){
+                Glide.with(context)
+                        .load(file)
+                        .into(img_item);
+            }
+            else {
+                Glide.with(context)
+                        .load(R.drawable.room_group_default)
+                        .into(img_item);
+            }
+
+
         }
 
 

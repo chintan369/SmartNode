@@ -144,7 +144,7 @@ public class C {
         File rootDir= new File(rootDirectory);
         if(!rootDir.exists()) rootDir.mkdir();
 
-        String imageName=groupNameID+".jpg";
+        String imageName=groupNameID+".png";
 
         File imageFile=new File(rootDir,imageName);
 
@@ -152,7 +152,7 @@ public class C {
         try {
             fos = new FileOutputStream(imageFile);
             // Use the compress method on the BitMap object to write image to the OutputStream
-            groupPic.compress(Bitmap.CompressFormat.JPEG, 50, fos);
+            groupPic.compress(Bitmap.CompressFormat.PNG, 50, fos);
             imagePath=imageFile.getAbsolutePath();
         } catch (Exception e) {
             e.printStackTrace();

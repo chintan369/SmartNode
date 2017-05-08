@@ -563,8 +563,9 @@ public class AddSwitchActivity extends AppCompatActivity {
                                    group.setId(1);
                                 }
 
+                                img_select_group.setDrawingCacheEnabled(true);
                                 String groupNameID=group.getName().replace(" ","_")+"_"+group.getId();
-                                String imagePath=saveGroupImageToLocal(add_group_icon,groupNameID);
+                                String imagePath=C.saveGroupImageToLocal(img_select_group.getDrawingCache(),groupNameID);
                                 group.setImgLocalPath(imagePath);
 
                                 databaseHandler.addMasterGroupItem(group);

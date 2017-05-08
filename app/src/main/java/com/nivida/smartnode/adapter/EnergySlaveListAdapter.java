@@ -94,7 +94,7 @@ public class EnergySlaveListAdapter extends BaseAdapter {
         });
 
         txt_slaveName.setText(energySlaveList.get(position).getSlaveName());
-        txt_masterName.setText("( "+energySlaveList.get(position).getMasterName()+" ) ");
+        txt_masterName.setText("("+energySlaveList.get(position).getMasterName()+")");
         txt_watt.setText(energySlaveList.get(position).getTotalWatt(Bean_EnergySlave.TODAY));
         txt_price.setText(energySlaveList.get(position).getTotalPrice(Bean_EnergySlave.TODAY));
         spn_day.setAdapter(daysAdapter);
