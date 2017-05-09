@@ -10,9 +10,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -42,7 +41,6 @@ import com.nivida.smartnode.beans.Bean_Switch;
 import com.nivida.smartnode.model.DatabaseHandler;
 import com.nivida.smartnode.model.IPDb;
 import com.nivida.smartnode.services.AddDeviceService;
-import com.nivida.smartnode.services.GroupSwitchService;
 import com.nivida.smartnode.services.UDPService;
 import com.nivida.smartnode.utils.NetworkUtility;
 
@@ -66,6 +64,8 @@ import static com.nivida.smartnode.GroupSwitchOnOffActivity.UDPSERVICE_CLASSNAME
 
 public class FavouriteActivity extends AppCompatActivity implements SwitchDimmerOnOffAdapter.DimmerChangeCallBack, SwitchDimmerOnOffAdapter.OnSwitchSelection {
 
+    //Define MQTT variables here
+    public static final String SERVICE_CLASSNAME = "com.nivida.smartnode.services.AddDeviceService";
     RecyclerView switchView;
     SwitchOnOffAdapter switchOnOffAdapter;
     DimmerOnOffAdapter dimmerOnOffAdapter;
@@ -75,13 +75,8 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
     LinearLayout switch_view,dimmer_view,hasFavourites,favourite_not_found;
     GridView added_switchlist,added_dimmerlist;
     Toolbar toolbar;
-
     AppPreference preference;
-
     SwitchDimmerOnOffAdapter switchDimmerOnOffAdapter;
-
-    //Define MQTT variables here
-    public static final String SERVICE_CLASSNAME = "com.nivida.smartnode.services.AddDeviceService";
     MqttClient mqttClient;
     String clientId="";
     String subscribedMessage="";
@@ -642,43 +637,6 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
         b.show();*/
     }
 
-    private class SendMQTT extends AsyncTask<Void, Void, Void>{
-
-        String topic="";
-        String command="";
-
-        public SendMQTT(String topic, String command) {
-            this.topic = topic;
-            this.command = command;
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
-
-            try {
-                mqttClient = new MqttClient(AppConstant.MQTT_BROKER_URL, C.MQTT_ClientID, new MemoryPersistence());
-                MqttConnectOptions connectOptions = new MqttConnectOptions();
-                connectOptions.setUserName(AppConstant.MQTT_USERNAME);
-                connectOptions.setPassword(AppConstant.getPassword());
-                mqttClient.connect(connectOptions);
-
-                Log.e("Command Fired :", command);
-
-                MqttMessage mqttMessage = new MqttMessage(command.getBytes());
-                mqttMessage.setRetained(false);
-                mqttClient.publish(topic, mqttMessage);
-                //Log.e("topic msg", databaseHandler.getSlaveTopic(slaveID) + AppConstant.MQTT_PUBLISH_TOPIC + " " + mqttMessage);
-                //mqttClient.disconnect();
-
-            } catch (MqttException e) {
-                Log.e("Exception : ", e.getMessage());
-                e.printStackTrace();
-            }
-
-            return null;
-        }
-    }
-
     private void showChangeSwitchIconDialog(final int groupid, final int switchID, String switch_name) {
 
         final int[] switch_icon = {1};
@@ -802,6 +760,43 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
     @Override
     public void sendUDPCommand(String command) {
         new SendUDP(command).execute();
+    }
+
+    private class SendMQTT extends AsyncTask<Void, Void, Void> {
+
+        String topic = "";
+        String command = "";
+
+        public SendMQTT(String topic, String command) {
+            this.topic = topic;
+            this.command = command;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+
+            try {
+                mqttClient = new MqttClient(AppConstant.MQTT_BROKER_URL, clientId, new MemoryPersistence());
+                MqttConnectOptions connectOptions = new MqttConnectOptions();
+                connectOptions.setUserName(AppConstant.MQTT_USERNAME);
+                connectOptions.setPassword(AppConstant.getPassword());
+                mqttClient.connect(connectOptions);
+
+                Log.e("Command Fired :", command);
+
+                MqttMessage mqttMessage = new MqttMessage(command.getBytes());
+                mqttMessage.setRetained(false);
+                mqttClient.publish(topic, mqttMessage);
+                //Log.e("topic msg", databaseHandler.getSlaveTopic(slaveID) + AppConstant.MQTT_PUBLISH_TOPIC + " " + mqttMessage);
+                //mqttClient.disconnect();
+
+            } catch (MqttException e) {
+                Log.e("Exception : ", e.getMessage());
+                e.printStackTrace();
+            }
+
+            return null;
+        }
     }
 
     public class GetLiveStatus extends AsyncTask<Void,Void,Void> {

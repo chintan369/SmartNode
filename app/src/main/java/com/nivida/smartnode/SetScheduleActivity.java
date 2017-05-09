@@ -8,10 +8,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
-import android.os.Handler;
+import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
@@ -23,7 +22,6 @@ import android.widget.Toast;
 
 import com.nivida.smartnode.a.C;
 import com.nivida.smartnode.a.Cmd;
-import com.nivida.smartnode.adapter.SwitchScheduleItemAdapter;
 import com.nivida.smartnode.adapter.SwitchScheduleItemAdapter2;
 import com.nivida.smartnode.app.AppConstant;
 import com.nivida.smartnode.app.AppPreference;
@@ -41,7 +39,6 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
-import org.eclipse.paho.client.mqttv3.util.Strings;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -61,25 +58,20 @@ import static com.nivida.smartnode.GroupSwitchOnOffActivity.UDPSERVICE_CLASSNAME
 
 public class SetScheduleActivity extends AppCompatActivity implements SwitchScheduleItemAdapter2.OnScheduleViewSelection {
 
+    public static final String SERVICE_CLASSNAME = "com.nivida.smartnode.services.AddDeviceService";
     int groupid = 0;
     int switchID = 0;
     String switchName = "";
-
     Toolbar toolbar;
     TextView txt_smartnode, txt_1, txt_2, txt_slave;
     Button btn_addslave;
     ImageView img_add, img_home;
     Typeface tf;
-
     boolean forAvailInfo = true;
     boolean forAddingNewItem = true;
-
-
     boolean callfromthis = false;
     boolean setList = false;
     boolean now = false;
-
-    public static final String SERVICE_CLASSNAME = "com.nivida.smartnode.services.AddDeviceService";
     String subscribedMessage = "";
     String UDPMessage = "";
     BroadcastReceiver receiver;
@@ -757,7 +749,7 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
             Log.e("command PM", command);
             if (networkUtility.isOnline()) {
                 try {
-                    mqttClient = new MqttClient(AppConstant.MQTT_BROKER_URL, C.MQTT_ClientID, new MemoryPersistence());
+                    mqttClient = new MqttClient(AppConstant.MQTT_BROKER_URL, clientID, new MemoryPersistence());
                     MqttConnectOptions connectOptions = new MqttConnectOptions();
                     connectOptions.setUserName(AppConstant.MQTT_USERNAME);
                     connectOptions.setPassword(AppConstant.getPassword());
