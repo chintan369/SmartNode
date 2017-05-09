@@ -40,6 +40,8 @@ public class C {
         return Typeface.createFromAsset(context.getAssets(),"fonts/raleway.ttf");
     }
 
+    public static final String MQTT_ClientID="lens_7RWhmqsyqMKGrTmoNNGJdne5R7E";
+
     public static String GetDeviceipMobileData(){
         try {
             for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces();

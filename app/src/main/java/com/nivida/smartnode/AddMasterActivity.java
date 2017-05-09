@@ -1229,7 +1229,7 @@ public class AddMasterActivity extends AppCompatActivity {
             String isDone = "0";
 
             try {
-                mqttClient = new MqttClient(AppConstant.MQTT_BROKER_URL, clientId, new MemoryPersistence());
+                mqttClient = new MqttClient(AppConstant.MQTT_BROKER_URL, C.MQTT_ClientID, new MemoryPersistence());
                 MqttConnectOptions connectOptions = new MqttConnectOptions();
                 connectOptions.setUserName(AppConstant.MQTT_USERNAME);
                 connectOptions.setPassword(AppConstant.getPassword());

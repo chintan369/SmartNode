@@ -591,7 +591,7 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
         protected Void doInBackground(Void... params) {
 
             try {
-                mqttClient = new MqttClient(AppConstant.MQTT_BROKER_URL, clientId, new MemoryPersistence());
+                mqttClient = new MqttClient(AppConstant.MQTT_BROKER_URL, C.MQTT_ClientID, new MemoryPersistence());
                 MqttConnectOptions connectOptions = new MqttConnectOptions();
                 connectOptions.setUserName(AppConstant.MQTT_USERNAME);
                 connectOptions.setPassword(AppConstant.getPassword());
@@ -617,7 +617,7 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
     public String setTouchUserLock(String slave_hex_id,String switch_button_num,boolean lock,boolean isTouchLock){
         String msg="";
 
-        List<Bean_Switch> switchesBySlave=databaseHandler.getSwitchDataBySlave(slave_hex_id);
+        //List<Bean_Switch> switchesBySlave=databaseHandler.getSwitchDataBySlave(slave_hex_id);
 
         String lockData="";
 

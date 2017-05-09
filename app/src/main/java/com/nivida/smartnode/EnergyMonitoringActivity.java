@@ -92,7 +92,7 @@ public class EnergyMonitoringActivity extends AppCompatActivity implements Energ
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_energy_monitoring);
 
-        clientId = MqttClient.generateClientId();
+        clientId = C.MQTT_ClientID;
         db = new DatabaseHandler(getApplicationContext());
         preference = new AppPreference(getApplicationContext());
         databaseHandler=new DatabaseHandler(getApplicationContext());

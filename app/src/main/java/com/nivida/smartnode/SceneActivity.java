@@ -731,7 +731,7 @@ public class SceneActivity extends AppCompatActivity {
              this.slaveID=slave;
             if(netcheck.isOnline()){
                 try{
-                    mqttClient=new MqttClient(AppConstant.MQTT_BROKER_URL,clientId,new MemoryPersistence());
+                    mqttClient=new MqttClient(AppConstant.MQTT_BROKER_URL,C.MQTT_ClientID,new MemoryPersistence());
                     MqttConnectOptions connectOptions=new MqttConnectOptions();
                     connectOptions.setUserName(AppConstant.MQTT_USERNAME);
                     connectOptions.setPassword(AppConstant.getPassword());
@@ -749,8 +749,8 @@ public class SceneActivity extends AppCompatActivity {
         protected String doInBackground(Void... params) {
             if(netcheck.isOnline()){
                     MqttMessage mqttMessage=new MqttMessage(command.getBytes());
-                    mqttMessage.setQos(1);
-                    mqttMessage.setRetained(true);
+                    mqttMessage.setQos(0);
+                    mqttMessage.setRetained(false);
                 try {
                     mqttClient.publish(dbhandler.getSlaveTopic(slaveID)+AppConstant.MQTT_PUBLISH_TOPIC,mqttMessage);
                 } catch (MqttException e) {

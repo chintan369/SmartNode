@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.util.Log;
 
+import com.nivida.smartnode.a.C;
 import com.nivida.smartnode.app.AppConstant;
 import com.nivida.smartnode.app.AppPreference;
 import com.nivida.smartnode.beans.Bean_SlaveGroup;
@@ -52,7 +53,7 @@ public class AddDeviceService extends IntentService implements PushCallBack.Mess
     protected void onHandleIntent(Intent intent) {
         preference=new AppPreference(getApplicationContext());
         db=new DatabaseHandler(getApplicationContext());
-        clientId=MqttClient.generateClientId();
+        clientId= C.MQTT_ClientID;
         List<String> slaveIDs=db.getAllSlaveIDs();
 
         try{
@@ -67,7 +68,7 @@ public class AddDeviceService extends IntentService implements PushCallBack.Mess
                 //Log.e("Subscribe MQTT",db.getSlaveTopic(slaveIDs.get(i)));
             }
 
-            Log.e("topic",preference.getTopic()+AppConstant.MQTT_SUBSCRIBE_TOPIC);
+            //Log.e("topic",preference.getTopic()+AppConstant.MQTT_SUBSCRIBE_TOPIC);
 
         } catch (MqttException e) {
             e.printStackTrace();

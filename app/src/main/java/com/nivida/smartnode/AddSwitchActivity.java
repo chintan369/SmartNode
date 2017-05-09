@@ -864,7 +864,7 @@ public class AddSwitchActivity extends AppCompatActivity {
         protected String doInBackground(Void[] params) {
             //publishCommandForSwitches(slave_hex_id);
             if (netcheck.isOnline()) {
-                clientId = MqttClient.generateClientId();
+                clientId = C.MQTT_ClientID;
                 try {
                     mqttClient = new MqttClient(AppConstant.MQTT_BROKER_URL, clientId, new MemoryPersistence());
                     MqttConnectOptions connectOptions = new MqttConnectOptions();

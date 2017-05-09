@@ -840,7 +840,7 @@ public class SwitchScheduleItemAdapter2 extends BaseAdapter {
             Log.e("command",command);
             if(networkUtility.isOnline()){
                 try {
-                    mqttClient=new MqttClient(AppConstant.MQTT_BROKER_URL,clientID,new MemoryPersistence());
+                    mqttClient=new MqttClient(AppConstant.MQTT_BROKER_URL,C.MQTT_ClientID,new MemoryPersistence());
                     MqttConnectOptions connectOptions=new MqttConnectOptions();
                     connectOptions.setUserName(AppConstant.MQTT_USERNAME);
                     connectOptions.setPassword(AppConstant.getPassword());

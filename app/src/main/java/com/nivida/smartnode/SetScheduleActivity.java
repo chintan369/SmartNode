@@ -757,7 +757,7 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
             Log.e("command PM", command);
             if (networkUtility.isOnline()) {
                 try {
-                    mqttClient = new MqttClient(AppConstant.MQTT_BROKER_URL, clientID, new MemoryPersistence());
+                    mqttClient = new MqttClient(AppConstant.MQTT_BROKER_URL, C.MQTT_ClientID, new MemoryPersistence());
                     MqttConnectOptions connectOptions = new MqttConnectOptions();
                     connectOptions.setUserName(AppConstant.MQTT_USERNAME);
                     connectOptions.setPassword(AppConstant.getPassword());
