@@ -2,17 +2,12 @@ package com.nivida.smartnode;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.AsyncTask;
-import android.preference.Preference;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -38,7 +33,6 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -289,6 +283,28 @@ public class MyAccountActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver(receiver, new IntentFilter(GroupSwitchService.NOTIFICATION));
+        Log.e("Reciever :", "Registered");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(receiver);
+        Log.e("Reciever :", "UnRegistered");
+    }
+
+    @Override
+    public void onBackPressed() {
+        Intent intent = new Intent(getApplicationContext(), SelectDeviceForChangeAccountActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(intent);
+        finish();
+    }
+
     private class SendMQTT extends AsyncTask<Void, Void, Void> {
 
         String topic = "";
@@ -302,7 +318,7 @@ public class MyAccountActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(Void... params) {
             try {
-                mqttClient = new MqttClient(AppConstant.MQTT_BROKER_URL, C.MQTT_ClientID, new MemoryPersistence());
+                mqttClient = new MqttClient(AppConstant.MQTT_BROKER_URL, clientId, new MemoryPersistence());
                 MqttConnectOptions connectOptions = new MqttConnectOptions();
                 connectOptions.setUserName(AppConstant.MQTT_USERNAME);
                 connectOptions.setPassword(AppConstant.getPassword());
@@ -322,20 +338,6 @@ public class MyAccountActivity extends AppCompatActivity {
             }
             return null;
         }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        registerReceiver(receiver, new IntentFilter(GroupSwitchService.NOTIFICATION));
-        Log.e("Reciever :", "Registered");
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        unregisterReceiver(receiver);
-        Log.e("Reciever :", "UnRegistered");
     }
 
     private class SendUDP extends AsyncTask<Void, Void, String> {
@@ -385,13 +387,5 @@ public class MyAccountActivity extends AppCompatActivity {
             }
             return null;
         }
-    }
-
-    @Override
-    public void onBackPressed() {
-        Intent intent = new Intent(getApplicationContext(), SelectDeviceForChangeAccountActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        startActivity(intent);
-        finish();
     }
 }

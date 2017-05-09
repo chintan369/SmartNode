@@ -1,12 +1,15 @@
 package com.nivida.smartnode.a;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Typeface;
 import android.net.DhcpInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Environment;
+import android.os.Parcelable;
 import android.text.format.Formatter;
 import android.util.Log;
 import android.view.Gravity;
@@ -15,15 +18,14 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.nivida.smartnode.GroupSwitchOnOffActivity;
 import com.nivida.smartnode.R;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
-import java.net.SocketException;
 import java.util.Enumeration;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -36,11 +38,11 @@ import static android.content.Context.WIFI_SERVICE;
 
 public class C {
 
+    public static final String MQTT_ClientID = "paho37706047793791";
+
     public static Typeface raleway(Context context){
         return Typeface.createFromAsset(context.getAssets(),"fonts/raleway.ttf");
     }
-
-    public static final String MQTT_ClientID="paho37706047793791";
 
     public static String GetDeviceipMobileData(){
         try {
@@ -169,5 +171,23 @@ public class C {
         }
 
         return imagePath;
+    }
+
+    public static void createShortCut(Activity context, String groupName, int groupID) {
+
+        Intent intent = new Intent(context, GroupSwitchOnOffActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        intent.putExtra("group_id", groupID);
+
+        Intent shortcutintent = new Intent();
+        shortcutintent.setAction("com.android.launcher.action.INSTALL_SHORTCUT");
+        shortcutintent.putExtra("duplicate", false);
+        shortcutintent.putExtra(Intent.EXTRA_SHORTCUT_INTENT, intent);
+        shortcutintent.putExtra(Intent.EXTRA_SHORTCUT_NAME, groupName);
+        Parcelable icon = Intent.ShortcutIconResource.fromContext(context, R.drawable.room_group_default);
+        shortcutintent.putExtra(Intent.EXTRA_SHORTCUT_ICON_RESOURCE, icon);
+        context.setResult(Activity.RESULT_OK, shortcutintent);
+        context.sendBroadcast(shortcutintent);
     }
 }

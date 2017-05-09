@@ -760,7 +760,7 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
                     mqttClient.publish(databaseHandler.getSlaveTopic(slaveID) + AppConstant.MQTT_PUBLISH_TOPIC, mqttMessage);
                     mqttClient.disconnect();
 
-                    Log.e("MQTT SCH", "called");
+                    //Log.e("MQTT SCH", "called");
                 } catch (MqttException e) {
                     e.printStackTrace();
                 }

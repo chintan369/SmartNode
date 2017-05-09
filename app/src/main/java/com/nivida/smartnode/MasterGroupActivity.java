@@ -1,30 +1,25 @@
 package com.nivida.smartnode;
 
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.ActivityNotFoundException;
-import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Environment;
-import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -32,12 +27,10 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.animation.Animation;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -46,18 +39,14 @@ import com.github.siyamed.shapeimageview.CircularImageView;
 import com.nivida.smartnode.a.C;
 import com.nivida.smartnode.adapter.CustomAdapter;
 import com.nivida.smartnode.adapter.MasterGridAdpater;
-import com.nivida.smartnode.adapter.SwitchDimmerOnOffAdapter;
 import com.nivida.smartnode.app.AppConstant;
 import com.nivida.smartnode.app.AppPreference;
 import com.nivida.smartnode.beans.Bean_MasterGroup;
 import com.nivida.smartnode.model.DatabaseHandler;
-import com.nivida.smartnode.utils.BitmapUtility;
 import com.nivida.smartnode.utils.ImagePath;
 import com.nivida.smartnode.utils.Utility;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -68,11 +57,24 @@ import java.util.List;
 
 public class MasterGroupActivity extends AppCompatActivity implements MasterGridAdpater.MasterGridCallBack {
 
+    public static final int SELECT_PICTURE = 1;
+    public static final int SELECT_PICTURE_KITKAT = 2;
+    private static final int REQUEST_CAMERA = 0;
+    private static final int RESULT_IMAGE_LOAD = 1;
+    private static final int REQUEST_CROP_ICON = 2;
     TextView drawer_txt1;
     DrawerLayout drawerLayout;
     GridView drawerList;
     ActionBarDrawerToggle drawerToggle;
     CustomAdapter customAdapter;
+    String userChoosenTask = "";
+    Bitmap bitmap;
+    Bitmap thePic = null;
+    String selectedImagePath;
+    LayoutInflater inflater;
+    View dialogView;
+    EditText edt_groupname;
+    CircularImageView img_selectgroup;
     private boolean isDrawerOpen=false;
     private Toolbar toolbar;
     private TextView actionBarTitle;
@@ -84,23 +86,6 @@ public class MasterGroupActivity extends AppCompatActivity implements MasterGrid
     private List<Bean_MasterGroup> masterGroupList;
     private DatabaseHandler dbhandler;
     private AppPreference preference;
-    private static final int REQUEST_CAMERA=0;
-    private static final int RESULT_IMAGE_LOAD=1;
-    private static final int REQUEST_CROP_ICON=2;
-    String userChoosenTask="";
-
-    Bitmap bitmap;
-    Bitmap thePic=null;
-    String selectedImagePath;
-
-    public static final int SELECT_PICTURE=1;
-    public static final int SELECT_PICTURE_KITKAT=2;
-
-
-    LayoutInflater inflater;
-    View dialogView;
-    EditText edt_groupname;
-    CircularImageView img_selectgroup;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -320,7 +305,8 @@ public class MasterGroupActivity extends AppCompatActivity implements MasterGrid
                     return false;
                 }
                 else {
-                    AlertDialog.Builder confirmDelete=new AlertDialog.Builder(MasterGroupActivity.this);
+                    C.createShortCut(MasterGroupActivity.this, dbhandler.getGroupnameById(g_id), g_id);
+                    /*AlertDialog.Builder confirmDelete=new AlertDialog.Builder(MasterGroupActivity.this);
                     confirmDelete.setTitle("Confirm to delete");
                     confirmDelete.setMessage("Are you sure to delete this group ?");
                     confirmDelete.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
@@ -341,7 +327,7 @@ public class MasterGroupActivity extends AppCompatActivity implements MasterGrid
                         }
                     });
                     AlertDialog dialog=confirmDelete.create();
-                    dialog.show();
+                    dialog.show();*/
                 }
                 return false;
             }
