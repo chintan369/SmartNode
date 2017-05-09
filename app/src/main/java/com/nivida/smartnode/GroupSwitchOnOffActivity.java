@@ -819,7 +819,7 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
         @Override
         protected String doInBackground(Void[] params) {
             try {
-                mqttClient = new MqttClient(AppConstant.MQTT_BROKER_URL, C.MQTT_ClientID, new MemoryPersistence());
+                mqttClient = new MqttClient(AppConstant.MQTT_BROKER_URL, clientId, new MemoryPersistence());
                 MqttConnectOptions connectOptions = new MqttConnectOptions();
                 connectOptions.setUserName(AppConstant.MQTT_USERNAME);
                 connectOptions.setPassword(AppConstant.getPassword());
@@ -834,10 +834,8 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
 
             } catch (MqttException e) {
                 Log.e("MQTT Exception",e.getMessage());
-                e.printStackTrace();
             } catch (Exception e) {
                 Log.e("Exception",e.getMessage());
-                e.printStackTrace();
             }
             return null;
         }

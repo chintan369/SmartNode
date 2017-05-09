@@ -65,7 +65,6 @@ public class AddDeviceService extends IntentService implements PushCallBack.Mess
             mqttClient.connect(connectOptions);
             for(int i=0; i<slaveIDs.size(); i++){
                 mqttClient.subscribe(db.getSlaveTopic(slaveIDs.get(i))+AppConstant.MQTT_SUBSCRIBE_TOPIC);
-                //Log.e("Subscribe MQTT",db.getSlaveTopic(slaveIDs.get(i)));
             }
 
             //Log.e("topic",preference.getTopic()+AppConstant.MQTT_SUBSCRIBE_TOPIC);
