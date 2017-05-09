@@ -189,7 +189,7 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                         C.Toast(getApplicationContext(), "It might Device not Responding or Your Connection is Poor.\nPlease Try Again Later!");
                     }
                 }
-            }, 10000);
+            }, 12000);
 
             try {
                 for (int i = 0; i < slaveIds.size(); i++) {
@@ -320,8 +320,14 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
             } else if (cmd.equals("STS")) {
                 if (isFirstTimeEntered) {
                     isFirstTimeEntered = false;
-                    if (loadingView != null && loadingView.isShowing())
-                        loadingView.dismiss();
+                    if (loadingView != null && loadingView.isShowing()){
+                        new Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                loadingView.dismiss();
+                            }
+                        },2000);
+                    }
                 }
                 Log.e("Command :", "STS Found");
                 updateSwitchesAsLive(json);
