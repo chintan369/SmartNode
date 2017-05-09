@@ -38,6 +38,7 @@ import com.nivida.smartnode.services.UDPService;
 import com.nivida.smartnode.utils.CustomEncryption;
 import com.nivida.smartnode.utils.NetworkUtility;
 
+import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -84,6 +85,8 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
         new IPDb(this).deleteIP();
+
+        //Log.e("Client ID", MqttClient.generateClientId());
 
         if(NetworkUtility.isOnline(this)){
             startService(new Intent(getApplicationContext(), UDPService.class));

@@ -634,20 +634,26 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public boolean isSameMasterName(String masterName) {
         boolean isSame = false;
         synchronized (Lock){
-            SQLiteDatabase db = this.getReadableDatabase();
+            try {
+                SQLiteDatabase db = this.getReadableDatabase();
 
-            Cursor cursor = db.query(TABLE_MASTER, new String[]{MASTER_NAME}, MASTER_NAME + "=? COLLATE NOCASE", new String[]{masterName},
-                    null, null, null, null);
-            int count = cursor.getCount();
+                Cursor cursor = db.query(TABLE_MASTER, new String[]{MASTER_NAME}, MASTER_NAME + "=? COLLATE NOCASE", new String[]{masterName},
+                        null, null, null, null);
+                int count = cursor.getCount();
 
-            if (count == 0) {
-                isSame = false;
-            } else {
-                isSame = true;
+                if (count == 0) {
+                    isSame = false;
+                } else {
+                    isSame = true;
+                }
+
+                cursor.close();
+                db.close();
+            }
+            catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e){
+                Log.e("Exception",e.getMessage());
             }
 
-            cursor.close();
-            db.close();
         }
 
         return isSame;
