@@ -62,8 +62,7 @@ public class C {
         return null;
     }
 
-    public static String GetDeviceipWiFiData(Context context)
-    {
+    public static String GetDeviceipWiFiData(Context context) {
 
         WifiManager wm = (WifiManager) context.getSystemService(WIFI_SERVICE);
 
