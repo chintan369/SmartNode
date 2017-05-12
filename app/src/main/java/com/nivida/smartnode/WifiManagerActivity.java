@@ -10,22 +10,19 @@ import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.nivida.smartnode.a.C;
-import com.nivida.smartnode.app.AppConstant;
-import com.nivida.smartnode.services.ReceiveService;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -95,6 +92,8 @@ public class WifiManagerActivity extends AppCompatActivity {
         {
             IPaddress = C.GetDeviceipMobileData();
         }
+
+        Log.e("Current IP", "-->" + IPaddress);
 
         if(!WIFI){
             C.Toast(getApplicationContext(),"Please Connect in Same Network as Your Master Device");
@@ -189,6 +188,37 @@ public class WifiManagerActivity extends AppCompatActivity {
         //new SendUDP(AppConstant.CMD_GET_MASTER).execute();
     }
 
+    public void doInback() {
+        new Handler().postDelayed(new Runnable() {
+
+            @Override
+            public void run() {
+                // TODO Auto-generated method stub
+
+                arraylist.clear();
+                bssidList.clear();
+                wifi.startScan();
+                //Toast.makeText(getApplicationContext(), "Scanning...." + size, Toast.LENGTH_SHORT).show();
+                try {
+                    size = size - 1;
+                    while (size >= 0) {
+                        HashMap<String, String> item = new HashMap<String, String>();
+                        item.put(ITEM_KEY, results.get(size).SSID);
+                        //Log.e("BSSID",results.get(size).SSID+" -- "+results.get(size).BSSID);
+                        arraylist.add(item);
+                        bssidList.add(results.get(size).BSSID);
+                        size--;
+                        adapter.notifyDataSetChanged();
+                    }
+                } catch (Exception e) {
+                    Log.e("Exception", e.getMessage());
+                }
+                doInback();
+            }
+        }, 3500);
+
+    }
+
     public class SendUDP extends AsyncTask {
         String message;
 
@@ -237,41 +267,5 @@ public class WifiManagerActivity extends AppCompatActivity {
             }
             return null;
         }
-    }
-
-    public void doInback(){
-        new Handler().postDelayed(new Runnable() {
-
-            @Override
-            public void run()
-            {
-                // TODO Auto-generated method stub
-
-                arraylist.clear();
-                bssidList.clear();
-                wifi.startScan();
-                //Toast.makeText(getApplicationContext(), "Scanning...." + size, Toast.LENGTH_SHORT).show();
-                try
-                {
-                    size = size - 1;
-                    while (size >= 0)
-                    {
-                        HashMap<String, String> item = new HashMap<String, String>();
-                        item.put(ITEM_KEY, results.get(size).SSID);
-                        //Log.e("BSSID",results.get(size).SSID+" -- "+results.get(size).BSSID);
-                        arraylist.add(item);
-                        bssidList.add(results.get(size).BSSID);
-                        size--;
-                        adapter.notifyDataSetChanged();
-                    }
-                }
-                catch (Exception e)
-                {
-                    Log.e("Exception",e.getMessage());
-                }
-                doInback();
-            }
-        }, 3500);
-
     }
 }

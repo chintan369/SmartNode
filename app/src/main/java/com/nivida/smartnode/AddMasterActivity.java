@@ -16,13 +16,13 @@ import android.graphics.Typeface;
 import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -58,24 +58,19 @@ import com.nivida.smartnode.services.AddMasterService;
 import com.nivida.smartnode.services.UDPService;
 import com.nivida.smartnode.utils.NetworkUtility;
 
-import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
-import org.eclipse.paho.client.mqttv3.util.Strings;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -83,12 +78,13 @@ import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 
 public class AddMasterActivity extends AppCompatActivity {
 
+    //Define MQTT variables here
+    public static final String SERVICE_CLASSNAME = "com.nivida.smartnode.services.AddMasterService";
     DrawerLayout drawerLayout;
     GridView masterDeviceList, drawerlist;
     ActionBarDrawerToggle drawerToggle;
     CustomAdapter customadapter;
     MasterDeviceAdapter masterDeviceAdapter;
-    private AppPreference preference;
     List<Bean_Master> masterList = new ArrayList<>();
     LinearLayout layout_addedslave, layout_no_addedslave;
     DatabaseHandler databaseHandler;
@@ -97,47 +93,59 @@ public class AddMasterActivity extends AppCompatActivity {
     Button btn_addmaster;
     ImageView img_add, img_home;
     Typeface tf;
-    private boolean isDrawerOpen = false;
-    private NetworkUtility netcheck;
-
     int masteridForRename = 0;
     String masterNameForRename = "";
     ProgressBar progressbar;
-
     ProgressDialog dialog;
-
     boolean isDialogShowing=false;
-
     DatagramSocket client_socket;
-
     AlertDialog.Builder dialogBuilder;
     AlertDialog b;
-
-    //Define MQTT variables here
-    public static final String SERVICE_CLASSNAME = "com.nivida.smartnode.services.AddMasterService";
     MqttClient mqttClient;
     String clientId = "";
     String subscribedMessage = "";
     BroadcastReceiver receiver;
     boolean isUserCredentialTrue = false;
-
     String selectedMasterName="";
     String masterType="";
-
     ArrayAdapter<String> spn_adp;
     ArrayList<String> master_names = new ArrayList<>();
     ArrayList<String> master_ips=new ArrayList<>();
     ArrayList<String> master_deviceIDs=new ArrayList<>();
-
     String ipAddress="";
-
     ConnectivityManager manager;
-
     boolean isCalledToShowMST=false;
-
     String[] perms = { Manifest.permission.SYSTEM_ALERT_WINDOW,Manifest.permission.WRITE_SETTINGS,Manifest.permission.WRITE_SECURE_SETTINGS,Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_PHONE_STATE,Manifest.permission.ACCESS_NETWORK_STATE};
+    private AppPreference preference;
+    private boolean isDrawerOpen = false;
+    private NetworkUtility netcheck;
     private int code=1;
 
+    public static boolean isMarshmallowPlusDevice() {
+
+        return Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP_MR1;
+    }
+
+    @TargetApi(Build.VERSION_CODES.M)
+    public static boolean isPermissionRequestRequired(Activity activity, @NonNull String[] permissions, int requestCode) {
+        if (isMarshmallowPlusDevice() && permissions.length > 0) {
+            List<String> newPermissionList = new ArrayList<>();
+            for (String permission : permissions) {
+                if (PERMISSION_GRANTED != activity.checkSelfPermission(permission)) {
+                    newPermissionList.add(permission);
+
+                }
+            }
+            if (newPermissionList.size() > 0) {
+                activity.requestPermissions(newPermissionList.toArray(new String[newPermissionList.size()]), requestCode);
+                return true;
+            }
+
+
+        }
+
+        return false;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -682,6 +690,7 @@ public class AddMasterActivity extends AppCompatActivity {
                                 try {
                                     object.put("cmd",Cmd.MRN);
                                     object.put("data",renameMaster);
+                                    object.put("slave", slaveID);
                                     object.put("token",databaseHandler.getSlaveToken(slaveID));
                                     command=object.toString();
                                 } catch (JSONException e) {
@@ -716,153 +725,6 @@ public class AddMasterActivity extends AppCompatActivity {
                     Toast.LENGTH_SHORT).show();
         }
 
-    }
-
-    public class SendUDP extends AsyncTask<Void, Void, String> {
-        String message;
-        String masterName;
-        String type;
-        boolean showMaster=true;
-        String ipAddress="";
-
-        public SendUDP(String message) {
-            this.message = message;
-            showMaster=true;
-            //progressbar.setVisibility(View.VISIBLE);
-        }
-
-        public SendUDP(String message,boolean isAddMaster) {
-            this.message = message;
-            showMaster=isAddMaster;
-            //progressbar.setVisibility(View.VISIBLE);
-        }
-
-        public SendUDP(String message,String masterName,String type){
-            this.message = message;
-            this.masterName=masterName;
-            selectedMasterName=masterName;
-            masterType=type;
-            this.type=type;
-            showMaster=false;
-            //progressbar.setVisibility(View.VISIBLE);
-        }
-
-        public SendUDP(String message,String masterName,String type,String ipAddress){
-            this.message = message;
-            this.masterName=masterName;
-            selectedMasterName=masterName;
-            masterType=type;
-            this.type=type;
-            showMaster=false;
-            this.ipAddress=ipAddress;
-            //progressbar.setVisibility(View.VISIBLE);
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-
-        @Override
-        protected String doInBackground(Void[] params) {
-
-            try {
-                DatagramSocket socket = new DatagramSocket(13001);
-                byte[] senddata = new byte[message.length()];
-                senddata = message.getBytes();
-
-                InetSocketAddress server_addr;
-                DatagramPacket packet;
-
-                //Log.e("IP Address Saved","->"+preference.getIpaddress());
-
-                /*if (preference.getIpaddress().isEmpty() || !C.isValidIP(preference.getIpaddress())) {*/
-
-                if(showMaster){
-                    server_addr = new InetSocketAddress(C.getBroadcastAddress(getApplicationContext()).getHostAddress(), 13001);
-                    packet = new DatagramPacket(senddata, senddata.length, server_addr);
-                    socket.setReuseAddress(true);
-                    socket.setBroadcast(true);
-                    socket.send(packet);
-                    Log.e("Packet","Sent");
-                }
-                else {
-                    server_addr = new InetSocketAddress(this.ipAddress, 13001);
-                    Log.e("IP Address",this.ipAddress);
-                    preference.setIpaddress(this.ipAddress);
-                    packet = new DatagramPacket(senddata, senddata.length, server_addr);
-                    socket.setReuseAddress(true);
-                    socket.setBroadcast(true);
-                    socket.send(packet);
-                    Log.e("Packet","Sent");
-                }
-                /*} else {
-                    server_addr = new InetSocketAddress(preference.getIpaddress(), 13001);
-                    packet = new DatagramPacket(senddata, senddata.length, server_addr);
-                    socket.setReuseAddress(true);
-                    //socket.setBroadcast(true);
-                    socket.send(packet);
-                    Log.e("Packet","Sent");
-                }*/
-
-                socket.disconnect();
-                socket.close();
-            } catch (SocketException s) {
-                Log.e("Exception", "->" + s.getLocalizedMessage());
-            } catch (IOException e) {
-                Log.e("Exception", "->" + e.getLocalizedMessage());
-            }
-            return null;
-        }
-
-        private void checkLogin(String text){
-
-        }
-
-        @Override
-        protected void onPostExecute(String text) {
-            super.onPostExecute(text);
-            //progressbar.setVisibility(View.GONE);
-
-            /*Log.e("text", "<->" + text);
-
-            if (text != null) {
-                try {
-                    master_names.clear();
-                    JSONObject jsonMaster = new JSONObject(text);
-                    String cmd = jsonMaster.getString("cmd");
-                    if (cmd.equalsIgnoreCase("MST")) {
-                        master_names.add(jsonMaster.getString("m_name"));
-                        spn_adp.notifyDataSetChanged();
-
-                        if (master_names.size() > 0) {
-                            showDialog(jsonMaster.getString("type"));
-                        } else {
-                            C.Toast(getApplicationContext(), "No Device Found");
-                        }
-                    } else if (cmd.equalsIgnoreCase("MRN")) {
-                        String status = jsonMaster.getString("status");
-                        if (status.equalsIgnoreCase("success")) {
-                            if (masteridForRename != 0 && !masterNameForRename.equals("")) {
-                                databaseHandler.renameMaster(masteridForRename, masterNameForRename);
-                                masterDeviceAdapter.notifyDataSetChanged();
-                            }
-                        }
-                    }
-                    else if(cmd.equalsIgnoreCase("LIN")){
-                      String status=jsonMaster.getString("status");
-                        if(status.equalsIgnoreCase("success")){
-
-                        }
-                    }
-
-                } catch (Exception j) {
-                    C.Toast(getApplicationContext(), j.getLocalizedMessage());
-                }
-            }*/
-
-
-        }
     }
 
     private void fetchMasterDeviceFromServer() {
@@ -1154,6 +1016,173 @@ public class AddMasterActivity extends AppCompatActivity {
         }
     }
 
+    private void publishCommandForMaster() {
+        try {
+            mqttClient = new MqttClient(AppConstant.MQTT_BROKER_URL, clientId, new MemoryPersistence());
+            MqttConnectOptions connectOptions = new MqttConnectOptions();
+            connectOptions.setUserName(AppConstant.MQTT_USERNAME);
+            connectOptions.setPassword(AppConstant.getPassword());
+            mqttClient.connect(connectOptions);
+            MqttMessage mqttMessage = new MqttMessage(AppConstant.CMD_GET_MASTER.getBytes());
+            mqttMessage.setRetained(true);
+            mqttClient.publish(AppConstant.MQTT_PUBLISH_TOPIC, mqttMessage);
+            mqttClient.disconnect();
+
+        } catch (MqttException e) {
+            Log.e("Exception : ", e.getMessage());
+            Toast.makeText(getApplicationContext(), "Unable to make server connection", Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public class SendUDP extends AsyncTask<Void, Void, String> {
+        String message;
+        String masterName;
+        String type;
+        boolean showMaster = true;
+        String ipAddress = "";
+
+        public SendUDP(String message) {
+            this.message = message;
+            showMaster = true;
+            //progressbar.setVisibility(View.VISIBLE);
+        }
+
+        public SendUDP(String message, boolean isAddMaster) {
+            this.message = message;
+            showMaster = isAddMaster;
+            //progressbar.setVisibility(View.VISIBLE);
+        }
+
+        public SendUDP(String message, String masterName, String type) {
+            this.message = message;
+            this.masterName = masterName;
+            selectedMasterName = masterName;
+            masterType = type;
+            this.type = type;
+            showMaster = false;
+            //progressbar.setVisibility(View.VISIBLE);
+        }
+
+        public SendUDP(String message, String masterName, String type, String ipAddress) {
+            this.message = message;
+            this.masterName = masterName;
+            selectedMasterName = masterName;
+            masterType = type;
+            this.type = type;
+            showMaster = false;
+            this.ipAddress = ipAddress;
+            //progressbar.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected String doInBackground(Void[] params) {
+
+            try {
+                DatagramSocket socket = new DatagramSocket(13001);
+                byte[] senddata = new byte[message.length()];
+                senddata = message.getBytes();
+
+                InetSocketAddress server_addr;
+                DatagramPacket packet;
+
+                //Log.e("IP Address Saved","->"+preference.getIpaddress());
+
+                /*if (preference.getIpaddress().isEmpty() || !C.isValidIP(preference.getIpaddress())) {*/
+
+                if (showMaster) {
+                    server_addr = new InetSocketAddress(C.getBroadcastAddress(getApplicationContext()).getHostAddress(), 13001);
+                    packet = new DatagramPacket(senddata, senddata.length, server_addr);
+                    socket.setReuseAddress(true);
+                    socket.setBroadcast(true);
+                    socket.send(packet);
+                    Log.e("Packet", "Sent");
+                } else {
+                    server_addr = new InetSocketAddress(this.ipAddress, 13001);
+                    Log.e("IP Address", this.ipAddress);
+                    preference.setIpaddress(this.ipAddress);
+                    packet = new DatagramPacket(senddata, senddata.length, server_addr);
+                    socket.setReuseAddress(true);
+                    socket.setBroadcast(true);
+                    socket.send(packet);
+                    Log.e("Packet", "Sent");
+                }
+                /*} else {
+                    server_addr = new InetSocketAddress(preference.getIpaddress(), 13001);
+                    packet = new DatagramPacket(senddata, senddata.length, server_addr);
+                    socket.setReuseAddress(true);
+                    //socket.setBroadcast(true);
+                    socket.send(packet);
+                    Log.e("Packet","Sent");
+                }*/
+
+                socket.disconnect();
+                socket.close();
+            } catch (SocketException s) {
+                Log.e("Exception", "->" + s.getLocalizedMessage());
+            } catch (IOException e) {
+                Log.e("Exception", "->" + e.getLocalizedMessage());
+            }
+            return null;
+        }
+
+        private void checkLogin(String text) {
+
+        }
+
+        @Override
+        protected void onPostExecute(String text) {
+            super.onPostExecute(text);
+            //progressbar.setVisibility(View.GONE);
+
+            /*Log.e("text", "<->" + text);
+
+            if (text != null) {
+                try {
+                    master_names.clear();
+                    JSONObject jsonMaster = new JSONObject(text);
+                    String cmd = jsonMaster.getString("cmd");
+                    if (cmd.equalsIgnoreCase("MST")) {
+                        master_names.add(jsonMaster.getString("m_name"));
+                        spn_adp.notifyDataSetChanged();
+
+                        if (master_names.size() > 0) {
+                            showDialog(jsonMaster.getString("type"));
+                        } else {
+                            C.Toast(getApplicationContext(), "No Device Found");
+                        }
+                    } else if (cmd.equalsIgnoreCase("MRN")) {
+                        String status = jsonMaster.getString("status");
+                        if (status.equalsIgnoreCase("success")) {
+                            if (masteridForRename != 0 && !masterNameForRename.equals("")) {
+                                databaseHandler.renameMaster(masteridForRename, masterNameForRename);
+                                masterDeviceAdapter.notifyDataSetChanged();
+                            }
+                        }
+                    }
+                    else if(cmd.equalsIgnoreCase("LIN")){
+                      String status=jsonMaster.getString("status");
+                        if(status.equalsIgnoreCase("success")){
+
+                        }
+                    }
+
+                } catch (Exception j) {
+                    C.Toast(getApplicationContext(), j.getLocalizedMessage());
+                }
+            }*/
+
+
+        }
+    }
+
     public class SendCommandForMaster extends AsyncTask {
 
         public ProgressDialog statusDialog;
@@ -1182,27 +1211,6 @@ public class AddMasterActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(Object o) {
             statusDialog.dismiss();
-        }
-    }
-
-    private void publishCommandForMaster() {
-        try {
-            mqttClient = new MqttClient(AppConstant.MQTT_BROKER_URL, clientId, new MemoryPersistence());
-            MqttConnectOptions connectOptions = new MqttConnectOptions();
-            connectOptions.setUserName(AppConstant.MQTT_USERNAME);
-            connectOptions.setPassword(AppConstant.getPassword());
-            mqttClient.connect(connectOptions);
-            MqttMessage mqttMessage = new MqttMessage(AppConstant.CMD_GET_MASTER.getBytes());
-            mqttMessage.setRetained(true);
-            mqttClient.publish(AppConstant.MQTT_PUBLISH_TOPIC, mqttMessage);
-            mqttClient.disconnect();
-
-        } catch (MqttException e) {
-            Log.e("Exception : ", e.getMessage());
-            Toast.makeText(getApplicationContext(), "Unable to make server connection", Toast.LENGTH_SHORT).show();
-            e.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
@@ -1254,31 +1262,5 @@ public class AddMasterActivity extends AppCompatActivity {
         protected void onPostExecute(String s) {
             statusDialog.dismiss();
         }
-    }
-
-    public static boolean isMarshmallowPlusDevice() {
-
-        return Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP_MR1;
-    }
-
-    @TargetApi(Build.VERSION_CODES.M)
-    public static boolean isPermissionRequestRequired(Activity activity, @NonNull String[] permissions, int requestCode) {
-        if (isMarshmallowPlusDevice() && permissions.length > 0) {
-            List<String> newPermissionList = new ArrayList<>();
-            for (String permission : permissions) {
-                if (PERMISSION_GRANTED != activity.checkSelfPermission(permission)) {
-                    newPermissionList.add(permission);
-
-                }
-            }
-            if (newPermissionList.size() > 0) {
-                activity.requestPermissions(newPermissionList.toArray(new String[newPermissionList.size()]), requestCode);
-                return true;
-            }
-
-
-        }
-
-        return false;
     }
 }

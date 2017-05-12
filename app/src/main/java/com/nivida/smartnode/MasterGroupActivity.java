@@ -305,8 +305,8 @@ public class MasterGroupActivity extends AppCompatActivity implements MasterGrid
                     return false;
                 }
                 else {
-                    C.createShortCut(MasterGroupActivity.this, dbhandler.getGroupnameById(g_id), g_id);
-                    /*AlertDialog.Builder confirmDelete=new AlertDialog.Builder(MasterGroupActivity.this);
+                    //C.createShortCut(MasterGroupActivity.this, dbhandler.getGroupnameById(g_id), g_id);
+                    AlertDialog.Builder confirmDelete = new AlertDialog.Builder(MasterGroupActivity.this);
                     confirmDelete.setTitle("Confirm to delete");
                     confirmDelete.setMessage("Are you sure to delete this group ?");
                     confirmDelete.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
@@ -327,7 +327,7 @@ public class MasterGroupActivity extends AppCompatActivity implements MasterGrid
                         }
                     });
                     AlertDialog dialog=confirmDelete.create();
-                    dialog.show();*/
+                    dialog.show();
                 }
                 return false;
             }
