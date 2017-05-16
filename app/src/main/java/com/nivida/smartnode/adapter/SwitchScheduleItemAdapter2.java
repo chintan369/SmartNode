@@ -659,7 +659,15 @@ public class SwitchScheduleItemAdapter2 extends BaseAdapter {
     }
 
     public void setScheduleCreated(String slave, String switchButton, String slotNum) {
-
+        for (int i = 0; i < scheduleItemList.size(); i++) {
+            if (scheduleItemList.get(i).getSlot_num().equals(slotNum) && scheduleItemList.get(i).getSlave_id().equals(slave)
+                    && scheduleItemList.get(i).getSwitch_btn_num().equals(switchButton)) {
+                scheduleItemList.get(i).setSchEnabled(true);
+                databaseHandler.updateScheduleItem(scheduleItemList.get(i));
+                break;
+            }
+        }
+        notifyDataSetChanged();
     }
 
     private void updateDatabaseSchedule() {
