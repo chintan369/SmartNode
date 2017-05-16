@@ -262,11 +262,13 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
                         }
 
                         if(!isFoundAny){
+                            scheduleList.removeFooterView(footerViewLoaidng);
                             adapter.setHasNoSchedule();
                         }
                     }
                 } else if (tag.equalsIgnoreCase("I")) {
                     if (forAddingNewItem) {
+                        scheduleList.removeFooterView(footerViewLoaidng);
                         if (!dataItems[2].equalsIgnoreCase("EMPTY")) {
                             String time = dataItems[2] + "-" + dataItems[3];
                             String slotNumber = dataItems[1];
@@ -306,6 +308,9 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
                         if (dataItems[2].equalsIgnoreCase("EMPTY")) {
                             C.Toast(getApplicationContext(),"Schedule Removed Successfully");
                             adapter.updateScheduleDeleted(dataItems[1], slave);
+                        } else {
+                            C.Toast(getApplicationContext(), "Schedule created Succeddfully");
+                            adapter.setScheduleCreated(slave, dataItems[5], dataItems[1]);
                         }
                     }
                 } else if (tag.equalsIgnoreCase("N")) {

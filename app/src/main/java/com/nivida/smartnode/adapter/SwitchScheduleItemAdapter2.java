@@ -12,11 +12,9 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -660,10 +658,8 @@ public class SwitchScheduleItemAdapter2 extends BaseAdapter {
         notifyDataSetChanged();
     }
 
-    public interface OnScheduleViewSelection{
-        void deleteSchedule(int position,Bean_ScheduleItem scheduleItem);
-        void getAllSlotsInfo(String slaveID);
-        void createSchedule(int position,String createCommand, String slaveID);
+    public void setScheduleCreated(String slave, String switchButton, String slotNum) {
+
     }
 
     private void updateDatabaseSchedule() {
@@ -732,8 +728,8 @@ public class SwitchScheduleItemAdapter2 extends BaseAdapter {
     }
 
     private void publishCommandForSetSchedule(int position, String slot_number, String slave) throws MqttException {
+        scheduleItemList.get(position).setSlot_num(String.valueOf(slot_number));
         Bean_ScheduleItem scheduleItem=scheduleItemList.get(position);
-        scheduleItem.setSlot_num(String.valueOf(slot_number));
 
         if(scheduleItem.getSlave_id().equalsIgnoreCase(slave)) {
 
@@ -824,6 +820,32 @@ public class SwitchScheduleItemAdapter2 extends BaseAdapter {
 
     }
 
+    public void updateAllItemstoDatabase() {
+        for (int i = 0; i < scheduleItemList.size(); i++) {
+            databaseHandler.updateScheduleItem(scheduleItemList.get(i));
+        }
+    }
+
+    @Override
+    public void notifyDataSetChanged() {
+        updateAllItemstoDatabase();
+        scheduleItemList = databaseHandler.getAllSchedulesForSwitch(switchID);
+        super.notifyDataSetChanged();
+    }
+
+    private int getCurrentDay() {
+        Calendar calendar = Calendar.getInstance();
+        return calendar.get(Calendar.DAY_OF_WEEK);
+    }
+
+    public interface OnScheduleViewSelection {
+        void deleteSchedule(int position, Bean_ScheduleItem scheduleItem);
+
+        void getAllSlotsInfo(String slaveID);
+
+        void createSchedule(int position, String createCommand, String slaveID);
+    }
+
     private class PublishMessage extends AsyncTask<Void, Void, Void>{
 
         String command;
@@ -857,23 +879,5 @@ public class SwitchScheduleItemAdapter2 extends BaseAdapter {
 
             return null;
         }
-    }
-
-    public void updateAllItemstoDatabase(){
-        for(int i=0; i<scheduleItemList.size(); i++){
-            databaseHandler.updateScheduleItem(scheduleItemList.get(i));
-        }
-    }
-
-    @Override
-    public void notifyDataSetChanged() {
-        updateAllItemstoDatabase();
-        scheduleItemList=databaseHandler.getAllSchedulesForSwitch(switchID);
-        super.notifyDataSetChanged();
-    }
-
-    private int getCurrentDay(){
-        Calendar calendar=Calendar.getInstance();
-        return calendar.get(Calendar.DAY_OF_WEEK);
     }
 }
