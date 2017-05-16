@@ -12,7 +12,6 @@ import android.graphics.BitmapFactory;
 import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.nivida.smartnode.R;
 import com.nivida.smartnode.a.C;
@@ -24,11 +23,7 @@ import com.nivida.smartnode.beans.Bean_ScheduleItem;
 import com.nivida.smartnode.beans.Bean_SlaveGroup;
 import com.nivida.smartnode.beans.Bean_Switch;
 import com.nivida.smartnode.beans.Bean_SwitchIcons;
-import com.nivida.smartnode.utils.BitmapUtility;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -38,29 +33,11 @@ import java.util.Locale;
  */
 public class DatabaseHandler extends SQLiteOpenHelper {
 
-    private Context context;
-
     public static final String Lock = "dblock";
-
-    String[] switch_names = {"Bulb 1", "Refrigerator", "Fan 1", "Motor", "Bulb 2", "AC 1", "AC 2", "Tubelight 1", "Fan 2", "TV",
-            "Oven", "Refrigerator", "Fan 3", "Lamp 1"};
-
-    String[] dimmer_names = {"Dimmer 1", "Dimmer 2", "Dimmer 3"};
-
-    int[] sw_icons_on = {R.drawable.fluorescent_bulb_on, R.drawable.idea_on, R.drawable.lamp_on,
-            R.drawable.spiral_bulb_on, R.drawable.fridge_on, R.drawable.microwave_on,
-            R.drawable.air_conditioner_on, R.drawable.stepper_motor_on, R.drawable.fan_on};
-
-    int[] sw_icons_off = {R.drawable.fluorescent_bulb_off, R.drawable.idea_off, R.drawable.lamp_off,
-            R.drawable.spiral_bulb_off, R.drawable.fridge_off, R.drawable.microwave_off,
-            R.drawable.air_conditioner_off, R.drawable.stepper_motor_off, R.drawable.fan_off};
-
     //Define Database version
     private static final int DATABASE_VERSION = 4;
-
     // Put your Database name
     private static final String DATABASE_NAME = Environment.getExternalStorageDirectory() + "/Smartnode/" + "smartnodedb.db";
-
     //put your Table name here
     private static final String TABLE_GROUPS = "groups";
     private static final String TABLE_MASTER = "master";
@@ -71,14 +48,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String TABLE_SCENES = "scenes";
     private static final String TABLE_SCENE_SWITCH = "scene_switch";
     private static final String TABLE_SCHEDULE = "schedule";
-
-
     //define columns for TABLE_GROUPs here
     private static final String GROUP_GEN_ID = "id";
     private static final String GROUP_NAME = "g_name";
     private static final String GROUP_IMAGE = "g_image";
     private static final String GROUP_HAS_SWITCHES = "has_switches";
-
     //define columns for TABLE_GROUPs here
     private static final String MASTER_GEN_ID = "id";
     private static final String MASTER_NAME = "m_name";
@@ -88,7 +62,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String MASTER_USERTYPE = "m_usertype";
     private static final String MASTER_ID = "m_masterID";
     private static final String MASTER_IP = "m_ipAddress";
-
     //define columns for TABLE_SLAVEs here
     private static final String SLAVE_GEN_ID = "id";
     private static final String SLAVE_HEX_ID = "hex_id";
@@ -100,12 +73,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String SLAVE_TOPIC = "slave_topic";
     private static final String SLAVE_USERTYPE = "slave_utype";
     private static final String SLAVE_TOTAL_SWITCH="slave_tsw";
-
     //define columns for TABLE_SWITCH_ICONS here
     private static final String SWICON_GEN_ID = "id";
     private static final String SWICON_ON = "sw_on";
     private static final String SWICON_OFF = "sw_off";
-
     //define columns for TABLE_SWITCHEs here
     private static final String SWITCH_GEN_ID = "id";
     private static final String SWITCH_BUTTON_NUM = "sw_btn_num";
@@ -121,7 +92,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String SWITCH_HAS_SCHEDULE = "sw_has_schdule";
     private static final String SWITCH_USERLOCK = "sw_userlock";
     private static final String SWITCH_TOUCHLOCK = "sw_touchlock";
-
     //define columns for TABLE_SCENE_SWITCHEs here
     private static final String SCENE_SWITCH_GEN_ID = "id";
     private static final String SCENE_SWITCH_SCENE_ID = "scene_id";
@@ -132,7 +102,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String SCENE_SWITCH_IN_SLAVE = "inSlave";
     private static final String SCENE_SWITCH_IN_GRP = "inGroup";
     private static final String SCENE_DIMMER_VALUE = "dimmerValue";
-
     //define columns for TABLE_DIMMERs here
     private static final String DIMMER_GEN_ID = "id";
     private static final String DIMMER_NAME = "dm_name";
@@ -140,12 +109,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String DIMMER_IN_SLAVE = "inSlave";
     private static final String DIMMER_IN_GRP = "inGroup";
     private static final String DIMMER_IS_FAV = "isFav";
-
     //define columns for TABLE_SCENES here
     private static final String SCENE_GEN_ID = "id";
     private static final String SCENE_NAME = "scn_name";
     private static final String SCENE_FOR_GROUP = "scn_grp";
-
     //define columns for TABLE_SCHEDULES here
     private static final String SCHEDULE_GEN_ID = "id";
     private static final String SCH_SWITCH_ID = "sw_id";
@@ -160,6 +127,15 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String SCH_IS_ENABLE = "sw_enabled";
     private static final String SCH_TIME = "sw_time";
     private static final String SCH_SLOT_NUM = "sw_slot_num";
+    String[] switch_names = {"Bulb 1", "Refrigerator", "Fan 1", "Motor", "Bulb 2", "AC 1", "AC 2", "Tubelight 1", "Fan 2", "TV", "Oven", "Refrigerator", "Fan 3", "Lamp 1"};
+    String[] dimmer_names = {"Dimmer 1", "Dimmer 2", "Dimmer 3"};
+    int[] sw_icons_on = {R.drawable.fluorescent_bulb_on, R.drawable.idea_on, R.drawable.lamp_on,
+            R.drawable.spiral_bulb_on, R.drawable.fridge_on, R.drawable.microwave_on,
+            R.drawable.air_conditioner_on, R.drawable.stepper_motor_on, R.drawable.fan_on};
+    int[] sw_icons_off = {R.drawable.fluorescent_bulb_off, R.drawable.idea_off, R.drawable.lamp_off,
+            R.drawable.spiral_bulb_off, R.drawable.fridge_off, R.drawable.microwave_off,
+            R.drawable.air_conditioner_off, R.drawable.stepper_motor_off, R.drawable.fan_off};
+    private Context context;
 
     public DatabaseHandler(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
