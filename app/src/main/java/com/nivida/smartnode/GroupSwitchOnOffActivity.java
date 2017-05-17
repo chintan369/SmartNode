@@ -8,13 +8,11 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -40,7 +38,6 @@ import com.nivida.smartnode.adapter.SwitchDimmerOnOffAdapter;
 import com.nivida.smartnode.adapter.SwitchOnOffAdapter;
 import com.nivida.smartnode.app.AppConstant;
 import com.nivida.smartnode.app.AppPreference;
-import com.nivida.smartnode.beans.Bean_SlaveGroup;
 import com.nivida.smartnode.beans.Bean_Switch;
 import com.nivida.smartnode.model.DatabaseHandler;
 import com.nivida.smartnode.model.IPDb;
@@ -54,10 +51,8 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -69,6 +64,9 @@ import java.util.List;
 
 public class GroupSwitchOnOffActivity extends AppCompatActivity implements SwitchDimmerOnOffAdapter.DimmerChangeCallBack, SwitchDimmerOnOffAdapter.OnSwitchSelection {
 
+    //Define MQTT variables here
+    public static final String SERVICE_CLASSNAME = "com.nivida.smartnode.services.AddDeviceService";
+    public static final String UDPSERVICE_CLASSNAME = "com.nivida.smartnode.services.UDPService";
     RecyclerView switchView;
     SwitchOnOffAdapter switchOnOffAdapter;
     DimmerOnOffAdapter dimmerOnOffAdapter;
@@ -79,27 +77,17 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
     GridView added_switchlist, added_dimmerlist;
     LinearLayout select_scene;
     SwitchDimmerOnOffAdapter switchDimmerOnOffAdapter;
-
     Toolbar toolbar;
-
     int groupid = 0;
-
     ProgressDialog loadingView;
-
     ArrayList<String> button_list = new ArrayList<>();
     ArrayList<String> buttonType = new ArrayList<>();
     ArrayList<String> buttonStatus = new ArrayList<>();
     ArrayList<String> buttonUserLock = new ArrayList<>();
     ArrayList<String> buttonTouchLock = new ArrayList<>();
     List<Bean_Switch> switchListToAdd = new ArrayList<>();
-
     ArrayList<String> scheduleInfo = new ArrayList<>();
-
     List<String> slaveIds=new ArrayList<>();
-
-    //Define MQTT variables here
-    public static final String SERVICE_CLASSNAME = "com.nivida.smartnode.services.AddDeviceService";
-    public static final String UDPSERVICE_CLASSNAME = "com.nivida.smartnode.services.UDPService";
     MqttClient mqttClient;
     String clientId = "";
     String subscribedMessage = "";
@@ -306,9 +294,15 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                 return;
             }
 
+            if (jsonDevice.has("slave")) {
+                slave_hex_id = jsonDevice.getString("slave");
+                if (!slaveIds.contains(slave_hex_id))
+                    return;
+            } else return;
+
             if (cmd.equals("SET")) {
                 Log.e("Command :", "SET Found");
-                slave_hex_id = jsonDevice.getString("slave");
+
                 button = jsonDevice.getString("button");
                 val = jsonDevice.getString("val");
                 dval = jsonDevice.getString("dval");

@@ -413,8 +413,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 db.close();
             }catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e){
 
-                waitFor();
-                switchIcon=getSwitchIconData(switch_icon);
+                //waitFor();
+                //switchIcon=getSwitchIconData(switch_icon);
             }
         }
 
