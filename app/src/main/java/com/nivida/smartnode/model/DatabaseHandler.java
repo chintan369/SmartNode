@@ -2409,8 +2409,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 db.delete(TABLE_SCHEDULE, SCHEDULE_GEN_ID + "=?", new String[]{String.valueOf(bean_scheduleItem.getScheduleID())});
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                removeScheduleItem(bean_scheduleItem);
+                //waitFor();
+                //removeScheduleItem(bean_scheduleItem);
             }
         }
 

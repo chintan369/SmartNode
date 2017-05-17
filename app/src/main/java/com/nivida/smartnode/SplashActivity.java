@@ -10,44 +10,32 @@ import android.content.Intent;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.text.format.DateFormat;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Spinner;
-import android.widget.Toast;
 
 import com.nivida.smartnode.a.C;
 import com.nivida.smartnode.app.AppConstant;
 import com.nivida.smartnode.app.AppPreference;
-import com.nivida.smartnode.beans.Bean_SlaveGroup;
 import com.nivida.smartnode.model.DatabaseHandler;
 import com.nivida.smartnode.model.IPDb;
 import com.nivida.smartnode.services.AddDeviceService;
-import com.nivida.smartnode.services.CheckStatusService;
-import com.nivida.smartnode.services.GroupSwitchService;
 import com.nivida.smartnode.services.UDPService;
-import com.nivida.smartnode.utils.CustomEncryption;
 import com.nivida.smartnode.utils.NetworkUtility;
 
-import org.eclipse.paho.client.mqttv3.MqttClient;
-import org.json.JSONException;
-import org.json.JSONObject;
-
+import java.io.File;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -60,30 +48,57 @@ import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 
 public class SplashActivity extends AppCompatActivity {
 
+    public static final String SERVICE_CLASSNAME = "com.nivida.smartnode.services.UDPService";
+    public static final String MQTTSERVICE_CLASSNAME = "com.nivida.smartnode.services.AddDeviceService";
+    public static final String CHECKINGSERVICE_CLASSNAME = "com.nivida.smartnode.services.CheckStatusService";
     private static int SPLASH_TIME_OUT = 2500;
     AppPreference preference;
     DatabaseHandler databaseHandler;
-
-
+    String[] perms = {Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.MANAGE_DOCUMENTS, Manifest.permission.INTERNET, Manifest.permission.CAMERA, Manifest.permission.CALL_PHONE, CHANGE_WIFI_MULTICAST_STATE};
+    int code = 1;
     private int[] images={R.drawable.kitchen,R.drawable.bedroom,
             R.drawable.mainroom,
             R.drawable.drawingroom,R.drawable.add_new};
     private String[] names={"Kitchen","Bed Room","Main Room","Drawing Room",
             "Add New Group"};
 
-    public static final String SERVICE_CLASSNAME = "com.nivida.smartnode.services.UDPService";
-    public static final String MQTTSERVICE_CLASSNAME = "com.nivida.smartnode.services.AddDeviceService";
-    public static final String CHECKINGSERVICE_CLASSNAME = "com.nivida.smartnode.services.CheckStatusService";
+    public static boolean isMarshmallowPlusDevice() {
 
-    String[] perms = {Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE,
-    Manifest.permission.MANAGE_DOCUMENTS,Manifest.permission.INTERNET,Manifest.permission.CAMERA,Manifest.permission.CALL_PHONE, CHANGE_WIFI_MULTICAST_STATE};
+        return Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP_MR1;
+    }
 
-    int code = 1;
+    @TargetApi(Build.VERSION_CODES.M)
+    public static boolean isPermissionRequestRequired(Activity activity, @NonNull String[] permissions, int requestCode) {
+        if (isMarshmallowPlusDevice() && permissions.length > 0) {
+            List<String> newPermissionList = new ArrayList<>();
+            for (String permission : permissions) {
+                if (PERMISSION_GRANTED != activity.checkSelfPermission(permission)) {
+                    newPermissionList.add(permission);
+
+                }
+            }
+            if (newPermissionList.size() > 0) {
+                activity.requestPermissions(newPermissionList.toArray(new String[newPermissionList.size()]), requestCode);
+                return true;
+            }
+
+
+        }
+
+        return false;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
+        preference = new AppPreference(getApplicationContext());
+
+        if (preference.isFirstTimeInstalled()) {
+            deletePreviousData();
+        }
+
         new IPDb(this).deleteIP();
 
         //Log.e("Client ID", MqttClient.generateClientId());
@@ -105,7 +120,7 @@ public class SplashActivity extends AppCompatActivity {
         isPermissionRequestRequired(this, perms, code);
 
 
-        preference = new AppPreference(getApplicationContext());
+
         databaseHandler=new DatabaseHandler(getApplicationContext());
 
         if(databaseHandler.getGroupDataCounts()==0){
@@ -130,6 +145,28 @@ public class SplashActivity extends AppCompatActivity {
         } else {
             goToSpecificActivity();
         }
+    }
+
+    private void deletePreviousData() {
+        String root = Environment.getExternalStorageDirectory() + "/SmartNode/";
+        File rootFile = new File(root);
+
+        if (rootFile.exists()) {
+            deleteFileFolder(rootFile);
+        }
+    }
+
+    private void deleteFileFolder(File file) {
+        if (file.isDirectory()) {
+            File[] subFiles = file.listFiles();
+            if (subFiles.length > 0) {
+                for (File subFile : subFiles) {
+                    deleteFileFolder(subFile);
+                }
+            }
+        }
+
+        file.delete();
     }
 
     public void goToSpecificActivity() {
@@ -234,6 +271,54 @@ public class SplashActivity extends AppCompatActivity {
         return expired;
     }
 
+    private boolean serviceIsRunning() {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (SERVICE_CLASSNAME.equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean MQTTserviceIsRunning() {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (MQTTSERVICE_CLASSNAME.equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean CheckingServiceIsRunning() {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (CHECKINGSERVICE_CLASSNAME.equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void run() {
+        Looper.prepare();
+        try {
+            WifiManager.MulticastLock lock = null;
+            WifiManager wifi;
+
+            wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+            if (Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+                if (lock == null)
+                    lock = wifi.createMulticastLock("WiFi_Lock");
+                lock.setReferenceCounted(true);
+                lock.acquire();
+            }
+        } catch (Exception e) {
+            Log.d("Wifi Exception", "" + e.getMessage().toString());
+        }
+    }
+
     private class ReceiveUDP extends AsyncTask<Void, Void, String> {
 
         @Override
@@ -334,82 +419,6 @@ public class SplashActivity extends AppCompatActivity {
                 preference.setOnline(false);
                 C.Toast(getApplicationContext(), "You are Connected in LAN");
             }
-        }
-    }
-
-    private boolean serviceIsRunning() {
-        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (SERVICE_CLASSNAME.equals(service.service.getClassName())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean MQTTserviceIsRunning() {
-        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (MQTTSERVICE_CLASSNAME.equals(service.service.getClassName())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean CheckingServiceIsRunning() {
-        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (CHECKINGSERVICE_CLASSNAME.equals(service.service.getClassName())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static boolean isMarshmallowPlusDevice() {
-
-        return Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP_MR1;
-    }
-
-    @TargetApi(Build.VERSION_CODES.M)
-    public static boolean isPermissionRequestRequired(Activity activity, @NonNull String[] permissions, int requestCode) {
-        if (isMarshmallowPlusDevice() && permissions.length > 0) {
-            List<String> newPermissionList = new ArrayList<>();
-            for (String permission : permissions) {
-                if (PERMISSION_GRANTED != activity.checkSelfPermission(permission)) {
-                    newPermissionList.add(permission);
-
-                }
-            }
-            if (newPermissionList.size() > 0) {
-                activity.requestPermissions(newPermissionList.toArray(new String[newPermissionList.size()]), requestCode);
-                return true;
-            }
-
-
-        }
-
-        return false;
-    }
-
-    public void run() {
-        Looper.prepare();
-        try {
-            WifiManager.MulticastLock lock = null;
-            WifiManager wifi;
-
-            wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-            if (Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
-                if (lock == null)
-                    lock = wifi.createMulticastLock("WiFi_Lock");
-                lock.setReferenceCounted(true);
-                lock.acquire();
-            }
-        }
-        catch(Exception e)
-        {
-            Log.d("Wifi Exception",""+e.getMessage().toString());
         }
     }
 }
