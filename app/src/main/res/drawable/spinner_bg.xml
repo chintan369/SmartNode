@@ -9,7 +9,9 @@
 
             <padding android:bottom="5dp" android:left="5dp" android:right="5dp" android:top="5dp" />
         </shape></item>
-        <item ><bitmap android:gravity="bottom|right" android:src="@drawable/dropdown" />   // you can use any other image here, instead of default_holo_dark_am
+        <item>
+            <bitmap android:gravity="center|right" android:src="@drawable/dropdown"/>
+            // you can use any other image here, instead of default_holo_dark_am
         </item>
     </layer-list></item>
 </selector>

@@ -3,6 +3,7 @@ package com.nivida.smartnode.model;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteCantOpenDatabaseException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Environment;
@@ -57,7 +58,7 @@ public class IPDb extends SQLiteOpenHelper {
 
             cursor.close();
             db.close();
-        }catch (Exception e){
+        } catch (SQLiteCantOpenDatabaseException e) {
             Log.e(TAG,"Sorry, IP Not Saved");
         }
     }

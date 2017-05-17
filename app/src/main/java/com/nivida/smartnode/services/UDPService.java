@@ -2,10 +2,8 @@ package com.nivida.smartnode.services;
 
 import android.app.IntentService;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.util.Log;
 
-import com.nivida.smartnode.a.Status;
 import com.nivida.smartnode.app.AppPreference;
 import com.nivida.smartnode.model.DatabaseHandler;
 import com.nivida.smartnode.model.IPDb;
@@ -14,8 +12,6 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
@@ -25,13 +21,12 @@ import java.util.HashMap;
 
 public class UDPService extends IntentService {
 
-    int count=1;
-    AppPreference preference;
-
-    MulticastSocket client_socket;
     public static final String NOTIFICATION ="com.nivida.smartnode" ;
     public static final String MESSAGEJSON = "jsondata";
     public static final String DEVICEIP = "deviceip";
+    int count = 1;
+    AppPreference preference;
+    MulticastSocket client_socket;
     DatabaseHandler db;
     IPDb ipDb;
 
@@ -82,9 +77,9 @@ public class UDPService extends IntentService {
 
 
                 String text = new String(recieve_data, 0, recvpacket.getLength());
-                preference.setOnline(false);
+                //preference.setOnline(false);
                 String receivedIP=recvpacket.getAddress().getHostAddress();
-                preference.setCurrentIPAddr(receivedIP);
+                //preference.setCurrentIPAddr(receivedIP);
 
                 if(!text.isEmpty() && !text.equalsIgnoreCase("OK")){
                     try{

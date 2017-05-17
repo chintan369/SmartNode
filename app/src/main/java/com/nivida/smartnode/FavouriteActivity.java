@@ -92,6 +92,8 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
     List<Bean_Switch> switchListToAdd=new ArrayList<>();
     ArrayList<String> scheduleInfo = new ArrayList<>();
 
+    List<String> slaveIds = new ArrayList<>();
+
 
 
     @Override
@@ -210,9 +212,28 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
         try{
             JSONObject jsonDevice=new JSONObject(json);
             String cmd=jsonDevice.getString("cmd");
+
+            if (jsonDevice.has("status") && jsonDevice.getString("status").equalsIgnoreCase(Cmd.INVALID_TOKEN)) {
+
+                if (jsonDevice.has("slave")) {
+                    String slaveID = jsonDevice.getString("slave");
+                    if (!slaveIds.contains(slaveID)) return;
+                    C.Toast(this, "Token is Invalid\nPlease Login again to refresh token!");
+                }
+                return;
+
+
+            }
+
+            if (jsonDevice.has("slave")) {
+                slave_hex_id = jsonDevice.getString("slave");
+                if (!slaveIds.contains(slave_hex_id)) return;
+            } else {
+                return;
+            }
+
             if(cmd.equals("SET")){
                 Log.e("Command :","SET Found");
-                slave_hex_id=jsonDevice.getString("slave");
                 button=jsonDevice.getString("button");
                 val=jsonDevice.getString("val");
                 dval=jsonDevice.getString("dval");
@@ -341,7 +362,7 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
 
     private void getLiveSwitchStatus() {
         if(netcheck.isOnline()){
-            List<String> slaveIds=databaseHandler.getSlaveHexIdsForFavourite();
+            slaveIds = databaseHandler.getSlaveHexIdsForFavourite();
             List<String> ipList=new IPDb(this).ipList();
             for(int i=0; i<slaveIds.size() ; i++){
 

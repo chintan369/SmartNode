@@ -72,7 +72,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String SLAVE_TOKEN = "slave_token";
     private static final String SLAVE_TOPIC = "slave_topic";
     private static final String SLAVE_USERTYPE = "slave_utype";
-    private static final String SLAVE_TOTAL_SWITCH="slave_tsw";
+    private static final String SLAVE_TOTAL_SWITCH = "slave_tsw";
     //define columns for TABLE_SWITCH_ICONS here
     private static final String SWICON_GEN_ID = "id";
     private static final String SWICON_ON = "sw_on";
@@ -163,7 +163,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         String createTableSlave = "CREATE TABLE " + TABLE_SLAVES + "(" +
                 SLAVE_GEN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
                 SLAVE_NAME + " TEXT," + SLAVE_HAS_SWITCHES + " TEXT," + SLAVE_HAS_DIMMERS + " TEXT," +
-                SLAVE_HEX_ID + " TEXT," + SLAVE_IN_GROUP + " INT," + SLAVE_TOKEN + " TEXT, " + SLAVE_TOPIC + " TEXT, " + SLAVE_USERTYPE + " TEXT,"+ SLAVE_TOTAL_SWITCH+ " INT" + ")";
+                SLAVE_HEX_ID + " TEXT," + SLAVE_IN_GROUP + " INT," + SLAVE_TOKEN + " TEXT, " + SLAVE_TOPIC + " TEXT, " + SLAVE_USERTYPE + " TEXT," + SLAVE_TOTAL_SWITCH + " INT" + ")";
 
         String createTableSwitch = "CREATE TABLE " + TABLE_SWITCHES + "(" +
                 SWITCH_GEN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -217,15 +217,21 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     public void setMasterSlaveIP(String slaveHex, String currentIP) {
-        synchronized (Lock){
-            SQLiteDatabase db = this.getWritableDatabase();
+        synchronized (Lock) {
 
-            ContentValues cv = new ContentValues();
-            cv.put(MASTER_IP, currentIP);
+            try {
+                SQLiteDatabase db = this.getWritableDatabase();
 
-            db.update(TABLE_MASTER, cv, MASTER_TOPIC + "=?", new String[]{slaveHex});
+                ContentValues cv = new ContentValues();
+                cv.put(MASTER_IP, currentIP);
 
-            db.close();
+                db.update(TABLE_MASTER, cv, MASTER_TOPIC + "=?", new String[]{slaveHex});
+
+                db.close();
+
+            } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
+
+            }
         }
     }
 
@@ -248,7 +254,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     private void addDefaultSwitchIcons(SQLiteDatabase db) {
 
-        synchronized (Lock){
+        synchronized (Lock) {
             for (int i = 0; i < sw_icons_off.length; i++) {
                 ContentValues cv = new ContentValues();
                 cv.put(SWICON_GEN_ID, i + 1);
@@ -274,7 +280,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     public int getLastIDForMaster() {
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getReadableDatabase();
 
             String query = "SELECT * FROM " + TABLE_MASTER + " WHERE " + MASTER_GEN_ID + "!=200";
@@ -312,7 +318,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public List<Bean_Master> getAllMasterDeviceData() {
         List<Bean_Master> masterList = new ArrayList<>();
 
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getReadableDatabase();
 
             String selectMaster = "SELECT * FROM " + TABLE_MASTER;
@@ -340,7 +346,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public List<Bean_Master> getAllMasterDeviceDataWOADD() {
         List<Bean_Master> masterList = new ArrayList<>();
 
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getReadableDatabase();
 
             String selectMaster = "SELECT * FROM " + TABLE_MASTER;
@@ -370,7 +376,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public List<Bean_SwitchIcons> getAllSwitchIconData() {
         List<Bean_SwitchIcons> iconList = new ArrayList<>();
 
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getReadableDatabase();
 
             String selectMaster = "SELECT * FROM " + TABLE_SWITCH_ICONS;
@@ -396,8 +402,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public Bean_SwitchIcons getSwitchIconData(int switch_icon) {
         Bean_SwitchIcons switchIcon = new Bean_SwitchIcons();
 
-        synchronized (Lock){
-            try{
+        synchronized (Lock) {
+            try {
                 SQLiteDatabase db = this.getReadableDatabase();
 
                 Cursor cursor = db.query(TABLE_SWITCH_ICONS, new String[]{SWICON_GEN_ID, SWICON_ON, SWICON_OFF}, SWICON_GEN_ID + "=?",
@@ -411,7 +417,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 cursor.close();
                 db.close();
-            }catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e){
+            } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
 
                 //waitFor();
                 //switchIcon=getSwitchIconData(switch_icon);
@@ -424,8 +430,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public List<Bean_MasterGroup> getAllMasterGroupData() {
         List<Bean_MasterGroup> masterGroupList = new ArrayList<>();
 
-        synchronized (Lock){
-            try{
+        synchronized (Lock) {
+            try {
                 String selectQuery = "SELECT * FROM " + TABLE_GROUPS;
 
                 SQLiteDatabase db = this.getReadableDatabase();
@@ -445,9 +451,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 cursor.close();
                 db.close();
-            }catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                getAllMasterGroupData();
+            } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
+                //waitFor();
+                //getAllMasterGroupData();
             }
         }
 
@@ -457,8 +463,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public List<Bean_MasterGroup> getAllMasterGroupDataNoAdd() {
         List<Bean_MasterGroup> masterGroupList = new ArrayList<>();
 
-        synchronized (Lock){
-            try{
+        synchronized (Lock) {
+            try {
                 String selectQuery = "SELECT * FROM " + TABLE_GROUPS;
 
                 SQLiteDatabase db = this.getReadableDatabase();
@@ -480,7 +486,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 cursor.close();
                 db.close();
-            }catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
+            } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
                 waitFor();
                 getAllMasterGroupDataNoAdd();
             }
@@ -491,7 +497,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public void addDefaultRows(int[] images, String[] names) {
 
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getWritableDatabase();
 
             for (int i = 0; i < images.length; i++) {
@@ -505,8 +511,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 contentValues.put(GROUP_NAME, names[i]);
 
-                String imageName=names[i].replace(" ","_")+"_"+(i+1);
-                String imagePath= C.saveGroupImageToLocal(image,imageName);
+                String imageName = names[i].replace(" ", "_") + "_" + (i + 1);
+                String imagePath = C.saveGroupImageToLocal(image, imageName);
 
                 contentValues.put(GROUP_IMAGE, imagePath);
                 contentValues.put(GROUP_HAS_SWITCHES, "0");
@@ -522,7 +528,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public int getGroupDataCounts() {
         int count = 0;
 
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getReadableDatabase();
             String selectQuery = "SELECT * FROM " + TABLE_GROUPS;
             Cursor cursor = db.rawQuery(selectQuery, null);
@@ -536,7 +542,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public int getSlaveDataCounts() {
         int count = 0;
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getReadableDatabase();
             String selectQuery = "SELECT * FROM " + TABLE_SLAVES;
             Cursor cursor = db.rawQuery(selectQuery, null);
@@ -550,7 +556,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public int getMastersCounts() {
         int count = 0;
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getReadableDatabase();
             String selectQuery = "SELECT * FROM " + TABLE_MASTER;
             Cursor cursor = db.rawQuery(selectQuery, null);
@@ -564,7 +570,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public boolean isSameSlaveName(String slaveName) {
         boolean isSame = false;
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getReadableDatabase();
 
             Cursor cursor = db.query(TABLE_SLAVES, new String[]{SLAVE_GEN_ID}, SLAVE_NAME + "=? COLLATE NOCASE", new String[]{slaveName},
@@ -587,7 +593,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public boolean isSameSlaveId(String slave_hex_id) {
         boolean isSame = false;
 
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getReadableDatabase();
 
             Cursor cursor = db.query(TABLE_SLAVES, new String[]{SLAVE_GEN_ID}, SLAVE_HEX_ID + "=? COLLATE NOCASE", new String[]{slave_hex_id},
@@ -609,7 +615,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public boolean isSameMasterName(String masterName) {
         boolean isSame = false;
-        synchronized (Lock){
+        synchronized (Lock) {
             try {
                 SQLiteDatabase db = this.getReadableDatabase();
 
@@ -625,9 +631,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 cursor.close();
                 db.close();
-            }
-            catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e){
-                Log.e("Exception",e.getMessage());
+            } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
+                Log.e("Exception", e.getMessage());
             }
 
         }
@@ -637,7 +642,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public boolean isSameSceneName(String sceneName, int groupid) {
         boolean isSame = false;
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getReadableDatabase();
 
             Cursor cursor = db.query(TABLE_SCENES, new String[]{SCENE_GEN_ID}, SCENE_NAME + "=? COLLATE NOCASE AND " + SCENE_FOR_GROUP + "=?", new String[]{sceneName, String.valueOf(groupid)}, null, null, null, null);
@@ -658,7 +663,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public int getGroupLastId() {
         int id = 9, count = 0;
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getReadableDatabase();
             String selectQuery = "SELECT * FROM " + TABLE_GROUPS + " WHERE " + SLAVE_GEN_ID + "!=100";
             Cursor cursor = db.rawQuery(selectQuery, null);
@@ -675,7 +680,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public int getSlaveLastId() {
         int id = 0, count = 0;
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getReadableDatabase();
             String selectQuery = "SELECT * FROM " + TABLE_SLAVES + " WHERE " + SLAVE_GEN_ID + "!=200";
             Cursor cursor = db.rawQuery(selectQuery, null);
@@ -706,7 +711,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public void addMasterGroupItem(Bean_MasterGroup beanMasterGroup) {
 
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getWritableDatabase();
 
             ContentValues contentValues = new ContentValues();
@@ -726,7 +731,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public void addSlaveItem(Bean_SlaveGroup bean_slaveGroup) {
 
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getWritableDatabase();
 
             ContentValues contentValues = new ContentValues();
@@ -747,7 +752,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public void renameSlave(Bean_SlaveGroup slaveItem) {
 
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getWritableDatabase();
 
             ContentValues contentValuesGroup = new ContentValues();
@@ -761,8 +766,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public void renameSlave(@NonNull String slaveHexID, @NonNull String slaveName) {
 
-        synchronized (Lock){
-            try{
+        synchronized (Lock) {
+            try {
                 SQLiteDatabase db = this.getWritableDatabase();
 
                 ContentValues contentValuesGroup = new ContentValues();
@@ -771,17 +776,17 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                         new String[]{slaveHexID});
 
                 db.close();
-            }catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
+            } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
                 waitFor();
-                renameSlave( slaveHexID, slaveName);
+                renameSlave(slaveHexID, slaveName);
             }
         }
     }
 
     public void renameMaster(int master_id, String master_name) {
 
-        synchronized (Lock){
-            try{
+        synchronized (Lock) {
+            try {
                 SQLiteDatabase db = this.getWritableDatabase();
 
                 ContentValues contentValuesGroup = new ContentValues();
@@ -790,7 +795,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                         new String[]{String.valueOf(master_id)});
 
                 db.close();
-            }catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
+            } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
                 waitFor();
                 renameMaster(master_id, master_name);
             }
@@ -799,8 +804,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public void addMasterDeviceItem(Bean_Master bean_master) {
 
-        synchronized (Lock){
-            try{
+        synchronized (Lock) {
+            try {
                 SQLiteDatabase db = this.getWritableDatabase();
 
                 ContentValues contentValues = new ContentValues();
@@ -815,7 +820,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 db.insert(TABLE_MASTER, null, contentValues);
                 db.close();
-            }catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
+            } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
                 waitFor();
                 addMasterDeviceItem(bean_master);
             }
@@ -824,7 +829,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public List<Bean_SlaveGroup> getAllSlaveGroupData(int groupid) {
         List<Bean_SlaveGroup> slaveGroupList = new ArrayList<>();
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getReadableDatabase();
 
             Cursor cursor = db.query(TABLE_SLAVES, new String[]{SLAVE_GEN_ID, SLAVE_NAME, SLAVE_HAS_SWITCHES, SLAVE_HAS_DIMMERS, SLAVE_HEX_ID, SLAVE_TOPIC, SLAVE_TOKEN, SLAVE_USERTYPE}, SLAVE_IN_GROUP + "=? OR " + SLAVE_GEN_ID + "=?", new String[]{String.valueOf(groupid), String.valueOf(200)}, null, null, null, null);
@@ -854,7 +859,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public List<String> getAllSlaveIDs() {
         List<String> slaveIDs = new ArrayList<>();
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getReadableDatabase();
 
             Cursor cursor = db.query(TABLE_SLAVES, new String[]{SLAVE_HEX_ID}, null, null, null, null, null, null);
@@ -879,8 +884,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public List<Bean_SlaveGroup> getAllSlaveData() {
         List<Bean_SlaveGroup> slaveGroupList = new ArrayList<>();
-        synchronized (Lock){
-            try{
+        synchronized (Lock) {
+            try {
                 SQLiteDatabase db = this.getReadableDatabase();
 
                 Cursor cursor = db.query(TABLE_SLAVES, new String[]{SLAVE_GEN_ID, SLAVE_NAME, SLAVE_HAS_SWITCHES, SLAVE_HAS_DIMMERS, SLAVE_HEX_ID, SLAVE_TOPIC, SLAVE_TOKEN, SLAVE_USERTYPE}, null, null, null, null, null, null);
@@ -903,7 +908,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 cursor.close();
                 db.close();
-            }catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
+            } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
                 waitFor();
                 getAllSlaveData();
             }
@@ -915,8 +920,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public String getSlaveHexIDForSwitch(int switch_id) {
 
         String slave_Hex = "0";
-        synchronized (Lock){
-            try{
+        synchronized (Lock) {
+            try {
                 SQLiteDatabase db = this.getReadableDatabase();
 
                 Cursor cursor = db.query(TABLE_SWITCHES, new String[]{SWITCH_IN_SLAVE}, SWITCH_GEN_ID + "=?", new String[]{String.valueOf(switch_id)}, null, null, null, null);
@@ -928,7 +933,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 cursor.close();
                 db.close();
-            }catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
+            } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
                 waitFor();
                 getSlaveHexIDForSwitch(switch_id);
             }
@@ -940,8 +945,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public String getSwitchButtonNum(int switch_id) {
 
         String switch_button = "0";
-        synchronized (Lock){
-            try{
+        synchronized (Lock) {
+            try {
                 SQLiteDatabase db = this.getReadableDatabase();
 
                 Cursor cursor = db.query(TABLE_SWITCHES, new String[]{SWITCH_BUTTON_NUM}, SWITCH_GEN_ID + "=?", new String[]{String.valueOf(switch_id)}, null, null, null, null);
@@ -953,7 +958,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 cursor.close();
                 db.close();
-            }catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
+            } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
                 waitFor();
                 getSwitchButtonNum(switch_id);
             }
@@ -990,8 +995,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public int getMasterGroupIdAtCurrentPosition(int position) {
         int id = 0;
-        synchronized (Lock){
-            try{
+        synchronized (Lock) {
+            try {
                 SQLiteDatabase db = this.getReadableDatabase();
                 String selectQuery = "SELECT * FROM " + TABLE_GROUPS + " LIMIT " + position + ",1";
                 Cursor cursor = db.rawQuery(selectQuery, null);
@@ -1000,9 +1005,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 }
                 cursor.close();
                 db.close();
-            }catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
+            } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
                 waitFor();
-                getMasterGroupIdAtCurrentPosition( position);
+                getMasterGroupIdAtCurrentPosition(position);
             }
         }
 
@@ -1010,14 +1015,14 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     public void deleteMasterGroupByGroupId(int group_id) {
-        synchronized (Lock){
-            try{
+        synchronized (Lock) {
+            try {
                 SQLiteDatabase db = this.getWritableDatabase();
 
                 db.delete(TABLE_GROUPS, GROUP_GEN_ID + "=?", new String[]{String.valueOf(group_id)});
 
                 db.close();
-            }catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
+            } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
                 waitFor();
                 deleteMasterGroupByGroupId(group_id);
             }
@@ -1026,32 +1031,32 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     public void deleteMasterDevice(int master_id) {
-        synchronized (Lock){
-            try{
+        synchronized (Lock) {
+            try {
                 SQLiteDatabase db = this.getWritableDatabase();
 
                 db.delete(TABLE_MASTER, MASTER_GEN_ID + "=?", new String[]{String.valueOf(master_id)});
 
                 db.close();
-            }catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
+            } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
                 waitFor();
-                deleteMasterDevice( master_id);
+                deleteMasterDevice(master_id);
             }
         }
 
     }
 
     public void deleteSlaveDevice(int device_id, String slave_hex_id) {
-        synchronized (Lock){
-            try{
+        synchronized (Lock) {
+            try {
                 SQLiteDatabase db = this.getWritableDatabase();
 
                 db.delete(TABLE_SLAVES, SLAVE_GEN_ID + "=? AND " + SLAVE_HEX_ID + "=?", new String[]{String.valueOf(device_id), slave_hex_id});
 
                 db.close();
-            }catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
+            } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
                 waitFor();
-                deleteSlaveDevice( device_id,  slave_hex_id);
+                deleteSlaveDevice(device_id, slave_hex_id);
             }
         }
 
@@ -1060,8 +1065,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public int getSlaveIdAtCurrentPosition(int position) {
         int id = 0;
-        synchronized (Lock){
-            try{
+        synchronized (Lock) {
+            try {
                 SQLiteDatabase db = this.getReadableDatabase();
                 String selectQuery = "SELECT * FROM " + TABLE_SLAVES + " LIMIT " + position + ",1";
                 Cursor cursor = db.rawQuery(selectQuery, null);
@@ -1070,7 +1075,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 }
                 cursor.close();
                 db.close();
-            }catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
+            } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
                 waitFor();
                 getSlaveIdAtCurrentPosition(position);
             }
@@ -1081,8 +1086,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public int getMasterDeviceIdAtCurrentPosition(int position) {
         int id = 0;
-        synchronized (Lock){
-            try{
+        synchronized (Lock) {
+            try {
                 SQLiteDatabase db = this.getReadableDatabase();
                 String selectQuery = "SELECT * FROM " + TABLE_MASTER + " LIMIT " + position + ",1";
                 Cursor cursor = db.rawQuery(selectQuery, null);
@@ -1091,7 +1096,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 }
                 cursor.close();
                 db.close();
-            }catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
+            } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
                 waitFor();
                 getMasterDeviceIdAtCurrentPosition(position);
             }
@@ -1182,7 +1187,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     public void addSwitchtoGroup(int groupid, List<Bean_Switch> checkedSwitches) {
-        synchronized (Lock){
+        synchronized (Lock) {
             try {
                 SQLiteDatabase db = this.getWritableDatabase();
 
@@ -1222,7 +1227,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     private void updateGrouphasSwitches(int groupid, int hasSwitchesInGroupID) {
-        synchronized (Lock){
+        synchronized (Lock) {
             try {
                 SQLiteDatabase db = this.getWritableDatabase();
 
@@ -1266,7 +1271,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public List<Bean_Switch> getAllSwitchesByGroupId(int groupid) {
         List<Bean_Switch> switchList = new ArrayList<>();
-        synchronized (Lock){
+        synchronized (Lock) {
             try {
                 SQLiteDatabase db = this.getWritableDatabase();
 
@@ -1299,7 +1304,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
                 //waitFor();
-                //getAllSwitchesByGroupId(groupid);
+                //this.close();
+                //switchList=getAllSwitchesByGroupId(groupid);
+                return switchList;
             }
         }
 
@@ -1308,7 +1315,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public Bean_Switch getSingleSwitchesByGroupId(int switch_id) {
         Bean_Switch beanSwitch = new Bean_Switch();
-        synchronized (Lock){
+        synchronized (Lock) {
             try {
                 SQLiteDatabase db = this.getReadableDatabase();
 
@@ -1369,7 +1376,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public String getGroupnameById(int groupid) {
         String groupname = "";
-        synchronized (Lock){
+        synchronized (Lock) {
             try {
                 SQLiteDatabase db = this.getReadableDatabase();
 
@@ -1384,7 +1391,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
                 waitFor();
-                getGroupnameById(groupid);
+                //getGroupnameById(groupid);
             }
         }
 
@@ -1394,7 +1401,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public String getMasterNameById(int masterId) {
         String mastername = "";
-        synchronized (Lock){
+        synchronized (Lock) {
             try {
                 SQLiteDatabase db = this.getReadableDatabase();
 
@@ -1409,7 +1416,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
                 waitFor();
-                getMasterNameById(masterId);
+                //getMasterNameById(masterId);
             }
         }
 
@@ -1418,7 +1425,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public String getMasterIPById(int masterId) {
         String masterIP = "";
-        synchronized (Lock){
+        synchronized (Lock) {
             try {
                 SQLiteDatabase db = this.getReadableDatabase();
 
@@ -1442,7 +1449,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public String getMasterIPBySlaveID(String slaveID) {
         String masterIP = "";
-        synchronized (Lock){
+        synchronized (Lock) {
             try {
                 SQLiteDatabase db = this.getReadableDatabase();
 
@@ -1466,7 +1473,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public String getEncryptionKeyBySlaveID(String slaveID) {
         String encryptionKey = "";
-        synchronized (Lock){
+        synchronized (Lock) {
             try {
                 SQLiteDatabase db = this.getReadableDatabase();
 
@@ -1490,7 +1497,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public String getMasterNameBySlaveHexID(String slaveID) {
         String mastername = "";
-        synchronized (Lock){
+        synchronized (Lock) {
             try {
                 SQLiteDatabase db = this.getReadableDatabase();
 
@@ -1521,7 +1528,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public String getDeviceName(int deviceId) {
         String mastername = "";
-        synchronized (Lock){
+        synchronized (Lock) {
             try {
                 SQLiteDatabase db = this.getReadableDatabase();
 
@@ -1544,7 +1551,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     public void setFavouriteSwitchById(int switchId, boolean fav) {
-        synchronized (Lock){
+        synchronized (Lock) {
             try {
                 SQLiteDatabase db = this.getWritableDatabase();
 
@@ -1563,7 +1570,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     public void setSwitchIsOnById(int switchId, boolean onoff) {
-        synchronized (Lock){
+        synchronized (Lock) {
             try {
                 SQLiteDatabase db = SQLiteDatabase.openDatabase(DATABASE_NAME, null, SQLiteDatabase.NO_LOCALIZED_COLLATORS);
 
@@ -1575,15 +1582,15 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                setSwitchIsOnById(switchId, onoff);
+                //waitFor();
+                //setSwitchIsOnById(switchId, onoff);
             }
         }
 
     }
 
     public void setFavouriteDimmerById(int dimmerId, boolean fav) {
-        synchronized (Lock){
+        synchronized (Lock) {
             try {
                 SQLiteDatabase db = this.getWritableDatabase();
 
@@ -1604,7 +1611,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     public void setDimmerValue(int dimmerId, int dimmerValue) {
-        synchronized (Lock){
+        synchronized (Lock) {
             try {
                 SQLiteDatabase db = this.getWritableDatabase();
 
@@ -1624,7 +1631,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public int hasSwitchesInGroup(int groupid) {
         int hasSwitches = 0;
-        synchronized (Lock){
+        synchronized (Lock) {
             try {
                 SQLiteDatabase db = this.getReadableDatabase();
 
@@ -1638,8 +1645,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 cursor.close();
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                hasSwitchesInGroup(groupid);
+                //waitFor();
+                //hasSwitchesInGroup(groupid);
+                return hasSwitches;
             }
         }
 
@@ -1648,7 +1656,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public int getSwitchesInGroup(int groupid) {
         int switches = 0;
-        synchronized (Lock){
+        synchronized (Lock) {
             try {
                 SQLiteDatabase db = this.getReadableDatabase();
 
@@ -1683,7 +1691,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public int getSwitchesInFavoutite() {
         int switches = 0;
-        synchronized (Lock){
+        synchronized (Lock) {
             try {
                 SQLiteDatabase db = this.getReadableDatabase();
 
@@ -1718,7 +1726,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public List<Bean_Switch> getAllSwitchesInFavourite() throws SQLiteCantOpenDatabaseException {
         List<Bean_Switch> switchList = new ArrayList<>();
-        synchronized (Lock){
+        synchronized (Lock) {
             try {
                 SQLiteDatabase db = this.getReadableDatabase();
 
@@ -1800,7 +1808,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     public void removeSwitchFromGroup(int switchID) throws SQLiteCantOpenDatabaseException {
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getWritableDatabase();
 
             db.delete(TABLE_SWITCHES, SWITCH_GEN_ID + "=?", new String[]{String.valueOf(switchID)});
@@ -1813,7 +1821,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public String getSlaveHexIdAtCurrentPosition(int position) throws SQLiteCantOpenDatabaseException {
         String hex_id = "";
 
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getReadableDatabase();
             String selectQuery = "SELECT * FROM " + TABLE_SLAVES + " LIMIT " + position + ",1";
             Cursor cursor = db.rawQuery(selectQuery, null);
@@ -1828,7 +1836,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public String getSlaveHexIdForMaster(int masterID) throws SQLiteCantOpenDatabaseException {
         String hex_id = "";
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getReadableDatabase();
             String selectQuery = "SELECT * FROM " + TABLE_SLAVES + " WHERE " + SLAVE_IN_GROUP + "=" + masterID;
             Cursor cursor = db.rawQuery(selectQuery, null);
@@ -1844,7 +1852,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public void renameSwitch(int group_id, int switch_id, String switch_name) throws SQLiteCantOpenDatabaseException {
 
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getWritableDatabase();
 
             ContentValues contentValuesGroup = new ContentValues();
@@ -1870,7 +1878,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     public void changeSwitchIcon(int groupid, int switchID, int switchIcon) throws SQLiteCantOpenDatabaseException {
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getWritableDatabase();
 
             ContentValues cv = new ContentValues();
@@ -1886,7 +1894,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public List<String> getSlaveHexIdsForGroup(int groupid) throws SQLiteCantOpenDatabaseException {
         List<String> slave_ids = new ArrayList<>();
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getReadableDatabase();
 
             Cursor cursor = db.query(true, TABLE_SWITCHES, new String[]{SWITCH_IN_SLAVE}, SWITCH_IN_GRP + "=?", new String[]{String.valueOf(groupid)}, SWITCH_IN_SLAVE, null, null, null);
@@ -1904,7 +1912,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public List<String> getSlaveHexIdsForFavourite() throws SQLiteCantOpenDatabaseException {
         List<String> slave_ids = new ArrayList<>();
 
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getReadableDatabase();
 
             Cursor cursor = db.query(true, TABLE_SWITCHES, new String[]{SWITCH_IN_SLAVE}, SWITCH_IS_FAV + "=?", new String[]{String.valueOf(1)}, SWITCH_IN_SLAVE, null, null, null);
@@ -1922,7 +1930,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public List<Bean_Switch> getAllSwitches(int groupid, String slave_hex_id) throws SQLiteCantOpenDatabaseException {
         List<Bean_Switch> switchList = new ArrayList<>();
 
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getReadableDatabase();
 
             Cursor cursor = db.query(TABLE_SWITCHES, new String[]{SWITCH_GEN_ID, SWITCH_NAME, SWITCH_IS_ON, SWITCH_IN_GRP, SWITCH_IS_FAV, IS_SWITCH,
@@ -1968,7 +1976,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public void updateSwitch(int groupid, String slave_id, String button_num, int onOff, int dval, String type, String userLock, String touchLock) throws SQLiteCantOpenDatabaseException {
 
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getWritableDatabase();
 
             ContentValues cv = new ContentValues();
@@ -2000,7 +2008,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public void updateSwitchInFavourite(String slave_id, String button_num, int onOff, int dval, String type, String userLock, String touchLock) throws SQLiteCantOpenDatabaseException {
 
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getWritableDatabase();
 
             ContentValues cv = new ContentValues();
@@ -2020,7 +2028,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public List<Bean_Switch> getAllSwitchesByFavourite(String slave_hex_id) throws SQLiteCantOpenDatabaseException {
         List<Bean_Switch> switchList = new ArrayList<>();
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getReadableDatabase();
 
             Cursor cursor = db.query(TABLE_SWITCHES, new String[]{SWITCH_GEN_ID, SWITCH_NAME, SWITCH_IS_ON, SWITCH_IN_GRP,
@@ -2052,7 +2060,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public boolean isSwitchAdded(String switch_btn_num, String slave_hex_id) throws SQLiteCantOpenDatabaseException {
         boolean isAdded = false;
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getReadableDatabase();
 
             Cursor cursor = db.query(TABLE_SWITCHES, new String[]{SWITCH_IN_GRP}, SWITCH_BUTTON_NUM + "=? AND " + SWITCH_IN_SLAVE + "=?", new String[]{switch_btn_num, slave_hex_id}, null, null, null, null);
@@ -2067,7 +2075,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public List<Bean_Scenes> getScenesList(int groupid) throws SQLiteCantOpenDatabaseException {
         List<Bean_Scenes> scenesList = new ArrayList<>();
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getReadableDatabase();
 
             Cursor cursor = db.query(TABLE_SCENES, new String[]{SCENE_GEN_ID, SCENE_NAME, SCENE_FOR_GROUP}, SCENE_FOR_GROUP + "=?", new String[]{String.valueOf(0)}, null, null, SCENE_GEN_ID + " ASC", null);
@@ -2105,7 +2113,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public boolean addSceneItem(Bean_Scenes scenes) throws SQLiteCantOpenDatabaseException {
         boolean isAdded = false;
 
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getWritableDatabase();
 
         /*Cursor cursor=db.query(TABLE_SCENES,null,SCENE_SWITCH_NAME+"=?",new String[]{scenes.getSceneName()},null,null,null);
@@ -2158,7 +2166,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     public void renameSceneItem(int scene_id, String scene_name) throws SQLiteCantOpenDatabaseException {
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getWritableDatabase();
 
             ContentValues cv = new ContentValues();
@@ -2172,7 +2180,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     public void deleteScene(int scene_id) throws SQLiteCantOpenDatabaseException {
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getWritableDatabase();
 
             db.delete(TABLE_SCENES, SCENE_GEN_ID + "=?", new String[]{String.valueOf(scene_id)});
@@ -2183,7 +2191,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public String getSceneName(int scene_id) throws SQLiteCantOpenDatabaseException {
         String sceneName = "";
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getReadableDatabase();
             Cursor cursor = db.query(TABLE_SCENES, new String[]{SCENE_NAME}, SCENE_GEN_ID + "=?", new String[]{String.valueOf(scene_id)}, null, null, null, null);
 
@@ -2197,7 +2205,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public int getSceneLastID() throws SQLiteCantOpenDatabaseException {
         int count = 0, scene_id = 0;
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getReadableDatabase();
 
             String selectQuery = "SELECT * FROM " + TABLE_SCENES;
@@ -2216,7 +2224,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public List<Bean_Switch> getSceneSwitches(int scene_id, int groupid) throws SQLiteCantOpenDatabaseException {
         List<Bean_Switch> switchList = new ArrayList<>();
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getReadableDatabase();
 
             Cursor cursor = db.query(TABLE_SCENE_SWITCH, new String[]{SCENE_SWITCH_GEN_ID, SCENE_SWITCH_SCENE_ID, SCENE_SWITCH_IN_SLAVE, SCENE_SWITCH_IN_GRP, SCENE_SWITCH_NAME, SCENE_SWITCH_BUTTON_NUM, SCENE_SWITCH_IS_ON, SCENE_IS_SWITCH, SCENE_DIMMER_VALUE}, SCENE_SWITCH_SCENE_ID + "=? AND " + SCENE_SWITCH_IN_GRP + "=?", new String[]{String.valueOf(scene_id), String.valueOf(groupid)}, null, null, null, null);
@@ -2243,7 +2251,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public void updateSceneSwitches(List<Bean_Switch> edited_switches) throws SQLiteCantOpenDatabaseException {
 
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getWritableDatabase();
 
             for (int i = 0; i < edited_switches.size(); i++) {
@@ -2261,7 +2269,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
 
     public void renameSwitchInScenes(Bean_Switch item, String name) throws SQLiteCantOpenDatabaseException {
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getWritableDatabase();
 
             ContentValues cv = new ContentValues();
@@ -2275,9 +2283,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public int removeSwitchFromScenes(Bean_Switch item) throws SQLiteCantOpenDatabaseException {
         int totalSwitchInGroup = 0;
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getWritableDatabase();
-
 
 
             db.delete(TABLE_SCENE_SWITCH, SCENE_SWITCH_IN_GRP + "=? AND " + SCENE_SWITCH_IN_SLAVE + "=? AND " + SCENE_SWITCH_BUTTON_NUM + "=?", new String[]{String.valueOf(item.getSwitchInGroup()), item.getSwitchInSlave(), item.getSwitch_btn_num()});
@@ -2309,7 +2316,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         String sqlQuery = "SELECT * FROM " + TABLE_SCHEDULE + " WHERE " + SCH_SWITCH_ID + "=?";
 
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getReadableDatabase();
             Cursor cursor = db.rawQuery(sqlQuery, new String[]{String.valueOf(switchID)});
 
@@ -2345,7 +2352,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public int getNewIDForSCH() throws SQLiteCantOpenDatabaseException {
         int id = 0;
-        synchronized (Lock){
+        synchronized (Lock) {
             SQLiteDatabase db = this.getReadableDatabase();
             String selectQuery = "SELECT * FROM " + TABLE_SCHEDULE;
             Cursor cursor = db.rawQuery(selectQuery, null);
@@ -2365,7 +2372,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     public void addScheduleItem(Bean_ScheduleItem scheduleItem) {
-        synchronized (Lock){
+        synchronized (Lock) {
             try {
                 SQLiteDatabase db = this.getWritableDatabase();
 
@@ -2403,7 +2410,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     public void removeScheduleItem(Bean_ScheduleItem bean_scheduleItem) {
-        synchronized (Lock){
+        synchronized (Lock) {
             try {
                 SQLiteDatabase db = this.getWritableDatabase();
                 db.delete(TABLE_SCHEDULE, SCHEDULE_GEN_ID + "=?", new String[]{String.valueOf(bean_scheduleItem.getScheduleID())});
@@ -2417,7 +2424,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     public void updateScheduleItem(Bean_ScheduleItem scheduleItem) {
-        synchronized (Lock){
+        synchronized (Lock) {
             try {
                 SQLiteDatabase db = this.getWritableDatabase();
 
@@ -2455,7 +2462,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public boolean isSwitch(String switch_btn_num, String slaveid) {
         boolean isASwitch = false;
-        synchronized (Lock){
+        synchronized (Lock) {
             try {
                 SQLiteDatabase db = this.getReadableDatabase();
 
@@ -2474,7 +2481,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     public void deleteAllSwitchesFromMaster(int master_id) {
-        synchronized (Lock){
+        synchronized (Lock) {
             try {
                 List<Bean_SlaveGroup> slaveGroupList = getAllSlaveGroupData(master_id);
                 SQLiteDatabase db = this.getWritableDatabase();
@@ -2510,7 +2517,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     public void deleteAllSwitchesFromGroup(int group_id) {
-        synchronized (Lock){
+        synchronized (Lock) {
             try {
                 SQLiteDatabase db = this.getWritableDatabase();
                 db.delete(TABLE_SWITCHES, SWITCH_IN_GRP + "=?", new String[]{String.valueOf(group_id)});
@@ -2523,7 +2530,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     public void deleteAllSwitchesFromSlave(String Slave) {
-        synchronized (Lock){
+        synchronized (Lock) {
             try {
                 SQLiteDatabase db = this.getWritableDatabase();
 
@@ -2551,7 +2558,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public List<Bean_Switch> getSwitchDataBySlave(String slave_hexID) {
         List<Bean_Switch> switchList = new ArrayList<>();
-        synchronized (Lock){
+        synchronized (Lock) {
             try {
                 SQLiteDatabase db = this.getReadableDatabase();
 
@@ -2581,7 +2588,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     public void updateSwitchLocks(Bean_Switch switchItem, boolean touchLock) {
-        synchronized (Lock){
+        synchronized (Lock) {
             try {
                 SQLiteDatabase db = this.getWritableDatabase();
 
@@ -2604,7 +2611,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     public void updateSwitchTypes(String slaveID, String switchButtonNum, String type) {
-        synchronized (Lock){
+        synchronized (Lock) {
             try {
                 SQLiteDatabase db = this.getWritableDatabase();
 
@@ -2623,7 +2630,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     public void updateScheduleSlot(String slotNumber, String slaveID) {
-        synchronized (Lock){
+        synchronized (Lock) {
             try {
                 SQLiteDatabase db = this.getWritableDatabase();
 
@@ -2644,7 +2651,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public boolean isAlreadyScheduleAdded(String slaveID, String slotNum, String switchNum) {
         boolean isAvailable = false;
-        synchronized (Lock){
+        synchronized (Lock) {
             try {
                 SQLiteDatabase db = this.getReadableDatabase();
 
@@ -2671,7 +2678,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     public String getSlaveTopic(String slaveID) {
-        synchronized (Lock){
+        synchronized (Lock) {
             try {
                 SQLiteDatabase db = this.getReadableDatabase();
 
@@ -2696,7 +2703,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public String getSlaveToken(String slaveID) {
         String slaveToken = "";
-        synchronized (Lock){
+        synchronized (Lock) {
             try {
                 SQLiteDatabase db = this.getReadableDatabase();
 
@@ -2718,7 +2725,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public String getSlaveUserType(String slaveID) {
         String slaveUserType = "";
-        synchronized (Lock){
+        synchronized (Lock) {
             try {
                 SQLiteDatabase db = this.getReadableDatabase();
 
@@ -2758,7 +2765,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     public void deleteAllSlaveFromMaster(int master_id) {
-        synchronized (Lock){
+        synchronized (Lock) {
             try {
                 SQLiteDatabase db = this.getWritableDatabase();
                 db.delete(TABLE_SLAVES, SLAVE_IN_GROUP + "=?", new String[]{String.valueOf(master_id)});
@@ -2783,28 +2790,28 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         }*/
     }
 
-    public synchronized void updateTotalSwitchInSlave(int size,String slaveID) {
+    public synchronized void updateTotalSwitchInSlave(int size, String slaveID) {
 
-        synchronized (Lock){
-            SQLiteDatabase db=this.getWritableDatabase();
+        synchronized (Lock) {
+            SQLiteDatabase db = this.getWritableDatabase();
 
-            ContentValues cv=new ContentValues();
-            cv.put(SLAVE_TOTAL_SWITCH,size);
+            ContentValues cv = new ContentValues();
+            cv.put(SLAVE_TOTAL_SWITCH, size);
 
-            db.update(TABLE_SLAVES,cv,SLAVE_HEX_ID+"=?",new String[]{slaveID});
+            db.update(TABLE_SLAVES, cv, SLAVE_HEX_ID + "=?", new String[]{slaveID});
             db.close();
         }
     }
 
     public int getTotalSwitchInSlave(String slaveIDs) {
-        int totalSwitches=0;
+        int totalSwitches = 0;
 
-        synchronized (Lock){
-            SQLiteDatabase db=this.getReadableDatabase();
+        synchronized (Lock) {
+            SQLiteDatabase db = this.getReadableDatabase();
 
-            Cursor cursor=db.query(TABLE_SLAVES,new String[]{SLAVE_TOTAL_SWITCH},SLAVE_HEX_ID+"=?",new String[]{slaveIDs},null,null,null,null);
-            if(cursor.moveToFirst()){
-                totalSwitches=cursor.getInt(0);
+            Cursor cursor = db.query(TABLE_SLAVES, new String[]{SLAVE_TOTAL_SWITCH}, SLAVE_HEX_ID + "=?", new String[]{slaveIDs}, null, null, null, null);
+            if (cursor.moveToFirst()) {
+                totalSwitches = cursor.getInt(0);
             }
 
             cursor.close();
@@ -2815,14 +2822,14 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     public boolean isMasterAdded(String slaveID) {
-        boolean isAdded=false;
-        synchronized (Lock){
-            SQLiteDatabase db=this.getReadableDatabase();
+        boolean isAdded = false;
+        synchronized (Lock) {
+            SQLiteDatabase db = this.getReadableDatabase();
 
-            Cursor cursor=db.query(TABLE_MASTER,null,MASTER_ID+"=?",new String[]{slaveID},null,null,null,null);
+            Cursor cursor = db.query(TABLE_MASTER, null, MASTER_ID + "=?", new String[]{slaveID}, null, null, null, null);
 
-            if(cursor.getCount()>0){
-                isAdded=true;
+            if (cursor.getCount() > 0) {
+                isAdded = true;
             }
 
             cursor.close();
@@ -2832,16 +2839,16 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return isAdded;
     }
 
-    public boolean switchHasUserLock(String switchButton, String slaveID){
-        boolean hasLock=false;
+    public boolean switchHasUserLock(String switchButton, String slaveID) {
+        boolean hasLock = false;
 
-        synchronized (Lock){
-            SQLiteDatabase db=this.getReadableDatabase();
+        synchronized (Lock) {
+            SQLiteDatabase db = this.getReadableDatabase();
 
-            Cursor cursor=db.query(TABLE_SWITCHES,new String[]{SWITCH_USERLOCK},SWITCH_BUTTON_NUM+"=? AND "+SWITCH_IN_SLAVE+"=?",new String[]{switchButton,slaveID},null,null,null,null);
+            Cursor cursor = db.query(TABLE_SWITCHES, new String[]{SWITCH_USERLOCK}, SWITCH_BUTTON_NUM + "=? AND " + SWITCH_IN_SLAVE + "=?", new String[]{switchButton, slaveID}, null, null, null, null);
 
-            if(cursor.moveToFirst()){
-                hasLock=cursor.getString(0).equalsIgnoreCase("Y");
+            if (cursor.moveToFirst()) {
+                hasLock = cursor.getString(0).equalsIgnoreCase("Y");
             }
         }
 
@@ -2849,20 +2856,19 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     public synchronized void setSwitchHasNoSchedule(String slaveHexID, String switchButtonNumber) {
-        synchronized (Lock){
-            try{
-                SQLiteDatabase db=this.getWritableDatabase();
+        synchronized (Lock) {
+            try {
+                SQLiteDatabase db = this.getWritableDatabase();
 
-                ContentValues cv=new ContentValues();
+                ContentValues cv = new ContentValues();
                 cv.put(SCH_SLOT_NUM, "26");
                 cv.put(SCH_IS_ENABLE, 0);
 
                 db.update(TABLE_SCHEDULE, cv, SCH_SW_BTN_NUM + "=? AND " + SCH_SLAVE_ID + "=?", new String[]{switchButtonNumber, slaveHexID});
 
                 db.close();
-            }
-            catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                Log.e("Exception",e.getMessage());
+            } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
+                Log.e("Exception", e.getMessage());
             }
         }
 

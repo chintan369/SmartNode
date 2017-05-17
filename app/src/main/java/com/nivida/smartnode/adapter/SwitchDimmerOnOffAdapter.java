@@ -1,31 +1,23 @@
 package com.nivida.smartnode.adapter;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
-import android.os.Bundle;
-import android.support.v7.graphics.drawable.DrawerArrowDrawable;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
-import com.nivida.smartnode.FavouriteActivity;
 import com.nivida.smartnode.Globals;
-import com.nivida.smartnode.GroupSwitchOnOffActivity;
-import com.nivida.smartnode.MasterGroupActivity;
 import com.nivida.smartnode.R;
 import com.nivida.smartnode.SetScheduleActivity;
 import com.nivida.smartnode.a.C;
@@ -33,12 +25,8 @@ import com.nivida.smartnode.a.Cmd;
 import com.nivida.smartnode.app.AppConstant;
 import com.nivida.smartnode.app.AppPreference;
 import com.nivida.smartnode.beans.Bean_Switch;
-import com.nivida.smartnode.beans.Bean_SwitchIcons;
 import com.nivida.smartnode.model.DatabaseHandler;
 import com.nivida.smartnode.model.IPDb;
-import com.nivida.smartnode.services.AddDeviceService;
-import com.nivida.smartnode.services.AddMasterService;
-import com.nivida.smartnode.utils.CircularSeekBar;
 import com.nivida.smartnode.utils.NetworkUtility;
 
 import org.adw.library.widgets.discreteseekbar.DiscreteSeekBar;
@@ -58,23 +46,21 @@ import java.util.List;
  */
 public class SwitchDimmerOnOffAdapter extends BaseAdapter {
 
+    //Define MQTT variables here
+    public static final String SERVICE_CLASSNAME = "com.nivida.smartnode.services.AddDeviceService";
     Context context;
     String fromActivity;
     List<Bean_Switch> switchList=new ArrayList<>();
     DatabaseHandler databaseHandler;
-    private DimmerChangeCallBack callback;
     int groupid=0;
     AppPreference preference;
     //List<Bean_SwitchIcons> switchIconsList=new ArrayList<>();
-
-    //Define MQTT variables here
-    public static final String SERVICE_CLASSNAME = "com.nivida.smartnode.services.AddDeviceService";
     MqttClient mqttClient;
     String clientId="";
     String subscribedMessage="";
     NetworkUtility netcheck;
-
     OnSwitchSelection switchSelection;
+    private DimmerChangeCallBack callback;
 
     public SwitchDimmerOnOffAdapter(Context context,List<Bean_Switch> switchList,String fromActivity, OnSwitchSelection switchSelection){
         this.switchSelection=switchSelection;
@@ -257,13 +243,14 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
 
         if(fromActivity.equalsIgnoreCase(Globals.FAVOURITE)){
             txt_group.setVisibility(View.VISIBLE);
+            txt_group.setText(databaseHandler.getGroupnameById(groupid));
         }
         else if(fromActivity.equalsIgnoreCase(Globals.GROUP)){
             txt_group.setVisibility(View.GONE);
         }
 
         txt_group_switch.setText(switchList.get(position).getSwitch_name());
-        txt_group.setText(databaseHandler.getGroupnameById(groupid));
+
         txt_progress.setText(String.valueOf(beanSwitch.getDimmerValue()));
 
         dimmerProgress.setProgress(beanSwitch.getDimmerValue());
@@ -392,7 +379,7 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
                             false, beanSwitch.getDimmerValue(), beanSwitch.getIsSwitch());
                 }
                 txt_progress.setText(String.valueOf(beanSwitch.getDimmerValue()));
-                Log.e("Fan Value : ", String.valueOf(seekBar.getProgress()));
+                //Log.e("Fan Value : ", String.valueOf(seekBar.getProgress()));
             }
 
             @Override
@@ -417,12 +404,6 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
 
     public void setCallBack(DimmerChangeCallBack dimmerChangeCallBack){
         this.callback=dimmerChangeCallBack;
-    }
-
-    public interface DimmerChangeCallBack{
-        public void stopScrolling();
-        public void startScrolling();
-        public void showOptionMenu(int position,View view);
     }
 
     public int getSwitchIdAtPosition(int position){
@@ -466,48 +447,48 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
 
     @Override
     public void notifyDataSetChanged() {
-        switchList.clear();
+        /*switchList.clear();
         if(fromActivity.equals(Globals.FAVOURITE)){
             switchList=databaseHandler.getAllSwitchesInFavourite();
         }
         else {
             switchList=databaseHandler.getAllSwitchesByGroupId(groupid);
-        }
+        }*/
         super.notifyDataSetChanged();
     }
 
     public String setSwitchItem(String slave_hex_id, String button, String isOn, String dval){
         String msg="";
 
-        //Log.e("Method Invoke","Method started");
+        ////Log.e("Method Invoke","Method started");
 
         for(int i=0; i<switchList.size();i++){
             Bean_Switch beanSwitch=switchList.get(i);
 
-            //Log.e("Button by srvr",button);
-            //Log.e("Button by db", beanSwitch.getSwitch_btn_num());
+            ////Log.e("Button by srvr",button);
+            ////Log.e("Button by db", beanSwitch.getSwitch_btn_num());
 
             if(beanSwitch.getSwitchInSlave().equals(slave_hex_id)){
                 if(beanSwitch.getSwitch_btn_num().equals(button)){
-                    //Log.e("Button :","Found");
+                    ////Log.e("Button :","Found");
                     if(isOn.equalsIgnoreCase("A")) {
-                        //Log.e("Switch sts :", "ON");
+                        ////Log.e("Switch sts :", "ON");
                         switchList.get(i).setIsSwitchOn(1);
                         databaseHandler.setSwitchIsOnById(switchList.get(i).getSwitch_id(),true);
                     }
                     else {
-                        //Log.e("Switch sts :", "OFF");
+                        ////Log.e("Switch sts :", "OFF");
                         switchList.get(i).setIsSwitchOn(0);
                         databaseHandler.setSwitchIsOnById(switchList.get(i).getSwitch_id(),false);
                     }
 
                     if(beanSwitch.getIsSwitch().equalsIgnoreCase("d")){
-                        //Log.e("Dimmer sts :", ""+dval);
+                        ////Log.e("Dimmer sts :", ""+dval);
                         switchList.get(i).setDimmerValue(Integer.parseInt(dval));
                         databaseHandler.setDimmerValue(switchList.get(i).getSwitch_id(),Integer.parseInt(dval));
                     }
                     msg="success";
-                    //Log.e("Data :","Braek");
+                    ////Log.e("Data :","Braek");
                     break;
                 }
             }
@@ -548,8 +529,8 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
 
                 String command=object.toString();
 
-                Log.e("Online Sts", "" + preference.isOnline());
-                Log.e("Command", command);
+                //Log.e("Online Sts", "" + preference.isOnline());
+                //Log.e("Command", command);
 
                 List<String> ipList=new IPDb(context).ipList();
 
@@ -571,47 +552,10 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
                         Toast.LENGTH_SHORT).show();
             }
         }catch (Exception e){
-            Log.e("Exception",e.getMessage());
+            //Log.e("Exception",e.getMessage());
         }
 
         return msg;
-    }
-
-    private class SendMQTTMsg extends AsyncTask<Void, Void, Void>{
-
-        String command="";
-        String topic="";
-
-        public SendMQTTMsg(String command, String topic) {
-            this.command = command;
-            this.topic = topic;
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
-
-            try {
-                mqttClient = new MqttClient(AppConstant.MQTT_BROKER_URL, clientId, new MemoryPersistence());
-                MqttConnectOptions connectOptions = new MqttConnectOptions();
-                connectOptions.setUserName(AppConstant.MQTT_USERNAME);
-                connectOptions.setPassword(AppConstant.getPassword());
-                mqttClient.connect(connectOptions);
-
-                Log.e("Command Fired UPD :", command);
-
-                MqttMessage mqttMessage = new MqttMessage(command.getBytes());
-                mqttMessage.setQos(0);
-                mqttMessage.setRetained(false);
-                mqttClient.publish(topic+ AppConstant.MQTT_PUBLISH_TOPIC, mqttMessage);
-                Log.e("topic msg", topic + AppConstant.MQTT_PUBLISH_TOPIC + " " + mqttMessage);
-                mqttClient.disconnect();
-            } catch (MqttException e) {
-                Log.e("Exception : ", e.getMessage());
-                e.printStackTrace();
-            }
-
-            return null;
-        }
     }
 
     public String setTouchUserLock(String slave_hex_id,String switch_button_num,boolean lock,boolean isTouchLock){
@@ -675,13 +619,13 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
                 object.put("token",databaseHandler.getSlaveToken(slave_hex_id));
 
             }catch (JSONException e){
-                Log.e("Exception",e.getMessage());
+                //Log.e("Exception",e.getMessage());
             }
 
             String mqttCommand=object.toString();
 
-            Log.e("Online Sts",""+preference.isOnline());
-            Log.e("Command",mqttCommand);
+            //Log.e("Online Sts",""+preference.isOnline());
+            //Log.e("Command",mqttCommand);
 
             List<String> ipList=new IPDb(context).ipList();
 
@@ -708,8 +652,53 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
         return msg;
     }
 
+    public interface DimmerChangeCallBack {
+        public void stopScrolling();
+
+        public void startScrolling();
+
+        public void showOptionMenu(int position, View view);
+    }
+
     public interface OnSwitchSelection{
         void sendUDPCommand(String command);
+    }
+
+    private class SendMQTTMsg extends AsyncTask<Void, Void, Void> {
+
+        String command = "";
+        String topic = "";
+
+        public SendMQTTMsg(String command, String topic) {
+            this.command = command;
+            this.topic = topic;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+
+            try {
+                mqttClient = new MqttClient(AppConstant.MQTT_BROKER_URL, clientId, new MemoryPersistence());
+                MqttConnectOptions connectOptions = new MqttConnectOptions();
+                connectOptions.setUserName(AppConstant.MQTT_USERNAME);
+                connectOptions.setPassword(AppConstant.getPassword());
+                mqttClient.connect(connectOptions);
+
+                //Log.e("Command Fired UPD :", command);
+
+                MqttMessage mqttMessage = new MqttMessage(command.getBytes());
+                mqttMessage.setQos(0);
+                mqttMessage.setRetained(false);
+                mqttClient.publish(topic + AppConstant.MQTT_PUBLISH_TOPIC, mqttMessage);
+                //Log.e("topic msg", topic + AppConstant.MQTT_PUBLISH_TOPIC + " " + mqttMessage);
+                mqttClient.disconnect();
+            } catch (MqttException e) {
+                //Log.e("Exception : ", e.getMessage());
+                e.printStackTrace();
+            }
+
+            return null;
+        }
     }
 
 

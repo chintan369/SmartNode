@@ -101,6 +101,15 @@ public class SplashActivity extends AppCompatActivity {
 
         new IPDb(this).deleteIP();
 
+        String dbFileName = Environment.getExternalStorageDirectory() + "/SmartNode/" + "smartnodedb.db";
+
+        File dbFile = new File(dbFileName);
+        if (!dbFile.exists()) {
+            DatabaseHandler handler = new DatabaseHandler(this);
+        }
+
+        databaseHandler = new DatabaseHandler(this);
+
         //Log.e("Client ID", MqttClient.generateClientId());
 
         if(NetworkUtility.isOnline(this)){
@@ -120,24 +129,21 @@ public class SplashActivity extends AppCompatActivity {
         isPermissionRequestRequired(this, perms, code);
 
 
-
-        databaseHandler=new DatabaseHandler(getApplicationContext());
-
-        if(databaseHandler.getGroupDataCounts()==0){
-            databaseHandler.addDefaultRows(images,names);
-        }
-
         if (Globals.isConnectingToInternet1(getApplicationContext())) {
             new ReceiveUDP().execute();
         } else {
             C.Toast(getApplicationContext(), "Please Connect to the Network First");
         }
 
+
         if (preference.isFirstTimeInstalled()) {
             // splash code
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
+                    if (databaseHandler.getGroupDataCounts() == 0) {
+                        databaseHandler.addDefaultRows(images, names);
+                    }
                     goToSpecificActivity();
                     preference.setFirstTimeInstalled(false);
                 }

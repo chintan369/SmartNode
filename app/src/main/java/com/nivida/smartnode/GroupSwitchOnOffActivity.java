@@ -260,10 +260,6 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                     subscribedMessage = bundle.getString(AddDeviceService.MESSAGETOSEND);
                     String UDPMessage = bundle.getString(UDPService.MESSAGEJSON);
 
-                    if (dialog.isShowing()) {
-                        dialog.dismiss();
-                    }
-
                     //Log.e("JSOn fr group ", "" + subscribedMessage);
                     if (UDPMessage != null) {
                         handleCommands(UDPMessage);
@@ -290,17 +286,42 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
             JSONObject jsonDevice = new JSONObject(json);
             String cmd = jsonDevice.getString("cmd");
             if(jsonDevice.has("status") && jsonDevice.getString("status").equalsIgnoreCase(Cmd.INVALID_TOKEN)){
-                C.Toast(this,"Token is Invalid\nPlease Login again to refresh token!");
+
+                if (dialog.isShowing()) {
+                    dialog.dismiss();
+                }
+
+                if (jsonDevice.has("slave")) {
+                    String slaveID = jsonDevice.getString("slave");
+                    if (!slaveIds.contains(slaveID)) return;
+                    C.Toast(this, "Token is Invalid\nPlease Login again to refresh token!");
+                }
                 return;
+
+
             }
 
             if (jsonDevice.has("slave")) {
                 slave_hex_id = jsonDevice.getString("slave");
-                if (!slaveIds.contains(slave_hex_id))
+                if (!slaveIds.contains(slave_hex_id)) {
+                    if (dialog.isShowing()) {
+                        dialog.dismiss();
+                    }
                     return;
-            } else return;
+                }
+            } else {
+                if (dialog.isShowing()) {
+                    dialog.dismiss();
+                }
+                return;
+            }
 
             if (cmd.equals("SET")) {
+
+                if (dialog.isShowing()) {
+                    dialog.dismiss();
+                }
+
                 Log.e("Command :", "SET Found");
 
                 button = jsonDevice.getString("button");
@@ -314,16 +335,16 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
             } else if (cmd.equals("STS")) {
                 if (isFirstTimeEntered) {
                     isFirstTimeEntered = false;
-                    if (loadingView != null && loadingView.isShowing()){
+                    if (dialog != null && dialog.isShowing()) {
                         new Handler().postDelayed(new Runnable() {
                             @Override
                             public void run() {
-                                loadingView.dismiss();
+                                dialog.dismiss();
                             }
                         },2000);
                     }
                 }
-                Log.e("Command :", "STS Found");
+                //Log.e("Command :", "STS Found");
                 updateSwitchesAsLive(json);
             } else if (cmd.equalsIgnoreCase(Cmd.TL1)) {
                 Log.e("Command :", "TL1 Found");
@@ -334,6 +355,10 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                 updateSwitchTypes(json);
             } else if (cmd.equals(Cmd.UUP) && jsonDevice.has("status") && jsonDevice.getString("status").equalsIgnoreCase(Status.LOCKED)) {
                 //C.Toast(getApplicationContext(),"Switch you want to access is locked by Admin.");
+            }
+
+            if (dialog.isShowing()) {
+                dialog.dismiss();
             }
 
         } catch (JSONException e) {
@@ -367,7 +392,7 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                 C.Toast(getApplicationContext(), getString(R.string.error));
             }
         } catch (Exception e) {
-            Log.e("Exception", e.getMessage());
+            //Log.e("Exception", e.getMessage());
         }
         switchDimmerOnOffAdapter.notifyDataSetChanged();
     }
@@ -404,7 +429,7 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                 C.Toast(getApplicationContext(), "Failed to Perform Lock Operation!");
             }
         } catch (JSONException e) {
-            Log.e("Exception", e.getMessage());
+            //Log.e("Exception", e.getMessage());
         }
     }
 
@@ -432,7 +457,7 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                 int j = 0;
                 for (int i = 0; i < buttons.length(); i += 2) {
                     button_list.add(String.valueOf(buttons.charAt(i)) + String.valueOf(buttons.charAt(i + 1)));
-                    //Log.e("Button Added :", button_list.get(j));
+                    ////Log.e("Button Added :", button_list.get(j));
                     //j++;
                 }
 
@@ -440,14 +465,14 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
 
                 for (int i = 0; i < dimmerValue.length(); i++) {
                     buttonType.add(String.valueOf(dimmerValue.charAt(i)));
-                    //Log.e("Dimmer Value :", buttonType.get(i));
+                    ////Log.e("Dimmer Value :", buttonType.get(i));
                 }
 
                 String buttonStatusValues = jsonSwitches.getString("val");
 
                 for (int i = 0; i < buttonStatusValues.length(); i++) {
                     buttonStatus.add(String.valueOf(buttonStatusValues.charAt(i)));
-                    //Log.e("Switch status :", buttonStatus.get(i));
+                    ////Log.e("Switch status :", buttonStatus.get(i));
                 }
 
                 for (int i = 0; i < userLock.length(); i++) {
@@ -511,14 +536,14 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
             startService(new Intent(getApplicationContext(), UDPService.class));
         }
         getLiveSwitchStatus();
-        Log.e("Reciever :", "Registered");
+        //Log.e("Reciever :", "Registered");
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         unregisterReceiver(receiver);
-        Log.e("Reciever :", "UnRegistered");
+        //Log.e("Reciever :", "UnRegistered");
     }
 
     private void fetchID() {
@@ -716,11 +741,11 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
         final Boolean isSwitch = switchDimmerOnOffAdapter.isSwitch(position);
         final String switch_num = switchDimmerOnOffAdapter.getSwitchNumber(position);
         final String slaveID = switchDimmerOnOffAdapter.getSlaveIDForSwitch(position);
-        Log.e("isSwitch or :", "" + isSwitch);
+        //Log.e("isSwitch or :", "" + isSwitch);
 
         PopupMenu popupMenu = new PopupMenu(GroupSwitchOnOffActivity.this, view);
         popupMenu.getMenuInflater().inflate(R.menu.menu_edit_switch, popupMenu.getMenu());
-        Log.e("isSwitch :", "" + isSwitch);
+        //Log.e("isSwitch :", "" + isSwitch);
 
         popupMenu.setGravity(Gravity.CENTER);
 
@@ -767,7 +792,7 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
 
             String command = object.toString();
 
-            Log.e("command", command);
+            //Log.e("command", command);
 
             if (NetworkUtility.isOnline(getApplicationContext())) {
 
@@ -783,7 +808,7 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                 C.Toast(getApplicationContext(), getString(R.string.nointernet));
             }
         } catch (Exception e) {
-            //Log.e("Exception", e.getMessage());
+            ////Log.e("Exception", e.getMessage());
         }
     }
 
@@ -823,13 +848,13 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                 mqttMessage.setQos(0);
                 mqttMessage.setRetained(false);
                 mqttClient.publish(databaseHandler.getSlaveTopic(slave_hex_id) + AppConstant.MQTT_PUBLISH_TOPIC, mqttMessage);
-                Log.e("Mqtt Message", "Published for STS 1st\n" + mqttCommand);
+                //Log.e("Mqtt Message", "Published for STS 1st\n" + mqttCommand);
                 mqttClient.disconnect();
 
             } catch (MqttException e) {
-                Log.e("MQTT Exception",e.getMessage());
+                //Log.e("MQTT Exception",e.getMessage());
             } catch (Exception e) {
-                Log.e("Exception",e.getMessage());
+                //Log.e("Exception",e.getMessage());
             }
             return null;
         }
@@ -877,7 +902,7 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                 InetSocketAddress server_addr;
                 DatagramPacket packet;
 
-                Log.e("IP Address Saved", "->" + preference.getIpaddress());
+                //Log.e("IP Address Saved", "->" + preference.getIpaddress());
 
                /* if (preference.getIpaddress().isEmpty() || !C.isValidIP(preference.getIpaddress())) {*/
                 server_addr = new InetSocketAddress(C.getBroadcastAddress(getApplicationContext()).getHostAddress(), 13001);
@@ -885,22 +910,22 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                 //socket.setReuseAddress(true);
                 socket.setBroadcast(true);
                 socket.send(packet);
-                Log.e("Packet", "Sent");
+                //Log.e("Packet", "Sent");
                 /*} else {
                     server_addr = new InetSocketAddress(preference.getIpaddress(), 13001);
                     packet = new DatagramPacket(senddata, senddata.length, server_addr);
                     socket.setReuseAddress(true);
                     //socket.setBroadcast(true);
                     socket.send(packet);
-                    Log.e("Packet", "Sent");
+                    //Log.e("Packet", "Sent");
                 }*/
 
                 socket.disconnect();
                 socket.close();
             } catch (SocketException s) {
-                Log.e("Exception", "->" + s.getLocalizedMessage());
+                //Log.e("Exception", "->" + s.getLocalizedMessage());
             } catch (IOException e) {
-                Log.e("Exception", "->" + e.getLocalizedMessage());
+                //Log.e("Exception", "->" + e.getLocalizedMessage());
             }
             return null;
         }
@@ -932,17 +957,17 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                 connectOptions.setPassword(AppConstant.getPassword());
                 mqttClient.connect(connectOptions);
 
-                //Log.e("Command Fired :", command);
+                ////Log.e("Command Fired :", command);
 
                 MqttMessage mqttMessage = new MqttMessage(command.getBytes());
                 mqttMessage.setQos(0);
                 mqttMessage.setRetained(false);
                 mqttClient.publish(topic, mqttMessage);
-                //Log.e("topic msg", preference.getTopic() + AppConstant.MQTT_PUBLISH_TOPIC + " " + mqttMessage);
+                ////Log.e("topic msg", preference.getTopic() + AppConstant.MQTT_PUBLISH_TOPIC + " " + mqttMessage);
                 //mqttClient.disconnect();
 
             } catch (MqttException e) {
-                Log.e("Exception : ", e.getMessage());
+                //Log.e("Exception : ", e.getMessage());
                 e.printStackTrace();
             }
             return null;

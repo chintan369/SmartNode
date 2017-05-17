@@ -1,42 +1,31 @@
 package com.nivida.smartnode;
 
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.content.res.Configuration;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.EditText;
-import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -49,34 +38,25 @@ import android.widget.Toast;
 import com.nivida.smartnode.a.C;
 import com.nivida.smartnode.a.Cmd;
 import com.nivida.smartnode.a.Status;
-import com.nivida.smartnode.adapter.CustomAdapter;
 import com.nivida.smartnode.adapter.DimmerListAdapter;
 import com.nivida.smartnode.adapter.SwitchListAdapter;
 import com.nivida.smartnode.app.AppConstant;
 import com.nivida.smartnode.app.AppPreference;
-import com.nivida.smartnode.beans.Bean_Dimmer;
 import com.nivida.smartnode.beans.Bean_MasterGroup;
-import com.nivida.smartnode.beans.Bean_SlaveGroup;
 import com.nivida.smartnode.beans.Bean_Switch;
 import com.nivida.smartnode.model.DatabaseHandler;
 import com.nivida.smartnode.model.IPDb;
 import com.nivida.smartnode.services.AddDeviceService;
-import com.nivida.smartnode.services.AddSwitchService;
 import com.nivida.smartnode.services.UDPService;
-import com.nivida.smartnode.utils.AESHelper;
-import com.nivida.smartnode.utils.EncryptionECB;
-import com.nivida.smartnode.utils.ExceptionHandler;
 import com.nivida.smartnode.utils.ImagePath;
 import com.nivida.smartnode.utils.NetworkUtility;
 import com.nivida.smartnode.utils.Utility;
-import com.scottyab.aescrypt.AESCrypt;
 
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -87,13 +67,19 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
-import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.List;
 
 import static android.graphics.BitmapFactory.decodeFile;
 
 public class AddSwitchActivity extends AppCompatActivity {
+    public static final int SELECT_PICTURE = 1;
+    public static final int SELECT_PICTURE_KITKAT = 2;
+    //Define MQTT variables here
+    public static final String SERVICE_CLASSNAME = "com.nivida.smartnode.services.AddDeviceService";
+    private static final int REQUEST_CAMERA = 0;
+    private static final int RESULT_IMAGE_LOAD = 1;
+    private static final int REQUEST_CROP_ICON = 2;
     ListView switchList, dimmerList;
     Toolbar toolbar;
     TextView txt_smartnode, txt_switchlisting, txt_cancel, txt_addtogroup;
@@ -101,36 +87,20 @@ public class AddSwitchActivity extends AppCompatActivity {
     ArrayAdapter<String> adp_master_group;
     int group_position = 0;
     ImageView img_select_group;
-
     SwitchListAdapter switchListAdapter;
     DimmerListAdapter dimmerListAdapter;
-
     Bitmap add_group_icon = null;
-
-    private static final int REQUEST_CAMERA = 0;
-    private static final int RESULT_IMAGE_LOAD = 1;
-    private static final int REQUEST_CROP_ICON = 2;
     String userChoosenTask = "";
     String selectedImagePath;
-
     String slave_hex_id = "";
-
-    public static final int SELECT_PICTURE=1;
-    public static final int SELECT_PICTURE_KITKAT=2;
-
     DatabaseHandler databaseHandler;
     AppPreference preference;
-
     ArrayList<String> button_list = new ArrayList<>();
     ArrayList<String> buttonType = new ArrayList<>();
     ArrayList<String> buttonStatus = new ArrayList<>();
     ArrayList<String> buttonUserlock = new ArrayList<>();
     ArrayList<String> buttonTouchlock = new ArrayList<>();
-
     List<Bean_Switch> switchListToAdd = new ArrayList<>();
-
-    //Define MQTT variables here
-    public static final String SERVICE_CLASSNAME = "com.nivida.smartnode.services.AddDeviceService";
     MqttClient mqttClient;
     String clientId = "";
     String subscribedMessage = "";
@@ -251,7 +221,7 @@ public class AddSwitchActivity extends AppCompatActivity {
                     int j = 0;
                     for (int i = 0; i < buttons.length(); i += 2) {
                         button_list.add(String.valueOf(buttons.charAt(i)) + String.valueOf(buttons.charAt(i + 1)));
-                        Log.e("Button Added :", button_list.get(j));
+                        //Log.e("Button Added :", button_list.get(j));
                         j++;
                     }
 
@@ -261,28 +231,28 @@ public class AddSwitchActivity extends AppCompatActivity {
 
                     for (int i = 0; i < dimmerValue.length(); i++) {
                         buttonType.add(String.valueOf(dimmerValue.charAt(i)));
-                        Log.e("Dimmer Value :", buttonType.get(i));
+                        //Log.e("Dimmer Value :", buttonType.get(i));
                     }
 
                     String buttonStatusValues = jsonDevice.getString("val");
 
                     for (int i = 0; i < buttonStatusValues.length(); i++) {
                         buttonStatus.add(String.valueOf(buttonStatusValues.charAt(i)));
-                        Log.e("Switch status :", buttonStatus.get(i));
+                        //Log.e("Switch status :", buttonStatus.get(i));
                     }
 
                     String buttonUserLocks = jsonDevice.getString("user_locked");
 
                     for (int i = 0; i < buttonUserLocks.length(); i++) {
                         buttonUserlock.add(String.valueOf(buttonUserLocks.charAt(i)));
-                        Log.e("Switch status :", buttonUserlock.get(i));
+                        //Log.e("Switch status :", buttonUserlock.get(i));
                     }
 
                     String buttonTouchLocks = jsonDevice.getString("touch_lock");
 
                     for (int i = 0; i < buttonTouchLocks.length(); i++) {
                         buttonTouchlock.add(String.valueOf(buttonUserLocks.charAt(i)));
-                        Log.e("Switch status :", buttonTouchlock.get(i));
+                        //Log.e("Switch status :", buttonTouchlock.get(i));
                     }
 
                     switchListToAdd.clear();
@@ -322,6 +292,10 @@ public class AddSwitchActivity extends AppCompatActivity {
 
                     }
 
+                    if (switchListToAdd.size() <= 0) {
+                        showAllSwitchAddedDialog();
+                    }
+
                     Log.e("Swtch Adp", "Called actvty");
                 }
 
@@ -330,6 +304,21 @@ public class AddSwitchActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
+    }
+
+    private void showAllSwitchAddedDialog() {
+        android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(this);
+        builder.setTitle("Message");
+        builder.setMessage("All Switches for this slave has already been added in group");
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                onBackPressed();
+            }
+        });
+        builder.setCancelable(false);
+        android.support.v7.app.AlertDialog dialog = builder.create();
+        dialog.show();
     }
 
     private void publishCommandForSwitches(String slave_hex_id) {
@@ -844,8 +833,8 @@ public class AddSwitchActivity extends AppCompatActivity {
 
     public class PublishMessage extends AsyncTask<Void, Void, String> {
 
-        String command = "";
         public ProgressDialog statusDialog;
+        String command = "";
 
         public PublishMessage(String command) {
             this.command = command;
