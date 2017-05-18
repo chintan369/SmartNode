@@ -1,6 +1,7 @@
 package com.nivida.smartnode;
 
 import android.app.ActivityManager;
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -97,6 +98,10 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
     String slaveHexID="";
     String slaveToken="";
 
+    int positionForDelete = -1;
+
+    ProgressDialog deleteDialog, createSchuduleDialog;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,6 +111,14 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
         preference = new AppPreference(getApplicationContext());
         databaseHandler = new DatabaseHandler(getApplicationContext());
         networkUtility = new NetworkUtility(getApplicationContext());
+
+        deleteDialog = new ProgressDialog(this);
+        deleteDialog.setCancelable(false);
+        deleteDialog.setMessage("Removing Schedule");
+
+        createSchuduleDialog = new ProgressDialog(this);
+        createSchuduleDialog.setCancelable(false);
+        createSchuduleDialog.setMessage("Creating Schedule");
 
         builder = new AlertDialog.Builder(this);
 
@@ -216,6 +229,7 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
                         } else {
                             adapter.setAvailableSlotForSlave(slave, NN);
                             C.Toast(getApplicationContext(), "No Slot Available To Create Schedule");
+                            createSchuduleDialog.dismiss();
                         }
                     } else {
 
@@ -307,10 +321,13 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
                     } else {
                         if (dataItems[2].equalsIgnoreCase("EMPTY")) {
                             C.Toast(getApplicationContext(),"Schedule Removed Successfully");
-                            adapter.updateScheduleDeleted(dataItems[1], slave);
+                            adapter.updateScheduleDeleted(dataItems[1], slave, positionForDelete);
+                            deleteDialog.dismiss();
+                            positionForDelete = -1;
                         } else {
                             C.Toast(getApplicationContext(), "Schedule created Succeddfully");
                             adapter.setScheduleCreated(slave, dataItems[5], dataItems[1]);
+                            createSchuduleDialog.dismiss();
                         }
                     }
                 } else if (tag.equalsIgnoreCase("N")) {
@@ -660,8 +677,10 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
     }
 
     @Override
-    public void deleteSchedule(int position, Bean_ScheduleItem scheduleItem) {
+    public void deleteSchedule(int position, Bean_ScheduleItem scheduleItem, int deletePosition) {
         if (!scheduleItem.getSlot_num().equalsIgnoreCase("26")) {
+            deleteDialog.show();
+            positionForDelete = deletePosition;
             forAddingNewItem = false;
             try {
                 JSONObject object = new JSONObject();
@@ -691,7 +710,10 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
     @Override
     public void getAllSlotsInfo(String slaveID) {
         forAvailInfo = false;
+        createSchuduleDialog.setMessage("Gathering Slot Information");
         if (NetworkUtility.isOnline(getApplicationContext())) {
+            createSchuduleDialog.show();
+
             List<String> ipList=new IPDb(this).ipList();
             try {
                 JSONObject object = new JSONObject();
@@ -725,7 +747,8 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
         List<String> ipList=new IPDb(this).ipList();
         forAddingNewItem = false;
         if (NetworkUtility.isOnline(getApplicationContext())) {
-
+            if (createSchuduleDialog.isShowing())
+                createSchuduleDialog.setMessage("Creating Schedule");
             if(ipList.contains(databaseHandler.getMasterIPBySlaveID(slaveID))){
                 new SendUDP(createCommand).execute();
             }

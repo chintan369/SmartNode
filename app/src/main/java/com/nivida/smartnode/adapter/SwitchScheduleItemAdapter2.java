@@ -315,7 +315,7 @@ public class SwitchScheduleItemAdapter2 extends BaseAdapter {
                 }
                 else {
                     if(networkUtility.isOnline()){
-                        onScheduleViewSelection.deleteSchedule(position,scheduleItemList.get(position));
+                        onScheduleViewSelection.deleteSchedule(position, scheduleItemList.get(position), -1);
                         scheduleItemList.get(position).setSchEnabled(false);
                         scheduleItemList.get(position).setSlot_num("26");
                         chk_enable.setChecked(false);
@@ -638,8 +638,13 @@ public class SwitchScheduleItemAdapter2 extends BaseAdapter {
         return view;
     }
 
-    public void updateScheduleDeleted(String slotNumber, String slave) {
-        databaseHandler.updateScheduleSlot(slotNumber, slave);
+    public void updateScheduleDeleted(String slotNumber, String slave, int positionForDelete) {
+        if (positionForDelete != -1) {
+            databaseHandler.removeScheduleItem(scheduleItemList.get(positionForDelete));
+            scheduleItemList.remove(positionForDelete);
+        } else {
+            databaseHandler.updateScheduleSlot(slotNumber, slave);
+        }
         for(int i=0; i<scheduleItemList.size(); i++){
             if(scheduleItemList.get(i).getSlot_num().equals(slotNumber)){
                 scheduleItemList.get(i).setSlot_num("26");
@@ -729,8 +734,7 @@ public class SwitchScheduleItemAdapter2 extends BaseAdapter {
 
     public void deleteItem(int position){
         if(!scheduleItemList.get(position).getSlot_num().isEmpty()){
-            onScheduleViewSelection.deleteSchedule(position,scheduleItemList.get(position));
-            databaseHandler.removeScheduleItem(scheduleItemList.get(position));
+            onScheduleViewSelection.deleteSchedule(position, scheduleItemList.get(position), position);
             notifyDataSetChanged();
         }
     }
@@ -847,7 +851,7 @@ public class SwitchScheduleItemAdapter2 extends BaseAdapter {
     }
 
     public interface OnScheduleViewSelection {
-        void deleteSchedule(int position, Bean_ScheduleItem scheduleItem);
+        void deleteSchedule(int position, Bean_ScheduleItem scheduleItem, int deletePosition);
 
         void getAllSlotsInfo(String slaveID);
 
