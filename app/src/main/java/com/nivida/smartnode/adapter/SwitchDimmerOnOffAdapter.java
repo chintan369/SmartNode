@@ -652,6 +652,16 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
         return msg;
     }
 
+    public void notifyIconChanged() {
+        switchList.clear();
+        if (fromActivity.equals(Globals.FAVOURITE)) {
+            switchList = databaseHandler.getAllSwitchesInFavourite();
+        } else {
+            switchList = databaseHandler.getAllSwitchesByGroupId(groupid);
+        }
+        notifyDataSetChanged();
+    }
+
     public interface DimmerChangeCallBack {
         public void stopScrolling();
 

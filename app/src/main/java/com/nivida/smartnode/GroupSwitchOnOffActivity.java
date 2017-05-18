@@ -67,6 +67,7 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
     //Define MQTT variables here
     public static final String SERVICE_CLASSNAME = "com.nivida.smartnode.services.AddDeviceService";
     public static final String UDPSERVICE_CLASSNAME = "com.nivida.smartnode.services.UDPService";
+    public static final int BUFFER_EXECUTION_TIME = 1000;
     RecyclerView switchView;
     SwitchOnOffAdapter switchOnOffAdapter;
     DimmerOnOffAdapter dimmerOnOffAdapter;
@@ -94,11 +95,11 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
     BroadcastReceiver receiver;
     boolean isUserCredentialTrue = false;
     NetworkUtility netcheck;
-
     AppPreference preference;
-
     boolean isFirstTimeEntered = true;
-
+    List<String> commandBuffer = new ArrayList<>();
+    Handler mHandler;
+    Runnable mRunnable;
     ProgressDialog dialog;
 
 
@@ -123,6 +124,19 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
         startGroupService();
         startReceiver();
         //getLiveSwitchStatus();
+
+        mHandler = new Handler();
+        mRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (commandBuffer.size() > 0) {
+                    handleCommands(commandBuffer.get(0));
+                    commandBuffer.remove(0);
+                }
+                mHandler.postDelayed(this, BUFFER_EXECUTION_TIME);
+            }
+        };
+        mHandler.postDelayed(mRunnable, BUFFER_EXECUTION_TIME);
 
         try {
             switchDimmerOnOffAdapter = new SwitchDimmerOnOffAdapter(getApplicationContext(), databaseHandler.getAllSwitchesByGroupId(groupid),
@@ -262,7 +276,8 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
 
                     //Log.e("JSOn fr group ", "" + subscribedMessage);
                     if (UDPMessage != null) {
-                        handleCommands(UDPMessage);
+                        commandBuffer.add(UDPMessage);
+                        //handleCommands(UDPMessage);
                     } else if (subscribedMessage == null) {
                         //Log.e("JSON Message", "Null");
                     } else if (subscribedMessage.equals("")) {
@@ -270,7 +285,8 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                     } /*else if (subscribedMessage.contains("master")) {
                         //Log.e("From Grp actvty ", "Device Started...");
                     } */ else {
-                        handleCommands(subscribedMessage);
+                        commandBuffer.add(subscribedMessage);
+                        //handleCommands(subscribedMessage);
                     }
                 }
             }
@@ -297,8 +313,6 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                     C.Toast(this, "Token is Invalid\nPlease Login again to refresh token!");
                 }
                 return;
-
-
             }
 
             if (jsonDevice.has("slave")) {
@@ -394,7 +408,7 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
         } catch (Exception e) {
             //Log.e("Exception", e.getMessage());
         }
-        switchDimmerOnOffAdapter.notifyDataSetChanged();
+        switchDimmerOnOffAdapter.notifyIconChanged();
     }
 
     private void updateSwitchForLocks(String json, boolean isTouchLock) {
@@ -424,7 +438,7 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                 }
 
 
-                switchDimmerOnOffAdapter.notifyDataSetChanged();
+                switchDimmerOnOffAdapter.notifyIconChanged();
             } else {
                 C.Toast(getApplicationContext(), "Failed to Perform Lock Operation!");
             }
@@ -518,7 +532,7 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
             } catch (Exception e) {
                 //C.connectionError(getApplicationContext());
             }
-            switchDimmerOnOffAdapter.notifyDataSetChanged();
+            switchDimmerOnOffAdapter.notifyIconChanged();
 
         } catch (JSONException e) {
             e.printStackTrace();
@@ -535,6 +549,11 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
             stopService(new Intent(getApplicationContext(), UDPService.class));
             startService(new Intent(getApplicationContext(), UDPService.class));
         }
+
+        if (mHandler != null) {
+            mHandler.postDelayed(mRunnable, BUFFER_EXECUTION_TIME);
+        }
+
         getLiveSwitchStatus();
         //Log.e("Reciever :", "Registered");
     }
@@ -543,6 +562,9 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
     protected void onPause() {
         super.onPause();
         unregisterReceiver(receiver);
+        if (mHandler != null) {
+            mHandler.removeCallbacks(mRunnable);
+        }
         //Log.e("Reciever :", "UnRegistered");
     }
 
@@ -617,7 +639,7 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                         }
 
 
-                        switchDimmerOnOffAdapter.notifyDataSetChanged();
+                        switchDimmerOnOffAdapter.notifyIconChanged();
                         b.dismiss();
                     }
                 });

@@ -167,7 +167,8 @@ public class SplashActivity extends AppCompatActivity {
             File[] subFiles = file.listFiles();
             if (subFiles.length > 0) {
                 for (File subFile : subFiles) {
-                    deleteFileFolder(subFile);
+                    if (!subFile.isDirectory())
+                        deleteFileFolder(subFile);
                 }
             }
         }

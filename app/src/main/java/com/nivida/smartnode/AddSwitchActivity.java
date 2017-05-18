@@ -17,6 +17,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -127,6 +128,7 @@ public class AddSwitchActivity extends AppCompatActivity {
         slave_hex_id = intent.getStringExtra("slave_hex_id");
         Log.e("slave_hex frm switch", slave_hex_id);
 
+        startService(new Intent(this, UDPService.class));
         startAddSwitchService();
         startReceiver();
         switchList = (ListView) findViewById(R.id.switch_list);
@@ -351,6 +353,16 @@ public class AddSwitchActivity extends AppCompatActivity {
         super.onResume();
         registerReceiver(receiver, new IntentFilter(AddDeviceService.NOTIFICATION));
         sendSTSCommand();
+        if (!isSwitchesListed) {
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if (!isSwitchesListed && switchListToAdd.size() <= 0) {
+                        sendSTSCommand();
+                    }
+                }
+            }, 5000);
+        }
         Log.e("Reciever :", "Registered");
     }
 

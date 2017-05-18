@@ -1612,8 +1612,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public void setDimmerValue(int dimmerId, int dimmerValue) {
         synchronized (Lock) {
+            SQLiteDatabase db = null;
             try {
-                SQLiteDatabase db = this.getWritableDatabase();
+                db = this.getWritableDatabase();
 
                 ContentValues contentValues = new ContentValues();
                 contentValues.put(DIMMER_VALUE, dimmerValue);
@@ -1622,8 +1623,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                setDimmerValue(dimmerId, dimmerValue);
+                //waitFor();
+                //setDimmerValue(dimmerId, dimmerValue);
+            } finally {
+                if (db != null) db.close();
             }
         }
 

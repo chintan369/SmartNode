@@ -702,10 +702,10 @@ public class AddMasterActivity extends AppCompatActivity {
                                 Log.e("Command",command);
 
                                 if(ipList.contains(databaseHandler.getMasterIPBySlaveID(slaveID))){
-                                    new SendUDP(command);
+                                    new SendUDP(command).execute();
                                 }
                                 else {
-                                    new SendRenameForMaster(renameMaster).execute();
+                                    new SendRenameForMaster(command).execute();
                                 }
 
                                 //Log.e("MRN cmd",sts);
@@ -1097,14 +1097,14 @@ public class AddMasterActivity extends AppCompatActivity {
 
                 /*if (preference.getIpaddress().isEmpty() || !C.isValidIP(preference.getIpaddress())) {*/
 
-                if (showMaster) {
+                /*if (showMaster) {*/
                     server_addr = new InetSocketAddress(C.getBroadcastAddress(getApplicationContext()).getHostAddress(), 13001);
                     packet = new DatagramPacket(senddata, senddata.length, server_addr);
                     socket.setReuseAddress(true);
                     socket.setBroadcast(true);
                     socket.send(packet);
                     Log.e("Packet", "Sent");
-                } else {
+                /*} else {
                     server_addr = new InetSocketAddress(this.ipAddress, 13001);
                     Log.e("IP Address", this.ipAddress);
                     preference.setIpaddress(this.ipAddress);
@@ -1113,7 +1113,7 @@ public class AddMasterActivity extends AppCompatActivity {
                     socket.setBroadcast(true);
                     socket.send(packet);
                     Log.e("Packet", "Sent");
-                }
+                }*/
                 /*} else {
                     server_addr = new InetSocketAddress(preference.getIpaddress(), 13001);
                     packet = new DatagramPacket(senddata, senddata.length, server_addr);
@@ -1242,8 +1242,8 @@ public class AddMasterActivity extends AppCompatActivity {
                 connectOptions.setUserName(AppConstant.MQTT_USERNAME);
                 connectOptions.setPassword(AppConstant.getPassword());
                 mqttClient.connect(connectOptions);
-                String renameCommand = AppConstant.START_CMD_RENAME_MASTER + masterName+AppConstant.CMD_KEY_TOKEN+databaseHandler.getSlaveToken(databaseHandler.getSlaveHexIdForMaster(masteridForRename)) + AppConstant.END_CMD_RENAME_MASTER;
-                MqttMessage mqttMessage = new MqttMessage(renameCommand.getBytes());
+                //String renameCommand = AppConstant.START_CMD_RENAME_MASTER + masterName+AppConstant.CMD_KEY_TOKEN+databaseHandler.getSlaveToken(databaseHandler.getSlaveHexIdForMaster(masteridForRename)) + AppConstant.END_CMD_RENAME_MASTER;
+                MqttMessage mqttMessage = new MqttMessage(masterName.getBytes());
                 mqttMessage.setRetained(true);
                 mqttClient.publish(AppConstant.MQTT_PUBLISH_TOPIC, mqttMessage);
                 isDone = "1";

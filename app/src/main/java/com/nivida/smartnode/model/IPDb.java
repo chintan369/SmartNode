@@ -45,8 +45,9 @@ public class IPDb extends SQLiteOpenHelper {
     }
 
     public synchronized void addIP(String ipAddress){
+        SQLiteDatabase db = null;
         try{
-            SQLiteDatabase db=this.getWritableDatabase();
+            db = this.getWritableDatabase();
 
             Cursor cursor=db.query(TABLE_IP,new String[]{KEY_IP},KEY_IP+"=?",new String[]{ipAddress},null,null,null);
 
@@ -57,16 +58,18 @@ public class IPDb extends SQLiteOpenHelper {
             }
 
             cursor.close();
-            db.close();
         } catch (SQLiteCantOpenDatabaseException e) {
             Log.e(TAG,"Sorry, IP Not Saved");
+        } finally {
+            if (db != null) db.close();
         }
     }
 
     public synchronized List<String> ipList(){
         List<String> ipLists=new ArrayList<>();
+        SQLiteDatabase db = null;
         try{
-            SQLiteDatabase db=this.getReadableDatabase();
+            db = this.getReadableDatabase();
 
             Cursor cursor=db.query(TABLE_IP,new String[]{KEY_IP},null,null,null,null,null,null);
 
@@ -75,8 +78,12 @@ public class IPDb extends SQLiteOpenHelper {
                     ipLists.add(cursor.getString(0));
                 }while (cursor.moveToNext());
             }
+
+            cursor.close();
         }catch (Exception e){
             Log.e(TAG,e.getMessage());
+        } finally {
+            if (db != null) db.close();
         }
         return ipLists;
     }
@@ -85,6 +92,7 @@ public class IPDb extends SQLiteOpenHelper {
         try{
             SQLiteDatabase db=this.getWritableDatabase();
             db.delete(TABLE_IP,null,null);
+            db.close();
         }catch (Exception e){
             Log.e(TAG, e.getMessage() );
         }
