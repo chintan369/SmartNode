@@ -850,7 +850,7 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
         @Override
         protected Void doInBackground(Void[] params) {
             try {
-                mqttClient=new MqttClient(AppConstant.MQTT_BROKER_URL,C.MQTT_ClientID,new MemoryPersistence());
+                mqttClient = new MqttClient(AppConstant.MQTT_BROKER_URL, preference.getMqttClientID(), new MemoryPersistence());
                 MqttConnectOptions connectOptions=new MqttConnectOptions();
                 connectOptions.setUserName(AppConstant.MQTT_USERNAME);
                 connectOptions.setPassword(AppConstant.getPassword());

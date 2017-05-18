@@ -2,15 +2,13 @@ package com.nivida.smartnode.app;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Environment;
-
-import java.io.File;
 
 /**
  * Created by Chintak Patel on 13-Jul-16.
  */
 public class AppPreference {
 
+    private static final String PREFERENCE_FILE_NAME = "AppPreference";
     public boolean configured=false;
     public boolean loggedIn=false;
     public boolean master=false;
@@ -25,16 +23,12 @@ public class AppPreference {
     public String topic="";
     boolean online=false;
     boolean fromDirectMaster=true;
-
+    String mqttClientID = "";
     float pricePerUnit=7;
-
     boolean masterUser=false;
-
     String currentIPAddr="";
-
     SharedPreferences preferences;
     SharedPreferences.Editor editor;
-    private static final String PREFERENCE_FILE_NAME= "AppPreference";
 
     public AppPreference(Context context) {
         preferences=context.getSharedPreferences(PREFERENCE_FILE_NAME,Context.MODE_PRIVATE);
@@ -56,6 +50,16 @@ public class AppPreference {
         masterUser=preferences.getBoolean("masterUser",false);
         pricePerUnit=preferences.getFloat("pricePerUnit",7);
         currentIPAddr=preferences.getString("currentIP","");
+        mqttClientID = preferences.getString("mqttClientID", "paho_369369494");
+    }
+
+    public String getMqttClientID() {
+        return preferences.getString("mqttClientID", "paho_369369494");
+    }
+
+    public void setMqttClientID(String mqttClientID) {
+        this.mqttClientID = mqttClientID;
+        editor.putString("mqttClientID", mqttClientID).commit();
     }
 
     public String getTopic() {

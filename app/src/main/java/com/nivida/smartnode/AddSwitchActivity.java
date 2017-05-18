@@ -129,14 +129,15 @@ public class AddSwitchActivity extends AppCompatActivity {
         Log.e("slave_hex frm switch", slave_hex_id);
 
         startService(new Intent(this, UDPService.class));
-        startAddSwitchService();
+        startService(new Intent(this, AddDeviceService.class));
+        //startAddSwitchService();
         startReceiver();
         switchList = (ListView) findViewById(R.id.switch_list);
         switchListAdapter = new SwitchListAdapter(getApplicationContext(), switchListToAdd);
         switchList.setAdapter(switchListAdapter);
 
 
-        String STSCommand = AppConstant.START_CMD_STATUS_OF_SLAVE + slave_hex_id + AppConstant.CMD_KEY_TOKEN + databaseHandler.getSlaveToken(slave_hex_id) + AppConstant.END_CMD_STATUS_OF_SLAVE;
+        //String STSCommand = AppConstant.START_CMD_STATUS_OF_SLAVE + slave_hex_id + AppConstant.CMD_KEY_TOKEN + databaseHandler.getSlaveToken(slave_hex_id) + AppConstant.END_CMD_STATUS_OF_SLAVE;
 
 
         //generateSwitchDataFromJSON();
@@ -173,7 +174,7 @@ public class AddSwitchActivity extends AppCompatActivity {
     private void startAddSwitchService() {
         if (!serviceIsRunning()) {
             final Intent intent = new Intent(this, AddDeviceService.class);
-            //startService(intent);
+            startService(intent);
         }
     }
 
@@ -865,7 +866,7 @@ public class AddSwitchActivity extends AppCompatActivity {
         protected String doInBackground(Void[] params) {
             //publishCommandForSwitches(slave_hex_id);
             if (netcheck.isOnline()) {
-                clientId = C.MQTT_ClientID;
+                clientId = MqttClient.generateClientId();
                 try {
                     mqttClient = new MqttClient(AppConstant.MQTT_BROKER_URL, clientId, new MemoryPersistence());
                     MqttConnectOptions connectOptions = new MqttConnectOptions();

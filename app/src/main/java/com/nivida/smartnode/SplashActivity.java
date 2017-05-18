@@ -30,6 +30,8 @@ import com.nivida.smartnode.services.AddDeviceService;
 import com.nivida.smartnode.services.UDPService;
 import com.nivida.smartnode.utils.NetworkUtility;
 
+import org.eclipse.paho.client.mqttv3.MqttClient;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -97,6 +99,7 @@ public class SplashActivity extends AppCompatActivity {
 
         if (preference.isFirstTimeInstalled()) {
             deletePreviousData();
+            preference.setMqttClientID(MqttClient.generateClientId());
         }
 
         new IPDb(this).deleteIP();

@@ -1,15 +1,12 @@
 package com.nivida.smartnode.services;
 
 import android.app.IntentService;
-import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 import android.util.Log;
 
-import com.nivida.smartnode.a.C;
 import com.nivida.smartnode.app.AppConstant;
 import com.nivida.smartnode.app.AppPreference;
-import com.nivida.smartnode.beans.Bean_SlaveGroup;
 import com.nivida.smartnode.model.DatabaseHandler;
 
 import org.eclipse.paho.client.mqttv3.MqttClient;
@@ -53,7 +50,7 @@ public class AddDeviceService extends IntentService implements PushCallBack.Mess
     protected void onHandleIntent(Intent intent) {
         preference=new AppPreference(getApplicationContext());
         db=new DatabaseHandler(getApplicationContext());
-        clientId= C.MQTT_ClientID;
+        clientId = preference.getMqttClientID();
         List<String> slaveIDs=db.getAllSlaveIDs();
 
         try{
@@ -71,6 +68,8 @@ public class AddDeviceService extends IntentService implements PushCallBack.Mess
 
         } catch (MqttException e) {
             e.printStackTrace();
+
+            Log.e("MQTT Exc Service", e.getMessage());
         }
 
     }

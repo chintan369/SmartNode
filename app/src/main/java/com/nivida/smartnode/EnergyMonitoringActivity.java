@@ -2,16 +2,14 @@ package com.nivida.smartnode;
 
 import android.app.ActivityManager;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Color;
 import android.os.AsyncTask;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
@@ -37,14 +35,11 @@ import com.nivida.smartnode.app.AppConstant;
 import com.nivida.smartnode.app.AppPreference;
 import com.nivida.smartnode.beans.Bean_EnergySlave;
 import com.nivida.smartnode.beans.Bean_SlaveGroup;
-import com.nivida.smartnode.beans.Bean_Switch;
 import com.nivida.smartnode.model.DatabaseHandler;
 import com.nivida.smartnode.model.IPDb;
 import com.nivida.smartnode.services.AddDeviceService;
-import com.nivida.smartnode.services.GroupSwitchService;
 import com.nivida.smartnode.services.UDPService;
 import com.nivida.smartnode.utils.NetworkUtility;
-import com.nivida.smartnode.views.RoundView;
 
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
@@ -92,7 +87,7 @@ public class EnergyMonitoringActivity extends AppCompatActivity implements Energ
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_energy_monitoring);
 
-        clientId = C.MQTT_ClientID;
+        clientId = preference.getMqttClientID();
         db = new DatabaseHandler(getApplicationContext());
         preference = new AppPreference(getApplicationContext());
         databaseHandler=new DatabaseHandler(getApplicationContext());
