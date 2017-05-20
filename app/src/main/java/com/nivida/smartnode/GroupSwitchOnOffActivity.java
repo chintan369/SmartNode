@@ -686,7 +686,7 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                             } catch (Exception e) {
                                 //C.connectionError(getApplicationContext());
                             }
-                            switchDimmerOnOffAdapter.notifyDataSetChanged();
+                            switchDimmerOnOffAdapter.notifyIconChanged();
                             b.dismiss();
                         }
                     }
@@ -713,7 +713,7 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                 }
 
 
-                switchDimmerOnOffAdapter.notifyDataSetChanged();
+                switchDimmerOnOffAdapter.notifyIconChanged();
                 dialog.dismiss();
 
                 try {
