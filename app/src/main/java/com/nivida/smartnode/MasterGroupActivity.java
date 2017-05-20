@@ -382,8 +382,9 @@ public class MasterGroupActivity extends AppCompatActivity implements MasterGrid
                 Bitmap.createScaledBitmap(thePic,90,90,false);
                 img_selectgroup.setImageBitmap(thePic);
             } else if (requestCode == SELECT_PICTURE_KITKAT) {
+                if (data.getData() != null)
                 originalUri = data.getData();
-                getContentResolver().takePersistableUriPermission(originalUri,(Intent.FLAG_GRANT_READ_URI_PERMISSION| Intent.FLAG_GRANT_WRITE_URI_PERMISSION));
+                //getContentResolver().takePersistableUriPermission(originalUri,(Intent.FLAG_GRANT_READ_URI_PERMISSION| Intent.FLAG_GRANT_WRITE_URI_PERMISSION));
                 String originalPath = ImagePath.getPath(getApplicationContext(),originalUri);
                 thePic = BitmapFactory.decodeFile(originalPath);
                 Bitmap.createScaledBitmap(thePic,90,90,false);
@@ -598,10 +599,10 @@ public class MasterGroupActivity extends AppCompatActivity implements MasterGrid
             intent.setAction(Intent.ACTION_GET_CONTENT);
             startActivityForResult(Intent.createChooser(intent, "Select Picture"),SELECT_PICTURE);
         } else {
-            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType("image/*");
-            startActivityForResult(intent, SELECT_PICTURE_KITKAT);
+            startActivityForResult(Intent.createChooser(intent, "Choose Picture from"), SELECT_PICTURE_KITKAT);
         }
     }
 
@@ -732,7 +733,8 @@ public class MasterGroupActivity extends AppCompatActivity implements MasterGrid
 
         android.support.v7.app.AlertDialog dialog = builder.create();
 
-        dialog.show();
+        if (!this.isFinishing())
+            dialog.show();
     }
 
     private class ReceiveUDP extends AsyncTask<Void, Void, String> {

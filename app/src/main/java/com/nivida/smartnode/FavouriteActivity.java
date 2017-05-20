@@ -12,13 +12,10 @@ import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -284,7 +281,7 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
                     C.connectionError(getApplicationContext());
                 }
 
-                switchDimmerOnOffAdapter.notifyDataSetChanged();
+                switchDimmerOnOffAdapter.notifyIconChanged();
             } else {
                 C.Toast(getApplicationContext(), getString(R.string.error));
             }
@@ -563,7 +560,33 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
         final String slaveID = switchDimmerOnOffAdapter.getSlaveIDForSwitch(position);
         Log.e("isSwitch or :",""+isSwitch);
 
-        PopupMenu popupMenu=new PopupMenu(FavouriteActivity.this,view);
+        final CharSequence[] items = {"Rename", "Change Icon", "Change to Switch/Dimmer", "Remove"};
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(switch_name);
+        //builder.setCancelable(false);
+        builder.setItems(items, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int item) {
+                switch (item) {
+                    case 0:
+                        showRenameDeviceDialog(groupID, switchID, switch_name, position);
+                        break;
+                    case 1:
+                        showChangeSwitchIconDialog(groupID, switchID, switch_name);
+                        break;
+                    case 2:
+                        changeTypefrom(groupID, switchID, position, isSwitch, switch_num, slaveID);
+                        break;
+                    case 3:
+                        showRemoveItemFromGroupDialog(groupID, switchID, position);
+                        break;
+                }
+            }
+        });
+        builder.show();
+
+        /*PopupMenu popupMenu=new PopupMenu(FavouriteActivity.this,view);
         popupMenu.getMenuInflater().inflate(R.menu.menu_edit_switch,popupMenu.getMenu());
 
         popupMenu.setGravity(Gravity.CENTER);
@@ -589,7 +612,7 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
             }
         });
 
-        popupMenu.show();
+        popupMenu.show();*/
     }
 
     private void changeTypefrom(final int groupID, final int switchID, int position, final Boolean isSwitch, String switch_num, String slaveID) {
@@ -694,7 +717,7 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
                     public void onClick(View view) {
 
                         databaseHandler.changeSwitchIcon(groupid,switchID,switch_icon[0]);
-                        switchDimmerOnOffAdapter.notifyDataSetChanged();
+                        switchDimmerOnOffAdapter.notifyIconChanged();
                         b.dismiss();
                     }
                 });
@@ -742,7 +765,7 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
                             databaseHandler.renameSwitchInScenes((Bean_Switch)switchDimmerOnOffAdapter.getItem(position), edt_device_name.getText().toString());
                             Toast.makeText(FavouriteActivity.this,"Switch renamed successfully",Toast.LENGTH_SHORT).show();
 
-                            switchDimmerOnOffAdapter.notifyDataSetChanged();
+                            switchDimmerOnOffAdapter.notifyIconChanged();
                             b.dismiss();
                         }
                     }
@@ -764,7 +787,7 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
                 databaseHandler.removeSwitchFromGroup(switchID);
                 databaseHandler.removeSwitchFromScenes((Bean_Switch) switchDimmerOnOffAdapter.getItem(position));
                 Toast.makeText(getApplicationContext(), "Switch removed successfully", Toast.LENGTH_SHORT).show();
-                switchDimmerOnOffAdapter.notifyDataSetChanged();
+                switchDimmerOnOffAdapter.notifyIconChanged();
                 dialog.dismiss();
             }
         });

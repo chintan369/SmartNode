@@ -487,8 +487,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 cursor.close();
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                getAllMasterGroupDataNoAdd();
+                //waitFor();
+                //getAllMasterGroupDataNoAdd();
             }
         }
 
@@ -777,8 +777,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                renameSlave(slaveHexID, slaveName);
+                //waitFor();
+                //renameSlave(slaveHexID, slaveName);
             }
         }
     }
@@ -796,8 +796,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                renameMaster(master_id, master_name);
+                //waitFor();
+                //renameMaster(master_id, master_name);
             }
         }
     }
@@ -821,8 +821,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 db.insert(TABLE_MASTER, null, contentValues);
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                addMasterDeviceItem(bean_master);
+                //waitFor();
+                //addMasterDeviceItem(bean_master);
             }
         }
     }
@@ -909,8 +909,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 cursor.close();
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                getAllSlaveData();
+                //waitFor();
+                //getAllSlaveData();
             }
         }
 
@@ -934,8 +934,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 cursor.close();
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                getSlaveHexIDForSwitch(switch_id);
+                //waitFor();
+                //getSlaveHexIDForSwitch(switch_id);
             }
         }
 
@@ -959,8 +959,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 cursor.close();
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                getSwitchButtonNum(switch_id);
+                //waitFor();
+                //getSwitchButtonNum(switch_id);
             }
         }
 
@@ -1006,8 +1006,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 cursor.close();
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                getMasterGroupIdAtCurrentPosition(position);
+                //waitFor();
+                //getMasterGroupIdAtCurrentPosition(position);
             }
         }
 
@@ -1023,8 +1023,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                deleteMasterGroupByGroupId(group_id);
+                //waitFor();
+                //deleteMasterGroupByGroupId(group_id);
             }
         }
 
@@ -1039,8 +1039,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                deleteMasterDevice(master_id);
+                //waitFor();
+                //deleteMasterDevice(master_id);
             }
         }
 
@@ -1055,8 +1055,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                deleteSlaveDevice(device_id, slave_hex_id);
+                //waitFor();
+                //deleteSlaveDevice(device_id, slave_hex_id);
             }
         }
 
@@ -1076,8 +1076,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 cursor.close();
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                getSlaveIdAtCurrentPosition(position);
+                //waitFor();
+                //getSlaveIdAtCurrentPosition(position);
             }
         }
         return id;
@@ -1097,8 +1097,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 cursor.close();
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                getMasterDeviceIdAtCurrentPosition(position);
+                //waitFor();
+                //getMasterDeviceIdAtCurrentPosition(position);
             }
         }
 
@@ -1219,8 +1219,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                addSwitchtoGroup(groupid, checkedSwitches);
+                //waitFor();
+                //addSwitchtoGroup(groupid, checkedSwitches);
             }
         }
 
@@ -1237,8 +1237,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                updateGrouphasSwitches(groupid, hasSwitchesInGroupID);
+                //waitFor();
+                //updateGrouphasSwitches(groupid, hasSwitchesInGroupID);
             }
         }
 
@@ -1340,8 +1340,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 cursor.close();
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                getSingleSwitchesByGroupId(switch_id);
+                //waitFor();
+                //getSingleSwitchesByGroupId(switch_id);
             }
         }
 
@@ -1390,7 +1390,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 cursor.close();
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
+                //waitFor();
                 //getGroupnameById(groupid);
             }
         }
@@ -1415,7 +1415,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 cursor.close();
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
+                //waitFor();
                 //getMasterNameById(masterId);
             }
         }
@@ -1439,8 +1439,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 cursor.close();
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                getMasterIPById(masterId);
+                //waitFor();
+                //getMasterIPById(masterId);
             }
         }
 
@@ -1463,8 +1463,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 cursor.close();
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                getMasterIPBySlaveID(slaveID);
+                //waitFor();
+                //getMasterIPBySlaveID(slaveID);
             }
         }
 
@@ -1487,8 +1487,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 cursor.close();
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                getEncryptionKeyBySlaveID(slaveID);
+                //waitFor();
+                //getEncryptionKeyBySlaveID(slaveID);
             }
         }
 
@@ -1518,8 +1518,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 cursor.close();
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                getMasterNameBySlaveHexID(slaveID);
+                //waitFor();
+                //getMasterNameBySlaveHexID(slaveID);
             }
         }
 
@@ -1542,8 +1542,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 cursor.close();
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                getDeviceName(deviceId);
+                //waitFor();
+                //getDeviceName(deviceId);
             }
         }
 
@@ -1563,8 +1563,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                setFavouriteSwitchById(switchId, fav);
+                //waitFor();
+                //setFavouriteSwitchById(switchId, fav);
             }
         }
     }
@@ -1602,8 +1602,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                setFavouriteDimmerById(dimmerId, fav);
+                //waitFor();
+                //setFavouriteDimmerById(dimmerId, fav);
             }
         }
 
@@ -1670,8 +1670,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 cursor.close();
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                getSwitchesInGroup(groupid);
+                //waitFor();
+                //getSwitchesInGroup(groupid);
             }
         }
 
@@ -1705,8 +1705,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 cursor.close();
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                getSwitchesInFavoutite();
+                //waitFor();
+                //getSwitchesInFavoutite();
             }
         }
 
@@ -1762,8 +1762,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 cursor.close();
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                getAllSwitchesInFavourite();
+                //waitFor();
+                //getAllSwitchesInFavourite();
             }
         }
 
@@ -2406,8 +2406,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                addScheduleItem(scheduleItem);
+                //waitFor();
+                //addScheduleItem(scheduleItem);
             }
         }
     }
@@ -2456,8 +2456,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                updateScheduleItem(scheduleItem);
+                //waitFor();
+                //updateScheduleItem(scheduleItem);
             }
         }
 
@@ -2476,8 +2476,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                         isASwitch = true;
                 }
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                isSwitch(switch_btn_num, slaveid);
+                //waitFor();
+                //isSwitch(switch_btn_num, slaveid);
             }
         }
         return isASwitch;
@@ -2512,8 +2512,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                     cursor.close();
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                deleteAllSwitchesFromMaster(master_id);
+                //waitFor();
+                //deleteAllSwitchesFromMaster(master_id);
             }
         }
 
@@ -2526,8 +2526,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 db.delete(TABLE_SWITCHES, SWITCH_IN_GRP + "=?", new String[]{String.valueOf(group_id)});
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                deleteAllSwitchesFromGroup(group_id);
+                //waitFor();
+                //deleteAllSwitchesFromGroup(group_id);
             }
         }
     }
@@ -2553,8 +2553,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 cursor.close();
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                deleteAllSwitchesFromSlave(Slave);
+                //waitFor();
+                //deleteAllSwitchesFromSlave(Slave);
             }
         }
     }
@@ -2583,8 +2583,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 cursor.close();
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                getSwitchDataBySlave(slave_hexID);
+                //waitFor();
+                //getSwitchDataBySlave(slave_hexID);
             }
         }
         return switchList;
@@ -2606,8 +2606,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                updateSwitchLocks(switchItem, touchLock);
+                //waitFor();
+                //updateSwitchLocks(switchItem, touchLock);
             }
         }
 
@@ -2626,8 +2626,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                updateSwitchTypes(slaveID, switchButtonNum, type);
+                //waitFor();
+                //updateSwitchTypes(slaveID, switchButtonNum, type);
             }
         }
     }
@@ -2646,8 +2646,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                updateScheduleSlot(slotNumber, slaveID);
+                //waitFor();
+                //updateScheduleSlot(slotNumber, slaveID);
             }
         }
     }
@@ -2673,8 +2673,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 cursor.close();
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                isAlreadyScheduleAdded(slaveID, slotNum, switchNum);
+                //waitFor();
+                //isAlreadyScheduleAdded(slaveID, slotNum, switchNum);
             }
         }
         return isAvailable;
@@ -2697,8 +2697,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 db.close();
                 return slaveTopic;
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                getSlaveTopic(slaveID);
+                //waitFor();
+                //getSlaveTopic(slaveID);
             }
         }
         return "";
@@ -2719,8 +2719,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 cursor.close();
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                getSlaveToken(slaveID);
+                //waitFor();
+                //getSlaveToken(slaveID);
             }
         }
         return slaveToken;
@@ -2742,8 +2742,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 cursor.close();
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                getSlaveUserType(slaveID);
+                //waitFor();
+                //getSlaveUserType(slaveID);
             }
         }
         return slaveUserType;
@@ -2774,8 +2774,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 db.delete(TABLE_SLAVES, SLAVE_IN_GROUP + "=?", new String[]{String.valueOf(master_id)});
                 db.close();
             } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
-                waitFor();
-                deleteAllSlaveFromMaster(master_id);
+                //waitFor();
+                //deleteAllSlaveFromMaster(master_id);
             }
         }
     }

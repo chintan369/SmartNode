@@ -13,13 +13,10 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -67,7 +64,7 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
     //Define MQTT variables here
     public static final String SERVICE_CLASSNAME = "com.nivida.smartnode.services.AddDeviceService";
     public static final String UDPSERVICE_CLASSNAME = "com.nivida.smartnode.services.UDPService";
-    public static final int BUFFER_EXECUTION_TIME = 1000;
+    public static final int BUFFER_EXECUTION_TIME = 400;
     RecyclerView switchView;
     SwitchOnOffAdapter switchOnOffAdapter;
     DimmerOnOffAdapter dimmerOnOffAdapter;
@@ -765,7 +762,33 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
         final String slaveID = switchDimmerOnOffAdapter.getSlaveIDForSwitch(position);
         //Log.e("isSwitch or :", "" + isSwitch);
 
-        PopupMenu popupMenu = new PopupMenu(GroupSwitchOnOffActivity.this, view);
+        final CharSequence[] items = {"Rename", "Change Icon", "Change to Switch/Dimmer", "Remove"};
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(switch_name);
+        //builder.setCancelable(false);
+        builder.setItems(items, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int item) {
+                switch (item) {
+                    case 0:
+                        showRenameDeviceDialog(groupID, switchID, switch_name, position);
+                        break;
+                    case 1:
+                        showChangeSwitchIconDialog(groupID, switchID, switch_name);
+                        break;
+                    case 2:
+                        changeTypefrom(groupID, switchID, position, isSwitch, switch_num, slaveID);
+                        break;
+                    case 3:
+                        showRemoveItemFromGroupDialog(groupID, switchID, position);
+                        break;
+                }
+            }
+        });
+        builder.show();
+
+        /*PopupMenu popupMenu = new PopupMenu(GroupSwitchOnOffActivity.this, view);
         popupMenu.getMenuInflater().inflate(R.menu.menu_edit_switch, popupMenu.getMenu());
         //Log.e("isSwitch :", "" + isSwitch);
 
@@ -794,7 +817,7 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
             }
         });
 
-        popupMenu.show();
+        popupMenu.show();*/
     }
 
     private void changeTypefrom(final int groupID, final int switchID, int position, final Boolean isSwitch, String switch_num, String slaveID) {
