@@ -705,12 +705,28 @@ public class MasterGroupActivity extends AppCompatActivity implements MasterGrid
 
     private void showAlertDialogForUpdate(String currentVersion, String onlineVersion) {
         android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(this);
+        builder.setCancelable(false);
         builder.setTitle("Version Update!");
         builder.setMessage("Hello, SmartNode's new Version " + onlineVersion + " is available on Play Store with new improvements.\n" + "Please update it from Play Store");
         builder.setPositiveButton("Update", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                final String appPackageName = getPackageName();
+                try {
+                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appPackageName)));
+                } catch (android.content.ActivityNotFoundException anfe) {
+                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + appPackageName)));
+                }
+                dialog.dismiss();
+                finish();
+            }
+        });
 
+        builder.setNegativeButton("Exit", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+                finish();
             }
         });
 
