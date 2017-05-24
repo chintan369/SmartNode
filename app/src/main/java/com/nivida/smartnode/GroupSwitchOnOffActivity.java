@@ -133,7 +133,7 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                 mHandler.postDelayed(this, BUFFER_EXECUTION_TIME);
             }
         };
-        mHandler.postDelayed(mRunnable, BUFFER_EXECUTION_TIME);
+        //mHandler.postDelayed(mRunnable, BUFFER_EXECUTION_TIME);
 
         try {
             switchDimmerOnOffAdapter = new SwitchDimmerOnOffAdapter(getApplicationContext(), databaseHandler.getAllSwitchesByGroupId(groupid),
@@ -273,8 +273,8 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
 
                     //Log.e("JSOn fr group ", "" + subscribedMessage);
                     if (UDPMessage != null) {
-                        commandBuffer.add(UDPMessage);
-                        //handleCommands(UDPMessage);
+                        //commandBuffer.add(UDPMessage);
+                        handleCommands(UDPMessage);
                     } else if (subscribedMessage == null) {
                         //Log.e("JSON Message", "Null");
                     } else if (subscribedMessage.equals("")) {
@@ -282,8 +282,8 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                     } /*else if (subscribedMessage.contains("master")) {
                         //Log.e("From Grp actvty ", "Device Started...");
                     } */ else {
-                        commandBuffer.add(subscribedMessage);
-                        //handleCommands(subscribedMessage);
+                        //commandBuffer.add(subscribedMessage);
+                        handleCommands(subscribedMessage);
                     }
                 }
             }
@@ -548,7 +548,7 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
         }
 
         if (mHandler != null) {
-            mHandler.postDelayed(mRunnable, BUFFER_EXECUTION_TIME);
+            //mHandler.postDelayed(mRunnable, BUFFER_EXECUTION_TIME);
         }
 
         getLiveSwitchStatus();
@@ -560,7 +560,7 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
         super.onPause();
         unregisterReceiver(receiver);
         if (mHandler != null) {
-            mHandler.removeCallbacks(mRunnable);
+            //mHandler.removeCallbacks(mRunnable);
         }
         //Log.e("Reciever :", "UnRegistered");
     }

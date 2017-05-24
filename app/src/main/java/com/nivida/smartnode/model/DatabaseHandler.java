@@ -2413,6 +2413,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     public void removeScheduleItem(Bean_ScheduleItem bean_scheduleItem) {
+
+        Log.e("schedule ID del", "-->" + bean_scheduleItem.getScheduleID() + " -- " + bean_scheduleItem.getSlot_num());
+
         synchronized (Lock) {
             try {
                 SQLiteDatabase db = this.getWritableDatabase();
@@ -2876,5 +2879,21 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         }
 
 
+    }
+
+    public synchronized void disableSchedule(String slaveHexID, String slotNumber, String switchButtonNumber) {
+        try {
+            SQLiteDatabase db = this.getWritableDatabase();
+
+            ContentValues cv = new ContentValues();
+            cv.put(SCH_SLOT_NUM, "26");
+            cv.put(SCH_IS_ENABLE, 0);
+
+            db.update(TABLE_SCHEDULE, cv, SCH_SW_BTN_NUM + "=? AND " + SCH_SLAVE_ID + "=? AND " + SCH_SLOT_NUM + "=?", new String[]{switchButtonNumber, slaveHexID});
+
+            db.close();
+        } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
+            Log.e("Exception", e.getMessage());
+        }
     }
 }

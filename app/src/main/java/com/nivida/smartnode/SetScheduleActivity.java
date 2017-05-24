@@ -272,6 +272,16 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
                                 } catch (Exception e) {
                                     Log.e("Exception", e.getMessage());
                                 }
+                            } else {
+                                String slotNumber = "";
+                                if ((i / 2) < 10)
+                                    slotNumber += "0" + (i / 2);
+                                else
+                                    slotNumber += (i / 2);
+
+                                if (databaseHandler.isAlreadyScheduleAdded(slaveHexID, slotNumber, switchButtonNumber)) {
+                                    adapter.updateScheduleDeleted(slotNumber, slave, -1);
+                                }
                             }
                         }
 
