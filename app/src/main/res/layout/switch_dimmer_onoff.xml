@@ -12,7 +12,7 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical">
 
             <FrameLayout
@@ -34,22 +34,22 @@
                         android:layout_height="wrap_content">
 
                         <ImageView
-                            android:id="@+id/power_off"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="end|top"
-                            android:layout_margin="10dp"
-                            android:clickable="true"
-                            android:src="@drawable/option_menu2"/>
-
-                        <ImageView
                             android:id="@+id/fav_off"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
+                            android:layout_width="25dp"
+                            android:layout_height="25dp"
                             android:layout_gravity="start|top"
-                            android:layout_margin="10dp"
+                            android:layout_margin="7dp"
                             android:clickable="true"
                             android:src="@drawable/new_heart_off"/>
+
+                        <ImageView
+                            android:id="@+id/power_off"
+                            android:layout_width="25dp"
+                            android:layout_height="25dp"
+                            android:layout_gravity="end|top"
+                            android:layout_margin="7dp"
+                            android:clickable="true"
+                            android:src="@drawable/option_menu2"/>
 
                     </FrameLayout>
 
@@ -117,42 +117,42 @@
                         />
 
                     <LinearLayout
+                        android:id="@+id/layout_dimmerBar"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
                         android:layout_gravity="center_horizontal|bottom"
-                        android:id="@+id/layout_dimmerBar"
-                        android:gravity="center"
                         android:layout_marginBottom="15dp"
                         android:layout_marginLeft="15dp"
                         android:layout_marginRight="15dp"
+                        android:gravity="center"
+                        android:orientation="horizontal"
                         android:padding="5dp">
 
                         <ImageView
+                            android:id="@+id/img_minusDimmer"
                             android:layout_width="30dp"
                             android:layout_height="30dp"
-                            android:src="@drawable/ic_minus"
                             android:layout_margin="5dp"
-                            android:id="@+id/img_minusDimmer"/>
+                            android:src="@drawable/ic_minus"/>
 
                         <EditText
+                            android:id="@+id/edt_dimmerValue"
                             android:layout_width="40dp"
                             android:layout_height="40dp"
                             android:layout_margin="5dp"
-                            android:id="@+id/edt_dimmerValue"
-                            android:enabled="false"
+                            android:background="@drawable/edittext_bg"
                             android:editable="false"
+                            android:enabled="false"
                             android:gravity="center"
-                            android:textSize="14sp"
                             android:textColor="@color/black"
-                            android:background="@drawable/edittext_bg"/>
+                            android:textSize="14sp"/>
 
                         <ImageView
+                            android:id="@+id/img_plusDimmer"
                             android:layout_width="30dp"
                             android:layout_height="30dp"
-                            android:src="@drawable/ic_plus"
                             android:layout_margin="5dp"
-                            android:id="@+id/img_plusDimmer"/>
+                            android:src="@drawable/ic_plus"/>
 
 
                     </LinearLayout>

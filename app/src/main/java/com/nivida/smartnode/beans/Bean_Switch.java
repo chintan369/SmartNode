@@ -20,6 +20,7 @@ public class Bean_Switch {
     int sceneid=0;
     String userLock="N";
     String touchLock="N";
+    boolean isLoading = false;
 
 
     public Bean_Switch() {
@@ -158,5 +159,13 @@ public class Bean_Switch {
 
     public void setTouchLock(String touchLock) {
         this.touchLock = touchLock;
+    }
+
+    public boolean isLoading() {
+        return isLoading;
+    }
+
+    public void setLoading(boolean loading) {
+        isLoading = loading;
     }
 }

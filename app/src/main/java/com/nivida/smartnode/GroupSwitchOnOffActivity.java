@@ -16,6 +16,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
@@ -99,6 +100,9 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
     Runnable mRunnable;
     ProgressDialog dialog;
 
+    Handler liveStatusHandler;
+    Runnable liveStatusRunnable;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -114,26 +118,32 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
 
         dialog = new ProgressDialog(this);
         dialog.setIndeterminate(true);
-        dialog.setCancelable(true);
+        dialog.setCancelable(false);
         dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         dialog.setMessage("Please Wait...");
+
+        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+
+            }
+        });
+
+        dialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
+            @Override
+            public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+
+                if (keyCode == KeyEvent.KEYCODE_BACK) {
+                    dialog.dismiss();
+                    onBackPressed();
+                }
+                return false;
+            }
+        });
 
         startGroupService();
         startReceiver();
         //getLiveSwitchStatus();
-
-        mHandler = new Handler();
-        mRunnable = new Runnable() {
-            @Override
-            public void run() {
-                if (commandBuffer.size() > 0) {
-                    handleCommands(commandBuffer.get(0));
-                    commandBuffer.remove(0);
-                }
-                mHandler.postDelayed(this, BUFFER_EXECUTION_TIME);
-            }
-        };
-        //mHandler.postDelayed(mRunnable, BUFFER_EXECUTION_TIME);
 
         try {
             switchDimmerOnOffAdapter = new SwitchDimmerOnOffAdapter(getApplicationContext(), databaseHandler.getAllSwitchesByGroupId(groupid),
@@ -171,6 +181,9 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
     }
 
     private void getLiveSwitchStatus() {
+
+        final int CHECK_STS_AGAIN_TIME_INTERVEL = 12000;
+
         if (netcheck.isOnline()) {
 
             try{
@@ -180,51 +193,50 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                 Log.e("Window","Leaked");
             }
 
-            new Handler().postDelayed(new Runnable() {
+            liveStatusHandler = new Handler();
+            liveStatusRunnable = new Runnable() {
                 @Override
                 public void run() {
                     if (dialog.isShowing()) {
-                        dialog.dismiss();
-                        C.Toast(getApplicationContext(), "It might Device not Responding or Your Connection is Poor.\nPlease Try Again Later!");
+                        sendSTSCommand();
+                        liveStatusHandler.postDelayed(this, CHECK_STS_AGAIN_TIME_INTERVEL);
+                    } else {
+                        liveStatusHandler.removeCallbacks(this);
                     }
                 }
-            }, 12000);
-
-            try {
-                for (int i = 0; i < slaveIds.size(); i++) {
-                    isFirstTimeEntered = true;
-                    /*if (preference.isOnline()) {
-                        new GetLiveStatus(slaveIds.get(i)).execute();
-                        Log.e("Call from", "MQTT");
-                    } else {*/
-
-                    String slaveIPAddress=databaseHandler.getMasterIPBySlaveID(slaveIds.get(i));
-
-                    //Log.e("IP Addr",preference.getCurrentIPAddr()+" --> "+slaveIPAddress);
-
-                    List<String> ipList=new IPDb(this).ipList();
-
-                        if (ipList.contains(slaveIPAddress)) {
-                            String mqttCommand = AppConstant.START_CMD_STATUS_OF_SLAVE + slaveIds.get(i) + AppConstant.CMD_KEY_TOKEN + databaseHandler.getSlaveToken(slaveIds.get(i)) + AppConstant.END_CMD_STATUS_OF_SLAVE;
-                            new SendUDP(mqttCommand).execute();
-                            Log.e("Call from", "UDP" + "\n" + mqttCommand);
-                        } else {
-                            new GetLiveStatus(slaveIds.get(i)).execute();
-                            Log.e("Call from", "MQTT");
-                        }
-
-
-                    //}
-                }
-            } catch (Exception e) {
-                //C.connectionError(getApplicationContext());
-            }
+            };
+            sendSTSCommand();
+            liveStatusHandler.postDelayed(liveStatusRunnable, CHECK_STS_AGAIN_TIME_INTERVEL);
 
 
         } else {
-            Toast.makeText(getApplicationContext(), "No internet connection found\nplease try again later", Toast.LENGTH_SHORT).show();
+            C.Toast(getApplicationContext(), "No internet connection found\nplease try again later");
         }
 
+    }
+
+    private void sendSTSCommand() {
+        try {
+            for (int i = 0; i < slaveIds.size(); i++) {
+                isFirstTimeEntered = true;
+
+                String slaveIPAddress = databaseHandler.getMasterIPBySlaveID(slaveIds.get(i));
+
+                List<String> ipList = new IPDb(this).ipList();
+
+                if (ipList.contains(slaveIPAddress)) {
+                    String mqttCommand = AppConstant.START_CMD_STATUS_OF_SLAVE + slaveIds.get(i) + AppConstant.CMD_KEY_TOKEN + databaseHandler.getSlaveToken(slaveIds.get(i)) + AppConstant.END_CMD_STATUS_OF_SLAVE;
+                    new SendUDP(mqttCommand).execute();
+                } else {
+                    new GetLiveStatus(slaveIds.get(i)).execute();
+                }
+
+
+                //}
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void startGroupService() {
@@ -333,16 +345,14 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                     dialog.dismiss();
                 }
 
-                Log.e("Command :", "SET Found");
-
                 button = jsonDevice.getString("button");
                 val = jsonDevice.getString("val");
                 dval = jsonDevice.getString("dval");
                 String msg = switchDimmerOnOffAdapter.setSwitchItem(slave_hex_id, button, val, dval);
 
-                if (msg.equalsIgnoreCase("success")) {
+                /*if (msg.equalsIgnoreCase("success")) {
                     switchDimmerOnOffAdapter.notifyDataSetChanged();
-                }
+                }*/
             } else if (cmd.equals("STS")) {
                 if (isFirstTimeEntered) {
                     isFirstTimeEntered = false;
@@ -358,7 +368,6 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                 //Log.e("Command :", "STS Found");
                 updateSwitchesAsLive(json);
             } else if (cmd.equalsIgnoreCase(Cmd.TL1)) {
-                Log.e("Command :", "TL1 Found");
                 updateSwitchForLocks(json, true);
             } else if (cmd.equals(Cmd.UL1)) {
                 updateSwitchForLocks(json, false);
@@ -372,7 +381,7 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                 dialog.dismiss();
             }
 
-        } catch (JSONException e) {
+        } catch (Exception e) {
             Log.e("JSON Message : ", e.getMessage());
             e.printStackTrace();
         }

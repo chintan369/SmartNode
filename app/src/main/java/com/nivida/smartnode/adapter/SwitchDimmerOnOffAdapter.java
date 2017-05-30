@@ -229,7 +229,14 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
 
 
         if(switchList.get(position).getIsSwitch().equalsIgnoreCase("s")){
-            layout_dimmerBar.setVisibility(View.INVISIBLE);
+            if (position % 2 == 0 && position < getCount() - 1 && switchList.get(position + 1).getIsSwitch().equalsIgnoreCase("d")) {
+                layout_dimmerBar.setVisibility(View.INVISIBLE);
+            } else if (position % 2 > 0 && switchList.get(position - 1).getIsSwitch().equalsIgnoreCase("d")) {
+                layout_dimmerBar.setVisibility(View.INVISIBLE);
+            } else {
+                layout_dimmerBar.setVisibility(View.GONE);
+            }
+
             dimmerProgress.setVisibility(View.GONE);
             dimmerProgress.setEnabled(false);
             txt_progress.setVisibility(View.GONE);
@@ -447,45 +454,31 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
 
     @Override
     public void notifyDataSetChanged() {
-        /*switchList.clear();
-        if(fromActivity.equals(Globals.FAVOURITE)){
-            switchList=databaseHandler.getAllSwitchesInFavourite();
-        }
-        else {
-            switchList=databaseHandler.getAllSwitchesByGroupId(groupid);
-        }*/
         super.notifyDataSetChanged();
     }
 
     public String setSwitchItem(String slave_hex_id, String button, String isOn, String dval){
         String msg="";
 
-        ////Log.e("Method Invoke","Method started");
-
         for(int i=0; i<switchList.size();i++){
             Bean_Switch beanSwitch=switchList.get(i);
 
-            ////Log.e("Button by srvr",button);
-            ////Log.e("Button by db", beanSwitch.getSwitch_btn_num());
-
             if(beanSwitch.getSwitchInSlave().equals(slave_hex_id)){
                 if(beanSwitch.getSwitch_btn_num().equals(button)){
-                    ////Log.e("Button :","Found");
+                    switchList.get(i).setLoading(false);
                     if(isOn.equalsIgnoreCase("A")) {
-                        ////Log.e("Switch sts :", "ON");
                         switchList.get(i).setIsSwitchOn(1);
-                        databaseHandler.setSwitchIsOnById(switchList.get(i).getSwitch_id(),true);
+                        //databaseHandler.setSwitchIsOnById(switchList.get(i).getSwitch_id(),true);
                     }
                     else {
-                        ////Log.e("Switch sts :", "OFF");
                         switchList.get(i).setIsSwitchOn(0);
-                        databaseHandler.setSwitchIsOnById(switchList.get(i).getSwitch_id(),false);
+                        //databaseHandler.setSwitchIsOnById(switchList.get(i).getSwitch_id(),false);
                     }
 
                     if(beanSwitch.getIsSwitch().equalsIgnoreCase("d")){
                         ////Log.e("Dimmer sts :", ""+dval);
                         switchList.get(i).setDimmerValue(Integer.parseInt(dval));
-                        databaseHandler.setDimmerValue(switchList.get(i).getSwitch_id(),Integer.parseInt(dval));
+                        //databaseHandler.setDimmerValue(switchList.get(i).getSwitch_id(),Integer.parseInt(dval));
                     }
                     msg="success";
                     ////Log.e("Data :","Braek");
