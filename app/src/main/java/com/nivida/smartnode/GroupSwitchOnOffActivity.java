@@ -1,5 +1,6 @@
 package com.nivida.smartnode;
 
+import android.annotation.TargetApi;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -10,6 +11,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
@@ -178,6 +180,11 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
         });
 
         fetchID();
+    }
+
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    protected void disableHardwareAcc() {
+        added_switchlist.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
     }
 
     private void getLiveSwitchStatus() {
@@ -429,9 +436,11 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                 String switchButtonNum = String.valueOf(data.charAt(0)) + String.valueOf(data.charAt(1));
                 String sts = String.valueOf(data.charAt(2));
 
-                switcheItem.setSwitch_btn_num(switchButtonNum);
+                //switcheItem.setSwitch_btn_num(switchButtonNum);
 
-                try {
+                switchDimmerOnOffAdapter.setLockStatusChanged(slaveID, switchButtonNum, sts, isTouchLock);
+
+                /*try {
                     if (isTouchLock) {
                         switcheItem.setTouchLock(sts);
                         databaseHandler.updateSwitchLocks(switcheItem, true);
@@ -441,10 +450,8 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                     }
                 } catch (Exception e) {
                     //C.connectionError(getApplicationContext());
-                }
-
-
-                switchDimmerOnOffAdapter.notifyIconChanged();
+                }*/
+                //switchDimmerOnOffAdapter.notifyIconChanged();
             } else {
                 C.Toast(getApplicationContext(), "Failed to Perform Lock Operation!");
             }
@@ -577,6 +584,8 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
     private void fetchID() {
         added_switchlist = (GridView) findViewById(R.id.added_switchlist);
         added_switchlist.setAdapter(switchDimmerOnOffAdapter);
+
+        disableHardwareAcc();
 
         switch_view = (LinearLayout) findViewById(R.id.switch_view);
         select_scene = (LinearLayout) findViewById(R.id.btn_select_scene);

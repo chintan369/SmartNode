@@ -302,9 +302,9 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
                 String switchButtonNum=String.valueOf(data.charAt(0))+String.valueOf(data.charAt(1));
                 String sts=String.valueOf(data.charAt(2));
 
-                switcheItem.setSwitch_btn_num(switchButtonNum);
-
-                try{
+                //switcheItem.setSwitch_btn_num(switchButtonNum);
+                switchDimmerOnOffAdapter.setLockStatusChanged(slaveID, switchButtonNum, sts, isTouchLock);
+                /*try{
                     if (isTouchLock) {
                         switcheItem.setTouchLock(sts);
                         databaseHandler.updateSwitchLocks(switcheItem,true);
@@ -317,7 +317,7 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
                 }
 
 
-                switchDimmerOnOffAdapter.notifyIconChanged();
+                switchDimmerOnOffAdapter.notifyIconChanged();*/
             } else {
                 C.Toast(getApplicationContext(), "Failed to Perform Lock Operation!");
             }

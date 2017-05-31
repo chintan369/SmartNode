@@ -60,6 +60,7 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
     OnSwitchSelection switchSelection;
     List<Bean_SwitchIcons> switchIconsList = new ArrayList<>();
     List<String> ipList = new ArrayList<>();
+    boolean allowToNotifyChange = true;
     private DimmerChangeCallBack callback;
     private int callCount = 0;
 
@@ -424,7 +425,17 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
 
     @Override
     public void notifyDataSetChanged() {
+        /*if(allowToNotifyChange){
+            allowToNotifyChange=false;
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    allowToNotifyChange=true;
+                    notifyDataSetChanged();
+                }
+            },1000);*/
         super.notifyDataSetChanged();
+        /*}*/
     }
 
     public String setSwitchItem(String slave_hex_id, String button, String isOn, String dval) {
@@ -594,6 +605,24 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
         }
 
         return switchIconDrawable;
+    }
+
+    public void setLockStatusChanged(String slaveID, String switchButtonNum, String sts, boolean isTouchLock) {
+
+        for (int i = 0; i < switchList.size(); i++) {
+            if (switchList.get(i).getSwitchInSlave().equals(slaveID) && switchList.get(i).getSwitch_btn_num().equals(switchButtonNum)) {
+                if (isTouchLock) {
+                    switchList.get(i).setTouchLock(sts);
+                } else {
+                    switchList.get(i).setUserLock(sts);
+                }
+                switchList.get(i).setLoading(false);
+                break;
+            }
+        }
+
+        notifyDataSetChanged();
+
     }
 
     public interface DimmerChangeCallBack {
