@@ -15,6 +15,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -104,6 +105,8 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
 
     Handler liveStatusHandler;
     Runnable liveStatusRunnable;
+
+    RecyclerView recyclerView;
 
 
     @Override
@@ -582,6 +585,12 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
     }
 
     private void fetchID() {
+        recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+        RecyclerView.LayoutManager mLayoutManager = new GridLayoutManager(this, 2);
+        recyclerView.setLayoutManager(mLayoutManager);
+        //recyclerView.setAdapter(switchDimmerOnOffAdapter);
+        recyclerView.setVisibility(View.GONE);
+
         added_switchlist = (GridView) findViewById(R.id.added_switchlist);
         added_switchlist.setAdapter(switchDimmerOnOffAdapter);
 

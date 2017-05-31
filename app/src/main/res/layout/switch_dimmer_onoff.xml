@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:app="http://schemas.android.com/apk/res-auto"
               android:layout_width="match_parent"
-              android:layout_height="match_parent"
+              android:layout_height="wrap_content"
               android:layout_margin="10dp"
               android:orientation="vertical">
 
@@ -97,25 +96,6 @@
 
                     </FrameLayout>
 
-                    <org.adw.library.widgets.discreteseekbar.DiscreteSeekBar
-                        android:id="@+id/dimmerProgress"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_horizontal|bottom"
-                        android:layout_marginBottom="15dp"
-                        android:layout_marginLeft="15dp"
-                        android:layout_marginRight="15dp"
-                        android:padding="5dp"
-                        android:visibility="gone"
-                        app:dsb_indicatorColor="#3BB1C0"
-                        app:dsb_max="5"
-                        app:dsb_min="0"
-                        app:dsb_progressColor="#3BB1C0"
-                        app:dsb_thumbSize="10dp"
-                        app:dsb_trackColor="@color/divider_color"
-                        app:dsb_trackHeight="3dp"
-                        />
-
                     <LinearLayout
                         android:id="@+id/layout_dimmerBar"
                         android:layout_width="match_parent"
@@ -158,39 +138,6 @@
                     </LinearLayout>
 
                 </LinearLayout>
-
-                <!--<SeekBar
-                    android:id="@+id/dimmerProgress"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="5dp"
-                    android:progress="0"
-                    android:max="5"
-                    android:layout_marginBottom="15dp"
-                    android:layout_marginLeft="10dp"
-                    android:layout_marginRight="10dp"
-                    android:layout_gravity="bottom|center_horizontal"/>-->
-
-                <!--<com.nivida.smartnode.utils.CircularSeekBar
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
-                    android:id="@+id/dimmerProgress"
-                    android:visibility="gone"
-                    app:start_angle="180"
-                    app:end_angle="180"
-                    app:circle_x_radius="100dp"
-                    app:circle_y_radius="100dp"
-                    app:use_custom_radii="true"
-                    android:background="@drawable/dimmer_bg"
-                    app:progress="0"
-                    android:layout_gravity="center"
-                    app:max="6"
-                    app:pointer_alpha_ontouch="50"
-                    app:pointer_color="#FFFFFF"
-                    app:pointer_radius="5dp"
-                    app:circle_stroke_width="3dp"
-                    app:pointer_halo_color="#444"
-                    app:circle_progress_color="#3BB1C0"/>-->
 
                 <TextView
                     android:id="@+id/txt_progress"

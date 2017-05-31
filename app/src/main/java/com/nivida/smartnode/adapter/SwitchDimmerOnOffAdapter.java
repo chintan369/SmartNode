@@ -3,8 +3,10 @@ package com.nivida.smartnode.adapter;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -90,9 +92,288 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
         return switchList.get(position);
     }
 
+    //@Override
+    public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View itemView = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.switch_dimmer_onoff, null);
+        return new MyViewHolder(itemView);
+    }
+
+    //@Override
+    public void onBindViewHolder(final MyViewHolder holder, final int position) {
+
+        final Bean_Switch beanSwitch = switchList.get(position);
+
+        if (beanSwitch.getTouchLock().equalsIgnoreCase("Y")) {
+            holder.img_tlock.setImageResource(R.drawable.tlock);
+        } else {
+            holder.img_tlock.setImageResource(R.drawable.tunlock);
+        }
+
+        if (beanSwitch.getUserLock().equalsIgnoreCase("Y")) {
+            holder.img_ulock.setImageResource(R.drawable.lock);
+        } else {
+            holder.img_ulock.setImageResource(R.drawable.unlock);
+        }
+
+        /*if(databaseHandler.hasScheduleSet(beanSwitch.getSwitchInSlave(),String.valueOf(beanSwitch.getSwitch_id())))
+            img_schedule.setImageResource(R.drawable.has_schedule);
+        else
+            img_schedule.setImageResource(R.drawable.no_schedule);*/
+
+        if (switchList.get(position).getHasSchedule() == 0) {
+            holder.img_schedule.setImageResource(R.drawable.no_schedule);
+        } else {
+            holder.img_schedule.setImageResource(R.drawable.has_schedule);
+        }
+
+        holder.img_tlock.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!isLoading(position)) {
+                    if (switchList.get(position).getTouchLock().equalsIgnoreCase("N")) {
+                        setTouchUserLock(beanSwitch.getSwitchInSlave(), beanSwitch.getSwitch_btn_num(), true, true, position);
+                    } else {
+                        setTouchUserLock(beanSwitch.getSwitchInSlave(), beanSwitch.getSwitch_btn_num(), false, true, position);
+                    }
+                }
+
+            }
+        });
+
+        holder.img_ulock.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (switchList.get(position).getSlaveUserType().equalsIgnoreCase(Cmd.ULN)) {
+                    C.Toast(context, "Guest don't have privilleges to perform this action");
+                } else {
+                    if (!isLoading(position)) {
+                        if (switchList.get(position).getUserLock().equalsIgnoreCase("N")) {
+                            setTouchUserLock(beanSwitch.getSwitchInSlave(), beanSwitch.getSwitch_btn_num(), true, false, position);
+                        } else {
+                            setTouchUserLock(beanSwitch.getSwitchInSlave(), beanSwitch.getSwitch_btn_num(), false, false, position);
+                        }
+                    }
+                }
+            }
+        });
+
+        holder.img_schedule.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(context, SetScheduleActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.putExtra("group_id", groupid);
+                intent.putExtra("switchID", switchList.get(position).getSwitch_id());
+                intent.putExtra("switchName", switchList.get(position).getSwitch_name());
+                context.startActivity(intent);
+            }
+        });
+
+        //final DiscreteSeekBar dimmerProgress = (DiscreteSeekBar) view.findViewById(R.id.dimmerProgress);
+
+        //int groupid = switchList.get(position).getSwitchInGroup();
+
+        //if(beanSwitch.getIsSwitch().equalsIgnoreCase("s")){
+
+        try {
+            if (!isLoading(position)) {
+                if (beanSwitch.getIsSwitchOn() == 1) {
+                    Glide.with(context)
+                            .load(getSwitchIDForOnOff(beanSwitch.getSwitch_icon(), true))
+                            .into(holder.img_switch);
+                } else {
+                    Glide.with(context)
+                            .load(getSwitchIDForOnOff(beanSwitch.getSwitch_icon(), false))
+                            .into(holder.img_switch);
+                }
+            } else {
+                Glide.with(context)
+                        .load(R.drawable.loading)
+                        .asGif()
+                        .into(holder.img_switch);
+            }
+
+        } catch (Exception e) {
+            //C.connectionError(context);
+        }
+        // }
+        /*else {
+            if(beanSwitch.getIsSwitchOn()==1)
+                img_switch.setImageResource(R.drawable.fan_on);
+            else img_switch.setImageResource(R.drawable.fan_off);
+        }*/
+
+        holder.img_switch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.e("Switch Click", "clicked" + position + " - loading -" + isLoading(position));
+                if (!isLoading(position)) {
+                    if (beanSwitch.getIsSwitchOn() == 1) {
+                        setSwitchOnOff(beanSwitch.getSwitchInSlave(), beanSwitch.getSwitch_id(), beanSwitch.getSwitch_btn_num(),
+                                false, beanSwitch.getDimmerValue(), beanSwitch.getIsSwitch(), position);
+                    } else {
+                        setSwitchOnOff(beanSwitch.getSwitchInSlave(), beanSwitch.getSwitch_id(), beanSwitch.getSwitch_btn_num(),
+                                true, beanSwitch.getDimmerValue(), beanSwitch.getIsSwitch(), position);
+                    }
+                }
+            }
+        });
+
+
+        if (switchList.get(position).getIsSwitch().equalsIgnoreCase("s")) {
+            if (position % 2 == 0 && position < getItemCount() - 1 && switchList.get(position + 1).getIsSwitch().equalsIgnoreCase("d")) {
+                holder.layout_dimmerBar.setVisibility(View.INVISIBLE);
+            } else if (position % 2 > 0 && switchList.get(position - 1).getIsSwitch().equalsIgnoreCase("d")) {
+                holder.layout_dimmerBar.setVisibility(View.INVISIBLE);
+            } else {
+                holder.layout_dimmerBar.setVisibility(View.GONE);
+            }
+
+            //dimmerProgress.setVisibility(View.GONE);
+            //dimmerProgress.setEnabled(false);
+            holder.txt_progress.setVisibility(View.GONE);
+        } else if (switchList.get(position).getIsSwitch().equalsIgnoreCase("d")) {
+            holder.layout_dimmerBar.setVisibility(View.VISIBLE);
+            holder.img_switch.setVisibility(View.VISIBLE);
+            //dimmerProgress.setVisibility(View.GONE);
+            holder.txt_progress.setVisibility(View.GONE);
+        }
+
+        if (fromActivity.equalsIgnoreCase(Globals.FAVOURITE)) {
+            holder.txt_group.setVisibility(View.VISIBLE);
+            holder.txt_group.setText(switchList.get(position).getSwitchGroupName());
+        } else if (fromActivity.equalsIgnoreCase(Globals.GROUP)) {
+            holder.txt_group.setVisibility(View.GONE);
+        }
+
+        holder.txt_group_switch.setText(switchList.get(position).getSwitch_name());
+
+        holder.txt_progress.setText(String.valueOf(beanSwitch.getDimmerValue()));
+
+        //dimmerProgress.setProgress(beanSwitch.getDimmerValue());
+        holder.edt_dimmerValue.setText(String.valueOf(beanSwitch.getDimmerValue()));
+
+        holder.img_plusDimmer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String dimmerValue = holder.edt_dimmerValue.getText().toString();
+
+                int dimmerVal = 0;
+
+                if (!isLoading(position)) {
+                    if (dimmerValue.isEmpty()) {
+                        holder.edt_dimmerValue.setText(String.valueOf("0"));
+                    } else {
+                        dimmerVal = Integer.parseInt(dimmerValue);
+                        if (!(dimmerVal >= 5)) {
+                            dimmerVal++;
+                            holder.edt_dimmerValue.setText(String.valueOf(dimmerVal));
+                        }
+                    }
+                }
+            }
+        });
+
+        holder.img_minusDimmer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String dimmerValue = holder.edt_dimmerValue.getText().toString();
+
+                int dimmerVal = 0;
+                if (!isLoading(position)) {
+                    if (dimmerValue.isEmpty()) {
+                        holder.edt_dimmerValue.setText(String.valueOf("0"));
+                    } else {
+                        dimmerVal = Integer.parseInt(dimmerValue);
+                        if (!(dimmerVal <= 0)) {
+                            dimmerVal--;
+                            holder.edt_dimmerValue.setText(String.valueOf(dimmerVal));
+                        }
+                    }
+                }
+            }
+        });
+
+        holder.edt_dimmerValue.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                String dimmerValue = holder.edt_dimmerValue.getText().toString();
+
+                int dimmerVal = 0;
+
+                if (dimmerValue.isEmpty()) {
+                    dimmerVal = 0;
+                } else {
+                    dimmerVal = Integer.parseInt(dimmerValue);
+                }
+
+                switchList.get(position).setDimmerValue(dimmerVal);
+                //databaseHandler.setDimmerValue(beanSwitch.getSwitch_id(), dimmerVal);
+                if (!isLoading(position)) {
+                    if (beanSwitch.getIsSwitchOn() == 1) {
+                        setSwitchOnOff(beanSwitch.getSwitchInSlave(), beanSwitch.getSwitch_id(), beanSwitch.getSwitch_btn_num(),
+                                true, switchList.get(position).getDimmerValue(), beanSwitch.getIsSwitch(), position);
+                    } else {
+                        setSwitchOnOff(beanSwitch.getSwitchInSlave(), beanSwitch.getSwitch_id(), beanSwitch.getSwitch_btn_num(),
+                                false, switchList.get(position).getDimmerValue(), beanSwitch.getIsSwitch(), position);
+                    }
+                }
+
+            }
+        });
+
+        if (beanSwitch.getIsFavourite() == 0) {
+            holder.img_fav.setImageResource(R.drawable.new_heart_off);
+        } else holder.img_fav.setImageResource(R.drawable.new_heart_on);
+
+        holder.img_fav.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (beanSwitch.getIsFavourite() == 0) {
+                    beanSwitch.setIsFavourite(1);
+                    databaseHandler.setFavouriteSwitchById(beanSwitch.getSwitch_id(), true);
+                    holder.img_fav.setImageResource(R.drawable.new_heart_on);
+                } else {
+                    beanSwitch.setIsFavourite(0);
+                    databaseHandler.setFavouriteSwitchById(beanSwitch.getSwitch_id(), false);
+                    holder.img_fav.setImageResource(R.drawable.new_heart_off);
+                }
+            }
+        });
+
+
+        holder.option_menu.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                callback.showOptionMenu(position, holder.option_menu);
+            }
+        });
+    }
+
+    private boolean isLoading(int position) {
+        return switchList.get(position).isLoading();
+    }
+
     @Override
     public long getItemId(int position) {
         return position;
+    }
+
+    //@Override
+    public int getItemCount() {
+        return switchList.size();
     }
 
     @Override
@@ -133,10 +414,10 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
             img_ulock.setImageResource(R.drawable.unlock);
         }
 
-        /*if(databaseHandler.hasScheduleSet(beanSwitch.getSwitchInSlave(),String.valueOf(beanSwitch.getSwitch_id())))
+        if (databaseHandler.hasScheduleSet(beanSwitch.getSwitchInSlave(), String.valueOf(beanSwitch.getSwitch_id())))
             img_schedule.setImageResource(R.drawable.has_schedule);
         else
-            img_schedule.setImageResource(R.drawable.no_schedule);*/
+            img_schedule.setImageResource(R.drawable.no_schedule);
 
         if (switchList.get(position).getHasSchedule() == 0) {
             img_schedule.setImageResource(R.drawable.no_schedule);
@@ -216,7 +497,7 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
             //C.connectionError(context);
         }
         // }
-        /*else {
+       /* else {
             if(beanSwitch.getIsSwitchOn()==1)
                 img_switch.setImageResource(R.drawable.fan_on);
             else img_switch.setImageResource(R.drawable.fan_off);
@@ -435,7 +716,7 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
                 }
             },1000);*/
         super.notifyDataSetChanged();
-        /*}*/
+        //}
     }
 
     public String setSwitchItem(String slave_hex_id, String button, String isOn, String dval) {
@@ -460,14 +741,20 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
                         switchList.get(i).setDimmerValue(Integer.parseInt(dval));
                         //databaseHandler.setDimmerValue(switchList.get(i).getSwitch_id(),Integer.parseInt(dval));
                     }
+
+
+                    //notifyAll();
+
+                    Log.e("update", button + "--" + switchList.get(i).isLoading());
+
+                    notifyDataSetChanged();
+
                     msg = "success";
                     ////Log.e("Data :","Braek");
                     break;
                 }
             }
         }
-
-        notifyDataSetChanged();
 
         return msg;
     }
@@ -617,11 +904,11 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
                     switchList.get(i).setUserLock(sts);
                 }
                 switchList.get(i).setLoading(false);
+
+                notifyDataSetChanged();
                 break;
             }
         }
-
-        notifyDataSetChanged();
 
     }
 
@@ -635,6 +922,34 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
 
     public interface OnSwitchSelection {
         void sendUDPCommand(String command);
+    }
+
+    public class MyViewHolder extends RecyclerView.ViewHolder {
+
+        public TextView txt_group_switch, txt_group, txt_progress;
+        public ImageView img_fav, option_menu, img_switch, img_tlock, img_ulock, img_schedule, img_minusDimmer, img_plusDimmer;
+        public LinearLayout layout_dimmerBar;
+        public EditText edt_dimmerValue;
+        public boolean isLoading = false;
+
+        public MyViewHolder(View view) {
+            super(view);
+            txt_group_switch = (TextView) view.findViewById(R.id.group_switch_name);
+            txt_group = (TextView) view.findViewById(R.id.group_name);
+            txt_progress = (TextView) view.findViewById(R.id.txt_progress);
+
+            img_fav = (ImageView) view.findViewById(R.id.fav_off);
+            option_menu = (ImageView) view.findViewById(R.id.power_off);
+            img_switch = (ImageView) view.findViewById(R.id.switch_off);
+            img_tlock = (ImageView) view.findViewById(R.id.img_tlock);
+            img_ulock = (ImageView) view.findViewById(R.id.img_ulock);
+            img_schedule = (ImageView) view.findViewById(R.id.img_schedule);
+
+            layout_dimmerBar = (LinearLayout) view.findViewById(R.id.layout_dimmerBar);
+            img_minusDimmer = (ImageView) view.findViewById(R.id.img_minusDimmer);
+            img_plusDimmer = (ImageView) view.findViewById(R.id.img_plusDimmer);
+            edt_dimmerValue = (EditText) view.findViewById(R.id.edt_dimmerValue);
+        }
     }
 
     private class SendMQTTMsg extends AsyncTask<Void, Void, Void> {
@@ -673,5 +988,6 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
             return null;
         }
     }
+
 
 }

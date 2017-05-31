@@ -12,6 +12,8 @@ import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -90,6 +92,8 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
     ArrayList<String> scheduleInfo = new ArrayList<>();
 
     List<String> slaveIds = new ArrayList<>();
+
+    RecyclerView recyclerView;
 
 
 
@@ -489,6 +493,12 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
     }
 
     private void fetchID() {
+
+        recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+        RecyclerView.LayoutManager mLayoutManager = new GridLayoutManager(this, 2, LinearLayoutManager.VERTICAL, false);
+        recyclerView.setLayoutManager(mLayoutManager);
+        //recyclerView.setAdapter(switchDimmerOnOffAdapter);
+        recyclerView.setVisibility(View.GONE);
 
         added_switchlist=(GridView) findViewById(R.id.added_switchlist);
         added_switchlist.setAdapter(switchDimmerOnOffAdapter);
