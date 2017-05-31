@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,7 +13,6 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.nivida.smartnode.Globals;
@@ -25,11 +23,11 @@ import com.nivida.smartnode.a.Cmd;
 import com.nivida.smartnode.app.AppConstant;
 import com.nivida.smartnode.app.AppPreference;
 import com.nivida.smartnode.beans.Bean_Switch;
+import com.nivida.smartnode.beans.Bean_SwitchIcons;
 import com.nivida.smartnode.model.DatabaseHandler;
 import com.nivida.smartnode.model.IPDb;
 import com.nivida.smartnode.utils.NetworkUtility;
 
-import org.adw.library.widgets.discreteseekbar.DiscreteSeekBar;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -50,29 +48,34 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
     public static final String SERVICE_CLASSNAME = "com.nivida.smartnode.services.AddDeviceService";
     Context context;
     String fromActivity;
-    List<Bean_Switch> switchList=new ArrayList<>();
+    List<Bean_Switch> switchList = new ArrayList<>();
     DatabaseHandler databaseHandler;
-    int groupid=0;
+    int groupid = 0;
     AppPreference preference;
     //List<Bean_SwitchIcons> switchIconsList=new ArrayList<>();
     MqttClient mqttClient;
-    String clientId="";
-    String subscribedMessage="";
+    String clientId = "";
+    String subscribedMessage = "";
     NetworkUtility netcheck;
     OnSwitchSelection switchSelection;
+    List<Bean_SwitchIcons> switchIconsList = new ArrayList<>();
+    List<String> ipList = new ArrayList<>();
     private DimmerChangeCallBack callback;
+    private int callCount = 0;
 
-    public SwitchDimmerOnOffAdapter(Context context,List<Bean_Switch> switchList,String fromActivity, OnSwitchSelection switchSelection){
-        this.switchSelection=switchSelection;
-        this.context=context;
-        this.switchList=switchList;
-        this.fromActivity=fromActivity;
-        this.netcheck=new NetworkUtility(context);
-        clientId=MqttClient.generateClientId();
-        databaseHandler=new DatabaseHandler(context);
-        preference=new AppPreference(context);
-        if(switchList.size()>0){
-            this.groupid=switchList.get(0).getSwitchInGroup();
+    public SwitchDimmerOnOffAdapter(Context context, List<Bean_Switch> switchList, String fromActivity, OnSwitchSelection switchSelection) {
+        this.switchSelection = switchSelection;
+        this.context = context;
+        this.switchList = switchList;
+        this.fromActivity = fromActivity;
+        this.netcheck = new NetworkUtility(context);
+        clientId = MqttClient.generateClientId();
+        databaseHandler = new DatabaseHandler(context);
+        switchIconsList = databaseHandler.getAllSwitchIconData();
+        ipList = new IPDb(context).ipList();
+        preference = new AppPreference(context);
+        if (switchList.size() > 0) {
+            this.groupid = switchList.get(0).getSwitchInGroup();
         }
     }
 
@@ -94,40 +97,38 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
 
-        View view=null;
+        View view = null;
 
-        LayoutInflater inflater=(LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        view=inflater.inflate(R.layout.switch_dimmer_onoff,null);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        view = inflater.inflate(R.layout.switch_dimmer_onoff, null);
 
-        final Bean_Switch beanSwitch=switchList.get(position);
+        final Bean_Switch beanSwitch = switchList.get(position);
 
-        final TextView txt_group_switch=(TextView) view.findViewById(R.id.group_switch_name);
-        final TextView txt_group=(TextView) view.findViewById(R.id.group_name);
-        final TextView txt_progress=(TextView) view.findViewById(R.id.txt_progress);
+        final TextView txt_group_switch = (TextView) view.findViewById(R.id.group_switch_name);
+        final TextView txt_group = (TextView) view.findViewById(R.id.group_name);
+        final TextView txt_progress = (TextView) view.findViewById(R.id.txt_progress);
 
-        final ImageView img_fav=(ImageView) view.findViewById(R.id.fav_off);
-        final ImageView option_menu=(ImageView) view.findViewById(R.id.power_off);
-        final ImageView img_switch=(ImageView) view.findViewById(R.id.switch_off);
-        final ImageView img_tlock=(ImageView) view.findViewById(R.id.img_tlock);
-        final ImageView img_ulock=(ImageView) view.findViewById(R.id.img_ulock);
-        final ImageView img_schedule=(ImageView) view.findViewById(R.id.img_schedule);
+        final ImageView img_fav = (ImageView) view.findViewById(R.id.fav_off);
+        final ImageView option_menu = (ImageView) view.findViewById(R.id.power_off);
+        final ImageView img_switch = (ImageView) view.findViewById(R.id.switch_off);
+        final ImageView img_tlock = (ImageView) view.findViewById(R.id.img_tlock);
+        final ImageView img_ulock = (ImageView) view.findViewById(R.id.img_ulock);
+        final ImageView img_schedule = (ImageView) view.findViewById(R.id.img_schedule);
 
-        LinearLayout layout_dimmerBar=(LinearLayout) view.findViewById(R.id.layout_dimmerBar);
-        final ImageView img_minusDimmer=(ImageView) view.findViewById(R.id.img_minusDimmer);
-        final ImageView img_plusDimmer=(ImageView) view.findViewById(R.id.img_plusDimmer);
-        final EditText edt_dimmerValue=(EditText) view.findViewById(R.id.edt_dimmerValue);
+        LinearLayout layout_dimmerBar = (LinearLayout) view.findViewById(R.id.layout_dimmerBar);
+        final ImageView img_minusDimmer = (ImageView) view.findViewById(R.id.img_minusDimmer);
+        final ImageView img_plusDimmer = (ImageView) view.findViewById(R.id.img_plusDimmer);
+        final EditText edt_dimmerValue = (EditText) view.findViewById(R.id.edt_dimmerValue);
 
-        if(beanSwitch.getTouchLock().equalsIgnoreCase("Y")){
+        if (beanSwitch.getTouchLock().equalsIgnoreCase("Y")) {
             img_tlock.setImageResource(R.drawable.tlock);
-        }
-        else {
+        } else {
             img_tlock.setImageResource(R.drawable.tunlock);
         }
 
-        if(beanSwitch.getUserLock().equalsIgnoreCase("Y")){
+        if (beanSwitch.getUserLock().equalsIgnoreCase("Y")) {
             img_ulock.setImageResource(R.drawable.lock);
-        }
-        else {
+        } else {
             img_ulock.setImageResource(R.drawable.unlock);
         }
 
@@ -136,37 +137,38 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
         else
             img_schedule.setImageResource(R.drawable.no_schedule);*/
 
-        if(switchList.get(position).getHasSchedule()==0){
+        if (switchList.get(position).getHasSchedule() == 0) {
             img_schedule.setImageResource(R.drawable.no_schedule);
-        }
-        else {
+        } else {
             img_schedule.setImageResource(R.drawable.has_schedule);
         }
 
         img_tlock.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(switchList.get(position).getTouchLock().equalsIgnoreCase("N")){
-                    setTouchUserLock(beanSwitch.getSwitchInSlave(),beanSwitch.getSwitch_btn_num(),true,true);
+                if (!switchList.get(position).isLoading()) {
+                    if (switchList.get(position).getTouchLock().equalsIgnoreCase("N")) {
+                        setTouchUserLock(beanSwitch.getSwitchInSlave(), beanSwitch.getSwitch_btn_num(), true, true, position);
+                    } else {
+                        setTouchUserLock(beanSwitch.getSwitchInSlave(), beanSwitch.getSwitch_btn_num(), false, true, position);
+                    }
                 }
-                else {
-                    setTouchUserLock(beanSwitch.getSwitchInSlave(),beanSwitch.getSwitch_btn_num(),false,true);
-                }
+
             }
         });
 
         img_ulock.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(databaseHandler.getSlaveUserType(beanSwitch.getSwitchInSlave()).equalsIgnoreCase(Cmd.ULN)){
-                    C.Toast(context,"Guest don't have privilleges to perform this action");
-                }
-                else {
-                    if(switchList.get(position).getUserLock().equalsIgnoreCase("N")){
-                        setTouchUserLock(beanSwitch.getSwitchInSlave(),beanSwitch.getSwitch_btn_num(),true,false);
-                    }
-                    else {
-                        setTouchUserLock(beanSwitch.getSwitchInSlave(),beanSwitch.getSwitch_btn_num(),false,false);
+                if (switchList.get(position).getSlaveUserType().equalsIgnoreCase(Cmd.ULN)) {
+                    C.Toast(context, "Guest don't have privilleges to perform this action");
+                } else {
+                    if (!switchList.get(position).isLoading()) {
+                        if (switchList.get(position).getUserLock().equalsIgnoreCase("N")) {
+                            setTouchUserLock(beanSwitch.getSwitchInSlave(), beanSwitch.getSwitch_btn_num(), true, false, position);
+                        } else {
+                            setTouchUserLock(beanSwitch.getSwitchInSlave(), beanSwitch.getSwitch_btn_num(), false, false, position);
+                        }
                     }
                 }
             }
@@ -175,37 +177,44 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
         img_schedule.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent=new Intent(context, SetScheduleActivity.class);
+                Intent intent = new Intent(context, SetScheduleActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                intent.putExtra("group_id",groupid);
-                intent.putExtra("switchID",switchList.get(position).getSwitch_id());
-                intent.putExtra("switchName",switchList.get(position).getSwitch_name());
+                intent.putExtra("group_id", groupid);
+                intent.putExtra("switchID", switchList.get(position).getSwitch_id());
+                intent.putExtra("switchName", switchList.get(position).getSwitch_name());
                 context.startActivity(intent);
             }
         });
 
-        final DiscreteSeekBar dimmerProgress=(DiscreteSeekBar) view.findViewById(R.id.dimmerProgress);
+        //final DiscreteSeekBar dimmerProgress = (DiscreteSeekBar) view.findViewById(R.id.dimmerProgress);
 
-        int groupid=switchList.get(position).getSwitchInGroup();
+        //int groupid = switchList.get(position).getSwitchInGroup();
 
         //if(beanSwitch.getIsSwitch().equalsIgnoreCase("s")){
 
-        try{
-            if(beanSwitch.getIsSwitchOn()==1){
+        try {
+            if (!switchList.get(position).isLoading()) {
+                if (beanSwitch.getIsSwitchOn() == 1) {
+                    Glide.with(context)
+                            .load(getSwitchIDForOnOff(beanSwitch.getSwitch_icon(), true))
+                            .into(img_switch);
+                } else {
+                    Glide.with(context)
+                            .load(getSwitchIDForOnOff(beanSwitch.getSwitch_icon(), false))
+                            .into(img_switch);
+                }
+            } else {
                 Glide.with(context)
-                        .load(databaseHandler.getSwitchIconData(beanSwitch.getSwitch_icon()).getSwOnId())
+                        .load(R.drawable.loading)
+                        .asGif()
                         .into(img_switch);
             }
-            else {
-                Glide.with(context)
-                        .load(databaseHandler.getSwitchIconData(beanSwitch.getSwitch_icon()).getSwOffId())
-                        .into(img_switch);
-            }
-        }catch (Exception e){
+
+        } catch (Exception e) {
             //C.connectionError(context);
         }
-       // }
+        // }
         /*else {
             if(beanSwitch.getIsSwitchOn()==1)
                 img_switch.setImageResource(R.drawable.fan_on);
@@ -215,20 +224,20 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
         img_switch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-               if(beanSwitch.getIsSwitchOn()==1){
-                   
-                   setSwitchOnOff(beanSwitch.getSwitchInSlave(), beanSwitch.getSwitch_id(), beanSwitch.getSwitch_btn_num(),
-                           false, beanSwitch.getDimmerValue(), beanSwitch.getIsSwitch());
-               }
-                else {
-                   setSwitchOnOff(beanSwitch.getSwitchInSlave(), beanSwitch.getSwitch_id(), beanSwitch.getSwitch_btn_num(),
-                           true, beanSwitch.getDimmerValue(), beanSwitch.getIsSwitch());
-               }
+                if (!switchList.get(position).isLoading()) {
+                    if (beanSwitch.getIsSwitchOn() == 1) {
+                        setSwitchOnOff(beanSwitch.getSwitchInSlave(), beanSwitch.getSwitch_id(), beanSwitch.getSwitch_btn_num(),
+                                false, beanSwitch.getDimmerValue(), beanSwitch.getIsSwitch(), position);
+                    } else {
+                        setSwitchOnOff(beanSwitch.getSwitchInSlave(), beanSwitch.getSwitch_id(), beanSwitch.getSwitch_btn_num(),
+                                true, beanSwitch.getDimmerValue(), beanSwitch.getIsSwitch(), position);
+                    }
+                }
             }
         });
 
 
-        if(switchList.get(position).getIsSwitch().equalsIgnoreCase("s")){
+        if (switchList.get(position).getIsSwitch().equalsIgnoreCase("s")) {
             if (position % 2 == 0 && position < getCount() - 1 && switchList.get(position + 1).getIsSwitch().equalsIgnoreCase("d")) {
                 layout_dimmerBar.setVisibility(View.INVISIBLE);
             } else if (position % 2 > 0 && switchList.get(position - 1).getIsSwitch().equalsIgnoreCase("d")) {
@@ -237,22 +246,20 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
                 layout_dimmerBar.setVisibility(View.GONE);
             }
 
-            dimmerProgress.setVisibility(View.GONE);
-            dimmerProgress.setEnabled(false);
+            //dimmerProgress.setVisibility(View.GONE);
+            //dimmerProgress.setEnabled(false);
             txt_progress.setVisibility(View.GONE);
-        }
-        else if(switchList.get(position).getIsSwitch().equalsIgnoreCase("d")){
+        } else if (switchList.get(position).getIsSwitch().equalsIgnoreCase("d")) {
             layout_dimmerBar.setVisibility(View.VISIBLE);
             img_switch.setVisibility(View.VISIBLE);
-            dimmerProgress.setVisibility(View.GONE);
+            //dimmerProgress.setVisibility(View.GONE);
             txt_progress.setVisibility(View.GONE);
         }
 
-        if(fromActivity.equalsIgnoreCase(Globals.FAVOURITE)){
+        if (fromActivity.equalsIgnoreCase(Globals.FAVOURITE)) {
             txt_group.setVisibility(View.VISIBLE);
-            txt_group.setText(databaseHandler.getGroupnameById(groupid));
-        }
-        else if(fromActivity.equalsIgnoreCase(Globals.GROUP)){
+            txt_group.setText(switchList.get(position).getSwitchGroupName());
+        } else if (fromActivity.equalsIgnoreCase(Globals.GROUP)) {
             txt_group.setVisibility(View.GONE);
         }
 
@@ -260,24 +267,25 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
 
         txt_progress.setText(String.valueOf(beanSwitch.getDimmerValue()));
 
-        dimmerProgress.setProgress(beanSwitch.getDimmerValue());
+        //dimmerProgress.setProgress(beanSwitch.getDimmerValue());
         edt_dimmerValue.setText(String.valueOf(beanSwitch.getDimmerValue()));
 
         img_plusDimmer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String dimmerValue=edt_dimmerValue.getText().toString();
+                String dimmerValue = edt_dimmerValue.getText().toString();
 
-                int dimmerVal=0;
+                int dimmerVal = 0;
 
-                if(dimmerValue.isEmpty()){
-                    edt_dimmerValue.setText(String.valueOf("0"));
-                }
-                else{
-                    dimmerVal=Integer.parseInt(dimmerValue);
-                    if(!(dimmerVal>=5)){
-                        dimmerVal++;
-                        edt_dimmerValue.setText(String.valueOf(dimmerVal));
+                if (!switchList.get(position).isLoading()) {
+                    if (dimmerValue.isEmpty()) {
+                        edt_dimmerValue.setText(String.valueOf("0"));
+                    } else {
+                        dimmerVal = Integer.parseInt(dimmerValue);
+                        if (!(dimmerVal >= 5)) {
+                            dimmerVal++;
+                            edt_dimmerValue.setText(String.valueOf(dimmerVal));
+                        }
                     }
                 }
             }
@@ -286,18 +294,18 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
         img_minusDimmer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String dimmerValue=edt_dimmerValue.getText().toString();
+                String dimmerValue = edt_dimmerValue.getText().toString();
 
-                int dimmerVal=0;
-
-                if(dimmerValue.isEmpty()){
-                    edt_dimmerValue.setText(String.valueOf("0"));
-                }
-                else{
-                    dimmerVal=Integer.parseInt(dimmerValue);
-                    if(!(dimmerVal<=0)){
-                        dimmerVal--;
-                        edt_dimmerValue.setText(String.valueOf(dimmerVal));
+                int dimmerVal = 0;
+                if (!switchList.get(position).isLoading()) {
+                    if (dimmerValue.isEmpty()) {
+                        edt_dimmerValue.setText(String.valueOf("0"));
+                    } else {
+                        dimmerVal = Integer.parseInt(dimmerValue);
+                        if (!(dimmerVal <= 0)) {
+                            dimmerVal--;
+                            edt_dimmerValue.setText(String.valueOf(dimmerVal));
+                        }
                     }
                 }
             }
@@ -316,46 +324,45 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
 
             @Override
             public void afterTextChanged(Editable s) {
-                String dimmerValue=edt_dimmerValue.getText().toString();
+                String dimmerValue = edt_dimmerValue.getText().toString();
 
-                int dimmerVal=0;
+                int dimmerVal = 0;
 
-                if(dimmerValue.isEmpty()){
-                    dimmerVal=0;
-                }
-                else{
-                    dimmerVal=Integer.parseInt(dimmerValue);
+                if (dimmerValue.isEmpty()) {
+                    dimmerVal = 0;
+                } else {
+                    dimmerVal = Integer.parseInt(dimmerValue);
                 }
 
                 switchList.get(position).setDimmerValue(dimmerVal);
-                databaseHandler.setDimmerValue(beanSwitch.getSwitch_id(),dimmerVal);
-                if(beanSwitch.getIsSwitchOn()==1) {
-                    setSwitchOnOff(beanSwitch.getSwitchInSlave(), beanSwitch.getSwitch_id(), beanSwitch.getSwitch_btn_num(),
-                            true, switchList.get(position).getDimmerValue(), beanSwitch.getIsSwitch());
+                //databaseHandler.setDimmerValue(beanSwitch.getSwitch_id(), dimmerVal);
+                if (!switchList.get(position).isLoading()) {
+                    if (beanSwitch.getIsSwitchOn() == 1) {
+                        setSwitchOnOff(beanSwitch.getSwitchInSlave(), beanSwitch.getSwitch_id(), beanSwitch.getSwitch_btn_num(),
+                                true, switchList.get(position).getDimmerValue(), beanSwitch.getIsSwitch(), position);
+                    } else {
+                        setSwitchOnOff(beanSwitch.getSwitchInSlave(), beanSwitch.getSwitch_id(), beanSwitch.getSwitch_btn_num(),
+                                false, switchList.get(position).getDimmerValue(), beanSwitch.getIsSwitch(), position);
+                    }
                 }
-                else {
-                    setSwitchOnOff(beanSwitch.getSwitchInSlave(), beanSwitch.getSwitch_id(), beanSwitch.getSwitch_btn_num(),
-                            false,  switchList.get(position).getDimmerValue(), beanSwitch.getIsSwitch());
-                }
+
             }
         });
 
-        if(beanSwitch.getIsFavourite()==0){
+        if (beanSwitch.getIsFavourite() == 0) {
             img_fav.setImageResource(R.drawable.new_heart_off);
-        }
-        else img_fav.setImageResource(R.drawable.new_heart_on);
+        } else img_fav.setImageResource(R.drawable.new_heart_on);
 
         img_fav.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(beanSwitch.getIsFavourite()==0){
+                if (beanSwitch.getIsFavourite() == 0) {
                     beanSwitch.setIsFavourite(1);
-                    databaseHandler.setFavouriteSwitchById(beanSwitch.getSwitch_id(),true);
+                    databaseHandler.setFavouriteSwitchById(beanSwitch.getSwitch_id(), true);
                     img_fav.setImageResource(R.drawable.new_heart_on);
-                }
-                else {
+                } else {
                     beanSwitch.setIsFavourite(0);
-                    databaseHandler.setFavouriteSwitchById(beanSwitch.getSwitch_id(),false);
+                    databaseHandler.setFavouriteSwitchById(beanSwitch.getSwitch_id(), false);
                     img_fav.setImageResource(R.drawable.new_heart_off);
                 }
             }
@@ -369,85 +376,48 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
             }
         });
 
-        dimmerProgress.setOnProgressChangeListener(new DiscreteSeekBar.OnProgressChangeListener() {
-            @Override
-            public void onProgressChanged(DiscreteSeekBar seekBar, int progress, boolean fromUser) {
-                if(seekBar.getProgress()==6){
-                    seekBar.setProgress(0);
-                }
-                beanSwitch.setDimmerValue(seekBar.getProgress());
-                databaseHandler.setDimmerValue(beanSwitch.getSwitch_id(),seekBar.getProgress());
-                if(beanSwitch.getIsSwitchOn()==1) {
-                    setSwitchOnOff(beanSwitch.getSwitchInSlave(), beanSwitch.getSwitch_id(), beanSwitch.getSwitch_btn_num(),
-                            true, beanSwitch.getDimmerValue(), beanSwitch.getIsSwitch());
-                }
-                else {
-                    setSwitchOnOff(beanSwitch.getSwitchInSlave(), beanSwitch.getSwitch_id(), beanSwitch.getSwitch_btn_num(),
-                            false, beanSwitch.getDimmerValue(), beanSwitch.getIsSwitch());
-                }
-                txt_progress.setText(String.valueOf(beanSwitch.getDimmerValue()));
-                //Log.e("Fan Value : ", String.valueOf(seekBar.getProgress()));
-            }
-
-            @Override
-            public void onStartTrackingTouch(DiscreteSeekBar seekBar) {
-                if(callback!=null){
-                    callback.stopScrolling();
-                }
-                Log.d("Track Touch :","Track touched..");
-            }
-
-            @Override
-            public void onStopTrackingTouch(DiscreteSeekBar seekBar) {
-                if(callback!=null){
-                    callback.startScrolling();
-                }
-                Log.d("Track Touch :","Track left..");
-            }
-        });
-
         return view;
     }
 
-    public void setCallBack(DimmerChangeCallBack dimmerChangeCallBack){
-        this.callback=dimmerChangeCallBack;
+    public void setCallBack(DimmerChangeCallBack dimmerChangeCallBack) {
+        this.callback = dimmerChangeCallBack;
     }
 
-    public int getSwitchIdAtPosition(int position){
-        int switchId=0;
+    public int getSwitchIdAtPosition(int position) {
+        int switchId = 0;
 
-        switchId=switchList.get(position).getSwitch_id();
+        switchId = switchList.get(position).getSwitch_id();
 
         return switchId;
     }
 
-    public String getSwitchName(int position){
-        String switchName="";
+    public String getSwitchName(int position) {
+        String switchName = "";
 
-        switchName=switchList.get(position).getSwitch_name();
+        switchName = switchList.get(position).getSwitch_name();
 
         return switchName;
     }
 
-    public boolean isSwitch(int position){
-        if(switchList.get(position).getIsSwitch().equalsIgnoreCase("s")){
+    public boolean isSwitch(int position) {
+        if (switchList.get(position).getIsSwitch().equalsIgnoreCase("s")) {
             return true;
         }
         return false;
     }
 
-    public String getSwitchNumber(int position){
+    public String getSwitchNumber(int position) {
         return switchList.get(position).getSwitch_btn_num();
     }
 
-    public String getSlaveIDForSwitch(int position){
+    public String getSlaveIDForSwitch(int position) {
         return switchList.get(position).getSwitchInSlave();
     }
 
-    public int getGroupIdAtPosition(int position){
-        int groupId=0;
+    public int getGroupIdAtPosition(int position) {
+        int groupId = 0;
 
-        groupId=switchList.get(position).getSwitchInGroup();
+        groupId = switchList.get(position).getSwitchInGroup();
 
         return groupId;
     }
@@ -457,30 +427,29 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
         super.notifyDataSetChanged();
     }
 
-    public String setSwitchItem(String slave_hex_id, String button, String isOn, String dval){
-        String msg="";
+    public String setSwitchItem(String slave_hex_id, String button, String isOn, String dval) {
+        String msg = "";
 
-        for(int i=0; i<switchList.size();i++){
-            Bean_Switch beanSwitch=switchList.get(i);
+        for (int i = 0; i < switchList.size(); i++) {
+            Bean_Switch beanSwitch = switchList.get(i);
 
-            if(beanSwitch.getSwitchInSlave().equals(slave_hex_id)){
-                if(beanSwitch.getSwitch_btn_num().equals(button)){
+            if (beanSwitch.getSwitchInSlave().equals(slave_hex_id)) {
+                if (beanSwitch.getSwitch_btn_num().equals(button)) {
                     switchList.get(i).setLoading(false);
-                    if(isOn.equalsIgnoreCase("A")) {
+                    if (isOn.equalsIgnoreCase("A")) {
                         switchList.get(i).setIsSwitchOn(1);
                         //databaseHandler.setSwitchIsOnById(switchList.get(i).getSwitch_id(),true);
-                    }
-                    else {
+                    } else {
                         switchList.get(i).setIsSwitchOn(0);
                         //databaseHandler.setSwitchIsOnById(switchList.get(i).getSwitch_id(),false);
                     }
 
-                    if(beanSwitch.getIsSwitch().equalsIgnoreCase("d")){
+                    if (beanSwitch.getIsSwitch().equalsIgnoreCase("d")) {
                         ////Log.e("Dimmer sts :", ""+dval);
                         switchList.get(i).setDimmerValue(Integer.parseInt(dval));
                         //databaseHandler.setDimmerValue(switchList.get(i).getSwitch_id(),Integer.parseInt(dval));
                     }
-                    msg="success";
+                    msg = "success";
                     ////Log.e("Data :","Braek");
                     break;
                 }
@@ -492,20 +461,23 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
         return msg;
     }
 
-    public String setSwitchOnOff(String slave_hex_id,int switch_id,String switch_button_num,boolean onOff,int dval, String type){
-        String msg="";
+    public String setSwitchOnOff(String slave_hex_id, int switch_id, String switch_button_num, boolean onOff, int dval, String type, int position) {
+        String msg = "";
 
         try {
             if (netcheck.isOnline()) {
+                callCount++;
+                switchList.get(position).setLoading(true);
+                notifyDataSetChanged();
 
-                JSONObject object=new JSONObject();
-                if(databaseHandler.getSlaveUserType(slave_hex_id).equalsIgnoreCase(Cmd.LIN))
-                    object.put("cmd",Cmd.UPD);
+                JSONObject object = new JSONObject();
+                if (switchList.get(position).getSlaveUserType().equalsIgnoreCase(Cmd.LIN))
+                    object.put("cmd", Cmd.UPD);
                 else
-                    object.put("cmd",Cmd.UUP);
+                    object.put("cmd", Cmd.UUP);
 
-                object.put("slave",slave_hex_id);
-                object.put("token",databaseHandler.getSlaveToken(slave_hex_id));
+                object.put("slave", slave_hex_id);
+                object.put("token", switchList.get(position).getSlaveToken());
 
                 String mqttCommand = switch_button_num;
 
@@ -518,128 +490,79 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
                 if (type.equalsIgnoreCase("s")) mqttCommand += "X";
                 else mqttCommand += String.valueOf(dval);
 
-                object.put("data",mqttCommand);
+                object.put("data", mqttCommand);
 
-                String command=object.toString();
+                String command = object.toString();
 
                 //Log.e("Online Sts", "" + preference.isOnline());
                 //Log.e("Command", command);
 
-                List<String> ipList=new IPDb(context).ipList();
+                if (callCount % 50 == 0) {
+                    ipList = new IPDb(context).ipList();
+                }
 
-                if(ipList.contains(databaseHandler.getMasterIPBySlaveID(slave_hex_id))){
+
+                if (ipList.contains(switchList.get(position).getSlaveIP())) {
                     switchSelection.sendUDPCommand(command);
-                }
-                else {
-                   new SendMQTTMsg(command,databaseHandler.getSlaveTopic(slave_hex_id)).execute();
-                }
-                /*if (preference.isOnline() || (!preference.isOnline() && !preference.getCurrentIPAddr().equalsIgnoreCase(databaseHandler.getMasterIPBySlaveID(slave_hex_id)))) {
-
                 } else {
-
-                }*/
-
+                    new SendMQTTMsg(command, switchList.get(position).getSlaveTopic()).execute();
+                }
 
             } else {
-                Toast.makeText(context, "No internet connection found,\nplease check your connection first",
-                        Toast.LENGTH_SHORT).show();
+                C.Toast(context, "No internet connection found,\nplease check your connection first");
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             //Log.e("Exception",e.getMessage());
         }
 
         return msg;
     }
 
-    public String setTouchUserLock(String slave_hex_id,String switch_button_num,boolean lock,boolean isTouchLock){
-        String msg="";
+    public String setTouchUserLock(String slave_hex_id, String switch_button_num, boolean lock, boolean isTouchLock, int position) {
+        String msg = "";
 
-        //List<Bean_Switch> switchesBySlave=databaseHandler.getSwitchDataBySlave(slave_hex_id);
+        String lockData = "";
 
-        String lockData="";
-
-//        for(int i=0; i<switchesBySlave.size(); i++){
-//            if(isTouchLock){
-//                if(switchesBySlave.get(i).getSwitch_btn_num().equalsIgnoreCase(switch_button_num)){
-//                    if(lock){
-//                        lockData += "Y";
-//                    }
-//                    else {
-//                        lockData += "N";
-//                    }
-//                }
-//                else {
-//                    lockData +=switchesBySlave.get(i).getTouchLock();
-//                }
-//            }
-//            else {
-//                if(switchesBySlave.get(i).getSwitch_btn_num().equalsIgnoreCase(switch_button_num)){
-//                    if(lock){
-//                        lockData += "Y";
-//                    }
-//                    else {
-//                        lockData += "N";
-//                    }
-//                }
-//                else {
-//                    lockData +=switchesBySlave.get(i).getUserLock();
-//                }
-//            }
-//        }
         lockData += switch_button_num;
-        if(lock){
+        if (lock) {
             lockData += "Y";
-        }
-        else {
+        } else {
             lockData += "N";
         }
 
 
+        if (netcheck.isOnline()) {
+            switchList.get(position).setLoading(true);
+            notifyDataSetChanged();
 
-        if(netcheck.isOnline()){
-
-            JSONObject object=new JSONObject();
-            try{
-                if(isTouchLock){
+            JSONObject object = new JSONObject();
+            try {
+                if (isTouchLock) {
                     object.put("cmd", Cmd.TL1);
-                }
-                else {
-                    object.put("cmd",Cmd.UL1);
+                } else {
+                    object.put("cmd", Cmd.UL1);
                 }
 
-                object.put("slave",slave_hex_id);
-                object.put("data",lockData);
-                object.put("token",databaseHandler.getSlaveToken(slave_hex_id));
+                object.put("slave", slave_hex_id);
+                object.put("data", lockData);
+                object.put("token", switchList.get(position).getSlaveToken());
 
-            }catch (JSONException e){
+            } catch (JSONException e) {
                 //Log.e("Exception",e.getMessage());
             }
 
-            String mqttCommand=object.toString();
+            String mqttCommand = object.toString();
 
-            //Log.e("Online Sts",""+preference.isOnline());
-            //Log.e("Command",mqttCommand);
+            List<String> ipList = new IPDb(context).ipList();
 
-            List<String> ipList=new IPDb(context).ipList();
-
-            if(ipList.contains(databaseHandler.getMasterIPBySlaveID(slave_hex_id))){
+            if (ipList.contains(switchList.get(position).getSlaveIP())) {
                 switchSelection.sendUDPCommand(mqttCommand);
+            } else {
+                new SendMQTTMsg(mqttCommand, switchList.get(position).getSlaveTopic()).execute();
             }
-            else {
-                new SendMQTTMsg(mqttCommand,databaseHandler.getSlaveTopic(slave_hex_id)).execute();
-            }
 
-            /*if(preference.isOnline() || (!preference.isOnline() && !preference.getCurrentIPAddr().equalsIgnoreCase(databaseHandler.getMasterIPBySlaveID(slave_hex_id)))){
-            }
-            else {
-
-            }*/
-
-
-        }
-        else {
-            Toast.makeText(context, "No internet connection found,\nplease check your connection first",
-                    Toast.LENGTH_SHORT).show();
+        } else {
+            C.Toast(context, "No internet connection found,\nplease check your connection first");
         }
 
         return msg;
@@ -655,6 +578,24 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
         notifyDataSetChanged();
     }
 
+    private int getSwitchIDForOnOff(int switchIconID, boolean on) {
+        int switchIconDrawable;
+        if (on) {
+            switchIconDrawable = R.drawable.fluorescent_bulb_on;
+        } else {
+            switchIconDrawable = R.drawable.fluorescent_bulb_off;
+        }
+
+        for (int i = 0; i < switchIconsList.size(); i++) {
+            if (switchIconsList.get(i).getIconid() == switchIconID) {
+                switchIconDrawable = on ? switchIconsList.get(i).getSwOnId() : switchIconsList.get(i).getSwOffId();
+                break;
+            }
+        }
+
+        return switchIconDrawable;
+    }
+
     public interface DimmerChangeCallBack {
         public void stopScrolling();
 
@@ -663,7 +604,7 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
         public void showOptionMenu(int position, View view);
     }
 
-    public interface OnSwitchSelection{
+    public interface OnSwitchSelection {
         void sendUDPCommand(String command);
     }
 
@@ -703,6 +644,5 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
             return null;
         }
     }
-
 
 }

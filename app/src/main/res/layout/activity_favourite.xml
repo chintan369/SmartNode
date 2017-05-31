@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
-    <android.support.v7.widget.Toolbar android:layout_width="match_parent"
-        android:background="#024c57"
-        android:layout_height="wrap_content"
-        android:id="@+id/toolbar"
-        xmlns:android="http://schemas.android.com/apk/res/android" >
+    <android.support.v7.widget.Toolbar xmlns:android="http://schemas.android.com/apk/res/android"
+                                       android:id="@+id/toolbar"
+                                       android:layout_width="match_parent"
+                                       android:layout_height="wrap_content"
+                                       android:background="#024c57">
 
         <!--<ImageView-->
             <!--android:layout_width="40dp"-->
@@ -17,13 +17,13 @@
 
 
         <TextView
+            android:id="@+id/txt_smartnode"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="14sp"
             android:padding="5dp"
-            android:textColor="#fff"
             android:text="FAVOURITES"
-            android:id="@+id/txt_smartnode"
+            android:textColor="#fff"
+            android:textSize="14sp"
             />
 
 
@@ -40,78 +40,71 @@
             android:layout_height="match_parent">
 
         <LinearLayout
+            android:id="@+id/hasFavoutites"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical"
             android:layout_weight="1"
-            android:id="@+id/hasFavoutites"
-            android:padding="10dp"
+            android:orientation="vertical"
             android:visibility="gone"
 
             >
             <LinearLayout
+                android:id="@+id/switch_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical"
                 android:layout_weight="1"
-                android:id="@+id/switch_view"
+                android:background="@color/white"
+                android:orientation="vertical"
                 >
-                <!--<TextView-->
-                    <!--android:layout_width="match_parent"-->
-                    <!--android:layout_height="wrap_content"-->
-                    <!--android:text="Switches"-->
-                    <!--android:textSize="18sp"-->
-                    <!--android:textColor="#024c57"-->
-                    <!--android:id="@+id/txt_switchlisting"-->
-                    <!--/>-->
 
                 <GridView
-                    android:layout_marginTop="5dp"
+                    android:id="@+id/added_switchlist"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_gravity="center"
-                    android:id="@+id/added_switchlist"
-                    android:numColumns="2"
-                    android:listSelector="@android:color/transparent"
+                    android:layout_marginTop="5dp"
+                    android:background="@color/white"
                     android:columnWidth="120dp"
-                    android:horizontalSpacing="0dp"
-                    android:verticalSpacing="4dp"
                     android:gravity="center"
-                    android:stretchMode="columnWidth"
+                    android:horizontalSpacing="0dp"
+                    android:listSelector="@android:color/transparent"
+                    android:numColumns="2"
                     android:padding="5dp"
+                    android:stretchMode="columnWidth"
+                    android:verticalSpacing="4dp"
                     />
 
             </LinearLayout>
             <LinearLayout
+                android:id="@+id/dimmer_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical"
                 android:layout_weight="1"
+                android:orientation="vertical"
                 android:visibility="gone"
-                android:id="@+id/dimmer_view"
                 >
                 <TextView
+                    android:id="@+id/txt_dimmerlisting"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Dimmers"
-                    android:textSize="18sp"
                     android:textColor="#024c57"
-                    android:id="@+id/txt_dimmerlisting"
+                    android:textSize="18sp"
                     />
 
                 <GridView
-                    android:layout_marginTop="5dp"
+                    android:id="@+id/added_dimmerlist"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_gravity="center"
-                    android:id="@+id/added_dimmerlist"
-                    android:numColumns="2"
+                    android:layout_marginTop="5dp"
                     android:columnWidth="120dp"
-                    android:horizontalSpacing="0dp"
-                    android:verticalSpacing="4dp"
                     android:gravity="center"
-                    android:stretchMode="columnWidth"
+                    android:horizontalSpacing="0dp"
+                    android:numColumns="2"
                     android:padding="5dp"
+                    android:stretchMode="columnWidth"
+                    android:verticalSpacing="4dp"
                     />
 
 
@@ -121,20 +114,20 @@
         </LinearLayout>
             <!--Layout for favourite not found-->
             <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                xmlns:tools="http://schemas.android.com/tools"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center"
-                android:id="@+id/favourite_not_found"
-                android:background="@drawable/background_gradient"
-                tools:context="com.example.seo.myapplication.ConfigurationActivity"
-                android:visibility="visible"
+                          xmlns:tools="http://schemas.android.com/tools"
+                          android:id="@+id/favourite_not_found"
+                          android:layout_width="match_parent"
+                          android:layout_height="match_parent"
+                          android:background="@drawable/background_gradient"
+                          android:gravity="center"
+                          android:visibility="visible"
+                          tools:context="com.example.seo.myapplication.ConfigurationActivity"
                 >
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
                     android:gravity="center"
+                    android:orientation="vertical"
                     >
                     <ImageView
                         android:layout_width="150dp"
@@ -142,20 +135,20 @@
                         android:src="@drawable/fav_not_found"
                         />
                     <TextView
+                        android:id="@+id/txt_1"
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
                         android:text="No Favourite Found"
                         android:textColor="#024c57"
                         android:textSize="14sp"
-                        android:id="@+id/txt_1"
                         />
                     <TextView
+                        android:id="@+id/txt_2"
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
                         android:text="Please Add Your Device To Favourite First"
                         android:textColor="#024c57"
                         android:textSize="14sp"
-                        android:id="@+id/txt_2"
                         />
 
 

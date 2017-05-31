@@ -21,6 +21,11 @@ public class Bean_Switch {
     String userLock="N";
     String touchLock="N";
     boolean isLoading = false;
+    String slaveTopic = "";
+    String slaveIP = "";
+    String slaveToken = "";
+    String slaveUserType = "";
+    String switchGroupName = "";
 
 
     public Bean_Switch() {
@@ -167,5 +172,45 @@ public class Bean_Switch {
 
     public void setLoading(boolean loading) {
         isLoading = loading;
+    }
+
+    public String getSlaveTopic() {
+        return slaveTopic;
+    }
+
+    public void setSlaveTopic(String slaveTopic) {
+        this.slaveTopic = slaveTopic;
+    }
+
+    public String getSlaveIP() {
+        return slaveIP;
+    }
+
+    public void setSlaveIP(String slaveIP) {
+        this.slaveIP = slaveIP;
+    }
+
+    public String getSlaveToken() {
+        return slaveToken;
+    }
+
+    public void setSlaveToken(String slaveToken) {
+        this.slaveToken = slaveToken;
+    }
+
+    public String getSlaveUserType() {
+        return slaveUserType;
+    }
+
+    public void setSlaveUserType(String slaveUserType) {
+        this.slaveUserType = slaveUserType;
+    }
+
+    public String getSwitchGroupName() {
+        return switchGroupName;
+    }
+
+    public void setSwitchGroupName(String switchGroupName) {
+        this.switchGroupName = switchGroupName;
     }
 }

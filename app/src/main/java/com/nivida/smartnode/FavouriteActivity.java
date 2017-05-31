@@ -101,7 +101,6 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
         preference=new AppPreference(getApplicationContext());
         netcheck=new NetworkUtility(getApplicationContext());
 
-
         startGroupService();
         startReceiver();
         getLiveSwitchStatus();
@@ -139,14 +138,14 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
     }
 
     private void startGroupService() {
-        if(!UDPServiceIsRunning()){
-            Intent intent = new Intent(this, UDPService.class);
-            startService(intent);
-        }
+
+        stopService(new Intent(this, UDPService.class));
+        Intent udpIntent = new Intent(this, UDPService.class);
+        startService(udpIntent);
 
         if(!serviceIsRunning()){
             Intent intent=new Intent(this, AddDeviceService.class);
-            //startService(intent);
+            startService(intent);
         }
     }
 
@@ -180,7 +179,7 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
                     subscribedMessage=bundle.getString(AddDeviceService.MESSAGETOSEND);
                     String UDPMessage=bundle.getString(UDPService.MESSAGEJSON);
 
-                    Log.e("JSOn fr group ", ""+subscribedMessage);
+                    Log.e("JSOn fr group ", "" + subscribedMessage + " " + UDPMessage);
                     if(UDPMessage!=null){
                         handleCommands(UDPMessage);
                     }
@@ -236,9 +235,9 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
                 dval=jsonDevice.getString("dval");
                 String msg=switchDimmerOnOffAdapter.setSwitchItem(slave_hex_id,button,val,dval);
 
-                if(msg.equalsIgnoreCase("success")){
+                /*if(msg.equalsIgnoreCase("success")){
                     switchDimmerOnOffAdapter.notifyDataSetChanged();
-                }
+                }*/
             }
             else if(cmd.equals("STS")){
                 //Log.e("Command :", "STS Found");
@@ -278,7 +277,7 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
                 try{
                     databaseHandler.updateSwitchTypes(slaveID, switchNum, type);
                 }catch (Exception e){
-                    C.connectionError(getApplicationContext());
+                    //C.connectionError(getApplicationContext());
                 }
 
                 switchDimmerOnOffAdapter.notifyIconChanged();
@@ -318,8 +317,7 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
                 }
 
 
-
-                switchDimmerOnOffAdapter.notifyDataSetChanged();
+                switchDimmerOnOffAdapter.notifyIconChanged();
             } else {
                 C.Toast(getApplicationContext(), "Failed to Perform Lock Operation!");
             }

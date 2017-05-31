@@ -27,17 +27,19 @@
 
 
     </android.support.v7.widget.Toolbar>
-        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:tools="http://schemas.android.com/tools"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_below="@id/toolbar"
-            tools:context="com.example.seo.myapplication.AddedGridListActivity">
+
+    <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/toolbar"
+        android:background="@color/white">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
+                android:background="@color/white"
                 android:orientation="vertical"
                 android:padding="10dp"
 
@@ -93,6 +95,7 @@
                         android:listSelector="@android:color/transparent"
                         android:numColumns="2"
                         android:padding="5dp"
+                        android:smoothScrollbar="true"
                         android:stretchMode="columnWidth"
                         android:verticalSpacing="4dp"
                         />

@@ -109,7 +109,7 @@ public class UDPService extends IntentService {
                                 serialIDs.put(object.getString("slave"), serials);
                                 String slaveID = object.getString("slave");
 
-                                if (count % 10 == 0) {
+                                if (count == 1 || count % 25 == 0) {
                                     db.setMasterSlaveIP(slaveID, recvpacket.getAddress().getHostAddress());
                                 }
 
@@ -124,12 +124,12 @@ public class UDPService extends IntentService {
                         if(isFirstCmd){
                             setMessageToActivity(text,recvpacket.getAddress().getHostAddress());
 
-                            Log.e("Packet :", "Received In Service");
-                            Log.e("Received IP :", recvpacket.getAddress().getHostAddress());
-                            if (count % 10 == 0) {
+                            //Log.e("Packet :", "Received In Service");
+                            //Log.e("Received IP :", recvpacket.getAddress().getHostAddress());
+                            if (count == 1 || count % 25 == 0) {
                                 new IPDb(this).addIP(recvpacket.getAddress().getHostAddress());
                             }
-                            Log.e("UDP Data :", text);
+                            //Log.e("UDP Data :", text);
                         }
                     }catch (Exception e){
                         Log.e("Exception",e.getMessage());

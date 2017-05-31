@@ -1291,6 +1291,25 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                         beanSwitch.setIsSwitch(cursor.getString(5));
                         beanSwitch.setDimmerValue(cursor.getInt(6));
                         beanSwitch.setSwitchInSlave(cursor.getString(7));
+
+                        Cursor slaveTopicCursor = db.query(TABLE_MASTER, new String[]{MASTER_TOPIC, MASTER_IP}, MASTER_ID + "=?", new String[]{cursor.getString(7)}, null, null, null);
+
+                        if (slaveTopicCursor.moveToFirst()) {
+                            beanSwitch.setSlaveTopic(slaveTopicCursor.getString(0));
+                            beanSwitch.setSlaveIP(slaveTopicCursor.getString(1));
+                        }
+
+                        slaveTopicCursor.close();
+
+                        Cursor slaveTokenCursor = db.query(TABLE_SLAVES, new String[]{SLAVE_TOKEN, SLAVE_USERTYPE}, SLAVE_HEX_ID + "=?", new String[]{cursor.getString(7)}, null, null, null);
+
+                        if (slaveTokenCursor.moveToFirst()) {
+                            beanSwitch.setSlaveToken(slaveTokenCursor.getString(0));
+                            beanSwitch.setSlaveUserType(slaveTokenCursor.getString(1));
+                        }
+
+                        slaveTokenCursor.close();
+
                         beanSwitch.setSwitch_btn_num(cursor.getString(8));
                         beanSwitch.setSwitch_icon(cursor.getInt(9));
                         beanSwitch.setUserLock(cursor.getString(10));
@@ -1745,10 +1764,38 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                         beanSwitch.setSwitch_name(cursor.getString(1));
                         beanSwitch.setIsSwitchOn(cursor.getInt(2));
                         beanSwitch.setSwitchInGroup(cursor.getInt(3));
+
+                        Cursor groupCursor = db.query(TABLE_GROUPS, new String[]{GROUP_NAME}, GROUP_GEN_ID + "=?", new String[]{String.valueOf(cursor.getInt(3))}, null, null, null, null);
+
+                        if (groupCursor.moveToFirst()) {
+                            beanSwitch.setSwitchGroupName(groupCursor.getString(0));
+                        }
+
+                        groupCursor.close();
+
                         beanSwitch.setIsFavourite(cursor.getInt(4));
                         beanSwitch.setIsSwitch(cursor.getString(5));
                         beanSwitch.setDimmerValue(cursor.getInt(6));
                         beanSwitch.setSwitchInSlave(cursor.getString(7));
+
+                        Cursor slaveTopicCursor = db.query(TABLE_MASTER, new String[]{MASTER_TOPIC, MASTER_IP}, MASTER_ID + "=?", new String[]{cursor.getString(7)}, null, null, null);
+
+                        if (slaveTopicCursor.moveToFirst()) {
+                            beanSwitch.setSlaveTopic(slaveTopicCursor.getString(0));
+                            beanSwitch.setSlaveIP(slaveTopicCursor.getString(1));
+                        }
+
+                        slaveTopicCursor.close();
+
+                        Cursor slaveTokenCursor = db.query(TABLE_SLAVES, new String[]{SLAVE_TOKEN, SLAVE_USERTYPE}, SLAVE_HEX_ID + "=?", new String[]{cursor.getString(7)}, null, null, null);
+
+                        if (slaveTokenCursor.moveToFirst()) {
+                            beanSwitch.setSlaveToken(slaveTokenCursor.getString(0));
+                            beanSwitch.setSlaveUserType(slaveTokenCursor.getString(1));
+                        }
+
+                        slaveTokenCursor.close();
+
                         beanSwitch.setSwitch_btn_num(cursor.getString(8));
                         beanSwitch.setSwitch_icon(cursor.getInt(9));
                         beanSwitch.setUserLock(cursor.getString(10));
