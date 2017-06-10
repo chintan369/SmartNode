@@ -22,6 +22,7 @@ import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -109,10 +110,16 @@ public class AddSwitchActivity extends AppCompatActivity {
     boolean isUserCredentialTrue = false;
     NetworkUtility netcheck;
 
-    boolean isSwitchesListed=false;
+    boolean isSwitchesListed = false;
+
+
+    Handler mHandler;
+    Runnable mRunnable;
+
+    ProgressDialog dialogForSTS;
 
     int key[] = {0x01, 0x01, 0x01, 0xAA, 0xAA, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01};
-    char[] keys={1,1,1,'A','A',1};
+    char[] keys = {1, 1, 1, 'A', 'A', 1};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -128,7 +135,41 @@ public class AddSwitchActivity extends AppCompatActivity {
         slave_hex_id = intent.getStringExtra("slave_hex_id");
         Log.e("slave_hex frm switch", slave_hex_id);
 
+        dialogForSTS = new ProgressDialog(this);
+        dialogForSTS.setMessage("Waiting for switches...");
+        dialogForSTS.setCancelable(false);
+        dialogForSTS.setOnKeyListener(new DialogInterface.OnKeyListener() {
+            @Override
+            public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+                if (keyCode == KeyEvent.KEYCODE_BACK) {
+                    if (mHandler != null) {
+                        mHandler.removeCallbacks(mRunnable);
+                    }
+                    dialogForSTS.dismiss();
+                    onBackPressed();
+                }
+                return false;
+            }
+        });
+        dialogForSTS.show();
+
+
+        mHandler = new Handler();
+        mRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (!isSwitchesListed && switchListToAdd.size() <= 0) {
+                    stopService(new Intent(getApplicationContext(), UDPService.class));
+                    startService(new Intent(getApplicationContext(), UDPService.class));
+                    sendSTSCommand();
+                    mHandler.postDelayed(this, 2000);
+                }
+            }
+        };
+
+        stopService(new Intent(this, UDPService.class));
         startService(new Intent(this, UDPService.class));
+        stopService(new Intent(this, AddDeviceService.class));
         startService(new Intent(this, AddDeviceService.class));
         //startAddSwitchService();
         startReceiver();
@@ -136,6 +177,18 @@ public class AddSwitchActivity extends AppCompatActivity {
         switchListAdapter = new SwitchListAdapter(getApplicationContext(), switchListToAdd);
         switchList.setAdapter(switchListAdapter);
 
+        JSONObject object = new JSONObject();
+        try {
+            object.put("cmd", Cmd.MST);
+            object.put("token", "aaaaaaaaaa");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+
+        //String sendMST=object.toString();
+
+        //new SendUDP(sendMST,"192.168.1.1").execute();
 
         //String STSCommand = AppConstant.START_CMD_STATUS_OF_SLAVE + slave_hex_id + AppConstant.CMD_KEY_TOKEN + databaseHandler.getSlaveToken(slave_hex_id) + AppConstant.END_CMD_STATUS_OF_SLAVE;
 
@@ -149,25 +202,27 @@ public class AddSwitchActivity extends AppCompatActivity {
 
     }
 
-    private void sendSTSCommand(){
-        JSONObject object=new JSONObject();
+    private void sendSTSCommand() {
+        JSONObject object = new JSONObject();
 
-        try{
+        try {
             object.put("cmd", Cmd.STS);
-            object.put("token",databaseHandler.getSlaveToken(slave_hex_id));
-            object.put("slave",slave_hex_id);
+            object.put("token", databaseHandler.getSlaveToken(slave_hex_id));
+            object.put("slave", slave_hex_id);
 
-            String slaveIP=databaseHandler.getMasterIPBySlaveID(slave_hex_id);
+            String slaveIP = databaseHandler.getMasterIPBySlaveID(slave_hex_id);
 
-            List<String> ipList=new IPDb(this).ipList();
+            List<String> ipList = new IPDb(this).ipList();
             if (ipList.contains(slaveIP)) {
-                Log.e("IP For Slave",slaveIP);
+                Log.e("IP Found", "true" + " " + slaveIP);
                 new SendUDP(object.toString(), slaveIP).execute();
             } else {
+                Log.e("IP Found", "false");
+                new SendUDP(object.toString(), slaveIP).execute();
                 new PublishMessage(object.toString()).execute();
             }
-        }catch (JSONException j){
-
+        } catch (JSONException j) {
+            Log.e("JExce", j.getMessage());
         }
     }
 
@@ -206,13 +261,14 @@ public class AddSwitchActivity extends AppCompatActivity {
                         return;
                     }
 
-                    String slaveIDIn=jsonDevice.getString("slave");
+                    String slaveIDIn = jsonDevice.getString("slave");
 
-                    if(!slaveIDIn.equals(slave_hex_id)){
+                    if (!slaveIDIn.equals(slave_hex_id)) {
                         return;
                     }
 
-                    isSwitchesListed=true;
+                    isSwitchesListed = true;
+                    dialogForSTS.dismiss();
 
                     String buttons = jsonDevice.getString("button");
                     button_list.clear();
@@ -228,7 +284,7 @@ public class AddSwitchActivity extends AppCompatActivity {
                         j++;
                     }
 
-                    databaseHandler.updateTotalSwitchInSlave(button_list.size(),slave_hex_id);
+                    databaseHandler.updateTotalSwitchInSlave(button_list.size(), slave_hex_id);
 
                     String dimmerValue = jsonDevice.getString("dval");
 
@@ -353,16 +409,10 @@ public class AddSwitchActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         registerReceiver(receiver, new IntentFilter(AddDeviceService.NOTIFICATION));
-        sendSTSCommand();
         if (!isSwitchesListed) {
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    if (!isSwitchesListed && switchListToAdd.size() <= 0) {
-                        sendSTSCommand();
-                    }
-                }
-            }, 5000);
+            sendSTSCommand();
+            mHandler.postDelayed(mRunnable, 2000);
+
         }
         Log.e("Reciever :", "Registered");
     }
@@ -488,17 +538,17 @@ public class AddSwitchActivity extends AppCompatActivity {
         final ArrayList<Integer> group_id = new ArrayList<>();
         for (int j = 0; j < masterGroupList.size() - 1; j++) {
             Bean_MasterGroup masterGroup = masterGroupList.get(j);
-            if(masterGroup.getId()!=100){
+            if (masterGroup.getId() != 100) {
                 group_names.add(masterGroup.getName());
                 group_id.add(masterGroup.getId());
             }
 
         }
 
-        if(group_names.size()==0){
-            RadioButton radioNew= (RadioButton)dialogView.findViewById(R.id.radio_new);
+        if (group_names.size() == 0) {
+            RadioButton radioNew = (RadioButton) dialogView.findViewById(R.id.radio_new);
             radioNew.setChecked(true);
-            ((RadioButton)dialogView.findViewById(R.id.radio_exist)).setEnabled(false);
+            ((RadioButton) dialogView.findViewById(R.id.radio_exist)).setEnabled(false);
         }
 
         adp_master_group = new ArrayAdapter<String>(getApplicationContext(), R.layout.custom_spinner_size, group_names);
@@ -533,7 +583,7 @@ public class AddSwitchActivity extends AppCompatActivity {
                     public void onClick(View view) {
                         int selected_group_id = radiogroup_type.getCheckedRadioButtonId();
                         final RadioButton rdo_selected = (RadioButton) dialogView.findViewById(selected_group_id);
-                        if (selected_group_id==R.id.radio_exist) {
+                        if (selected_group_id == R.id.radio_exist) {
                             String group_name = spinner_group.getSelectedItem().toString();
                             int position = spinner_group.getSelectedItemPosition();
 
@@ -545,34 +595,34 @@ public class AddSwitchActivity extends AppCompatActivity {
                             startActivity(intent);
                             finish();
                             /*databaseHandler.addDimmerstoGroup(group_id.get(position),checkedDimmers);*/
-                        } else if (selected_group_id==R.id.radio_new) {
+                        } else if (selected_group_id == R.id.radio_new) {
                             if (edt_groupname.getText().toString().trim().equals("")) {
                                 Toast.makeText(getApplicationContext(), "Please enter group name", Toast.LENGTH_SHORT).show();
                             } else if (add_group_icon == null) {
                                 Toast.makeText(getApplicationContext(), "Please select group image", Toast.LENGTH_SHORT).show();
                             } else {
 
-                                int groupCounts=databaseHandler.getGroupDataCounts();
+                                int groupCounts = databaseHandler.getGroupDataCounts();
 
                                 Bean_MasterGroup group = new Bean_MasterGroup();
-                                group.setId(databaseHandler.getGroupLastId()==99 ? databaseHandler.getGroupLastId()+2 : databaseHandler.getGroupLastId()+ 1);
+                                group.setId(databaseHandler.getGroupLastId() == 99 ? databaseHandler.getGroupLastId() + 2 : databaseHandler.getGroupLastId() + 1);
                                 group.setName(edt_groupname.getText().toString());
                                 group.setBitmap(add_group_icon);
-                                Log.e("Last ID stored","--"+databaseHandler.getGroupLastId());
+                                Log.e("Last ID stored", "--" + databaseHandler.getGroupLastId());
 
 
-                                if(groupCounts<2){
-                                   group.setId(1);
+                                if (groupCounts < 2) {
+                                    group.setId(1);
                                 }
 
                                 img_select_group.setDrawingCacheEnabled(true);
-                                String groupNameID=group.getName().replace(" ","_")+"_"+group.getId();
-                                String imagePath=C.saveGroupImageToLocal(img_select_group.getDrawingCache(),groupNameID);
+                                String groupNameID = group.getName().replace(" ", "_") + "_" + group.getId();
+                                String imagePath = C.saveGroupImageToLocal(img_select_group.getDrawingCache(), groupNameID);
                                 group.setImgLocalPath(imagePath);
 
                                 databaseHandler.addMasterGroupItem(group);
 
-                                Log.e("Last ID","--"+databaseHandler.getGroupLastId());
+                                Log.e("Last ID", "--" + databaseHandler.getGroupLastId());
 
                                 databaseHandler.addSwitchtoGroup(databaseHandler.getGroupLastId(), checkedSwitches);
                                 b.dismiss();
@@ -584,7 +634,6 @@ public class AddSwitchActivity extends AppCompatActivity {
                                 /*databaseHandler.addDimmerstoGroup(databaseHandler.getGroupLastId(),checkedDimmers);*/
                             }
                         }
-
 
 
                     }
@@ -602,27 +651,27 @@ public class AddSwitchActivity extends AppCompatActivity {
         b.show();
     }
 
-    private String saveGroupImageToLocal(Bitmap groupPic,String groupNameID) {
-        String imagePath="";
+    private String saveGroupImageToLocal(Bitmap groupPic, String groupNameID) {
+        String imagePath = "";
 
-        String rootDirectory= Environment.getExternalStorageDirectory()+"/SmartNode/Groups/";
-        File rootDir= new File(rootDirectory);
-        if(!rootDir.exists()) rootDir.mkdir();
+        String rootDirectory = Environment.getExternalStorageDirectory() + "/SmartNode/Groups/";
+        File rootDir = new File(rootDirectory);
+        if (!rootDir.exists()) rootDir.mkdir();
 
-        String imageName=groupNameID+".jpg";
+        String imageName = groupNameID + ".jpg";
 
-        File imageFile=new File(rootDir,imageName);
+        File imageFile = new File(rootDir, imageName);
 
         FileOutputStream fos = null;
         try {
             fos = new FileOutputStream(imageFile);
             // Use the compress method on the BitMap object to write image to the OutputStream
             groupPic.compress(Bitmap.CompressFormat.JPEG, 50, fos);
-            imagePath=imageFile.getAbsolutePath();
+            imagePath = imageFile.getAbsolutePath();
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            if(fos!=null) {
+            if (fos != null) {
                 try {
                     fos.close();
                 } catch (IOException e) {
@@ -696,11 +745,11 @@ public class AddSwitchActivity extends AppCompatActivity {
     }
 
     private void galleryIntent() {
-        if (Build.VERSION.SDK_INT <19){
+        if (Build.VERSION.SDK_INT < 19) {
             Intent intent = new Intent();
             intent.setType("image/*");
             intent.setAction(Intent.ACTION_GET_CONTENT);
-            startActivityForResult(Intent.createChooser(intent, "Select Picture"),SELECT_PICTURE);
+            startActivityForResult(Intent.createChooser(intent, "Select Picture"), SELECT_PICTURE);
         } else {
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -735,36 +784,33 @@ public class AddSwitchActivity extends AppCompatActivity {
 
         selectedImagePath = null;
 
-        if(resultCode==RESULT_OK && data.getData()!=null){
+        if (resultCode == RESULT_OK && data.getData() != null) {
             Uri originalUri = null;
             if (requestCode == SELECT_PICTURE) {
                 originalUri = data.getData();
-                String originalPath = ImagePath.getPath(getApplicationContext(),originalUri);
+                String originalPath = ImagePath.getPath(getApplicationContext(), originalUri);
 
-                Bitmap resizedBmp=resizeImage(originalPath);
-                if(resizedBmp==null){
+                Bitmap resizedBmp = resizeImage(originalPath);
+                if (resizedBmp == null) {
                     add_group_icon = decodeFile(originalPath);
-                    add_group_icon= Bitmap.createScaledBitmap(add_group_icon,90,90,false);
-                }
-                else {
-                    add_group_icon=resizedBmp;
+                    add_group_icon = Bitmap.createScaledBitmap(add_group_icon, 90, 90, false);
+                } else {
+                    add_group_icon = resizedBmp;
                 }
                 img_select_group.setImageBitmap(add_group_icon);
             } else if (requestCode == SELECT_PICTURE_KITKAT) {
                 originalUri = data.getData();
-                getContentResolver().takePersistableUriPermission(originalUri,(Intent.FLAG_GRANT_READ_URI_PERMISSION| Intent.FLAG_GRANT_WRITE_URI_PERMISSION));
-                String originalPath = ImagePath.getPath(getApplicationContext(),originalUri);
-                Bitmap resizedBmp=resizeImage(originalPath);
-                if(resizedBmp==null){
+                getContentResolver().takePersistableUriPermission(originalUri, (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION));
+                String originalPath = ImagePath.getPath(getApplicationContext(), originalUri);
+                Bitmap resizedBmp = resizeImage(originalPath);
+                if (resizedBmp == null) {
                     add_group_icon = decodeFile(originalPath);
-                    add_group_icon= Bitmap.createScaledBitmap(add_group_icon,90,90,false);
-                }
-                else {
-                    add_group_icon=resizedBmp;
+                    add_group_icon = Bitmap.createScaledBitmap(add_group_icon, 90, 90, false);
+                } else {
+                    add_group_icon = resizedBmp;
                 }
                 img_select_group.setImageBitmap(add_group_icon);
-            }
-            else if (requestCode == REQUEST_CAMERA) {
+            } else if (requestCode == REQUEST_CAMERA) {
                 onCaptureImageResult(data);
             }
             //String originalPath = ImagePath.getPath(getApplicationContext(),originalUri);
@@ -789,15 +835,14 @@ public class AddSwitchActivity extends AppCompatActivity {
     private void onCaptureImageResult(Intent data) {
         if (data != null) {
             Uri selectedImage = data.getData();
-            String originalPath = ImagePath.getPath(getApplicationContext(),selectedImage);
+            String originalPath = ImagePath.getPath(getApplicationContext(), selectedImage);
 
-            Bitmap resizedBmp=resizeImage(originalPath);
-            if(resizedBmp==null){
+            Bitmap resizedBmp = resizeImage(originalPath);
+            if (resizedBmp == null) {
                 add_group_icon = decodeFile(originalPath);
-                add_group_icon= Bitmap.createScaledBitmap(add_group_icon,90,90,false);
-            }
-            else {
-                add_group_icon=resizedBmp;
+                add_group_icon = Bitmap.createScaledBitmap(add_group_icon, 90, 90, false);
+            } else {
+                add_group_icon = resizedBmp;
             }
             img_select_group.setImageBitmap(add_group_icon);
             //performCropImage(selectedImage);
@@ -834,6 +879,10 @@ public class AddSwitchActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
+        if (mHandler != null) {
+            mHandler.removeCallbacks(mRunnable);
+        }
+        dialogForSTS.dismiss();
         if (preference.isFromDirectMaster()) {
             Intent intent = new Intent(getApplicationContext(), AddMasterActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -844,7 +893,13 @@ public class AddSwitchActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public boolean isFinishing() {
+        return super.isFinishing();
+    }
+
     public class PublishMessage extends AsyncTask<Void, Void, String> {
+
 
         public ProgressDialog statusDialog;
         String command = "";
@@ -919,7 +974,7 @@ public class AddSwitchActivity extends AppCompatActivity {
 
             try {
 
-                Log.e("Message",message);
+                Log.e("Message", message);
                 DatagramSocket socket = new DatagramSocket(13001);
                 byte[] senddata = new byte[message.length()];
                 senddata = message.getBytes();
@@ -929,16 +984,16 @@ public class AddSwitchActivity extends AppCompatActivity {
 
                 Log.e("IP Address", "->" + this.ipAddress);
 
-                Log.e("Brodacast IP",C.getBroadcastAddress(getApplicationContext()).getHostAddress());
+                Log.e("Brodacast IP", C.getBroadcastAddress(getApplicationContext()).getHostAddress());
 
                 /*if (this.ipAddress.isEmpty() || !C.isValidIP(this.ipAddress)) {*/
-                    server_addr = new InetSocketAddress(C.getBroadcastAddress(getApplicationContext()).getHostAddress(), 13001);
-                    //server_addr = new InetSocketAddress(ipAddress, 13001);
-                    packet = new DatagramPacket(senddata, senddata.length, server_addr);
-                    socket.setReuseAddress(true);
-                    socket.setBroadcast(true);
-                    socket.send(packet);
-                    Log.e("Packet", "Sent with IP");
+                server_addr = new InetSocketAddress(C.getBroadcastAddress(getApplicationContext()).getHostAddress(), 13001);
+                //server_addr = new InetSocketAddress(ipAddress, 13001);
+                packet = new DatagramPacket(senddata, senddata.length, server_addr);
+                socket.setReuseAddress(true);
+                socket.setBroadcast(true);
+                socket.send(packet);
+                Log.e("Packet", "Sent with IP");
                 /*} else {
                     server_addr = new InetSocketAddress(preference.getIpaddress(), 13001);
                     packet = new DatagramPacket(senddata, senddata.length, server_addr);

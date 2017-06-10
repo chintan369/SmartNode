@@ -1,5 +1,7 @@
 package com.nivida.smartnode.beans;
 
+import java.util.Date;
+
 /**
  * Created by Chintak Patel on 18-Jul-16.
  */
@@ -26,6 +28,8 @@ public class Bean_Switch {
     String slaveToken = "";
     String slaveUserType = "";
     String switchGroupName = "";
+    Date time;
+    String lastCommand = "";
 
 
     public Bean_Switch() {
@@ -212,5 +216,21 @@ public class Bean_Switch {
 
     public void setSwitchGroupName(String switchGroupName) {
         this.switchGroupName = switchGroupName;
+    }
+
+    public Date getTime() {
+        return time;
+    }
+
+    public void setTime(Date time) {
+        this.time = time;
+    }
+
+    public String getLastCommand() {
+        return lastCommand;
+    }
+
+    public void setLastCommand(String lastCommand) {
+        this.lastCommand = lastCommand;
     }
 }

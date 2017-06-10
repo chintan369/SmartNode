@@ -13,7 +13,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
-import android.os.Looper;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -312,7 +311,7 @@ public class SplashActivity extends AppCompatActivity {
     }
 
     public void run() {
-        Looper.prepare();
+        //Looper.prepare();
         try {
             WifiManager.MulticastLock lock = null;
             WifiManager wifi;

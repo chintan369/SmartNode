@@ -126,7 +126,7 @@ public class UDPService extends IntentService {
 
                             //Log.e("Packet :", "Received In Service");
                             //Log.e("Received IP :", recvpacket.getAddress().getHostAddress());
-                            if (count == 1 || count % 25 == 0) {
+                            if (count < 10 || count % 25 == 0) {
                                 ipDb.addIP(recvpacket.getAddress().getHostAddress());
                             }
                             //Log.e("UDP Data :", text);

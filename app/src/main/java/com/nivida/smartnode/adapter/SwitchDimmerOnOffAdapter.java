@@ -3,6 +3,7 @@ package com.nivida.smartnode.adapter;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Handler;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -39,7 +40,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Chintak Patel on 23-Jul-16.
@@ -63,6 +66,8 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
     List<Bean_SwitchIcons> switchIconsList = new ArrayList<>();
     List<String> ipList = new ArrayList<>();
     boolean allowToNotifyChange = true;
+    Handler mHandler;
+    Runnable mRunnable;
     private DimmerChangeCallBack callback;
     private int callCount = 0;
 
@@ -727,6 +732,7 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
 
             if (beanSwitch.getSwitchInSlave().equals(slave_hex_id)) {
                 if (beanSwitch.getSwitch_btn_num().equals(button)) {
+                    switchList.get(i).setLastCommand("");
                     switchList.get(i).setLoading(false);
                     if (isOn.equalsIgnoreCase("A")) {
                         switchList.get(i).setIsSwitchOn(1);
@@ -765,6 +771,7 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
         try {
             if (netcheck.isOnline()) {
                 callCount++;
+                switchList.get(position).setTime(new Date());
                 switchList.get(position).setLoading(true);
                 notifyDataSetChanged();
 
@@ -791,6 +798,8 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
                 object.put("data", mqttCommand);
 
                 String command = object.toString();
+
+                switchList.get(position).setLastCommand(command);
 
                 //Log.e("Online Sts", "" + preference.isOnline());
                 //Log.e("Command", command);
@@ -830,6 +839,7 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
 
 
         if (netcheck.isOnline()) {
+            switchList.get(position).setTime(new Date());
             switchList.get(position).setLoading(true);
             notifyDataSetChanged();
 
@@ -850,8 +860,10 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
             }
 
             String mqttCommand = object.toString();
-
-            List<String> ipList = new IPDb(context).ipList();
+            switchList.get(position).setLastCommand(mqttCommand);
+            if (callCount % 50 == 0) {
+                ipList = new IPDb(context).ipList();
+            }
 
             if (ipList.contains(switchList.get(position).getSlaveIP())) {
                 switchSelection.sendUDPCommand(mqttCommand);
@@ -903,6 +915,7 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
                 } else {
                     switchList.get(i).setUserLock(sts);
                 }
+                switchList.get(i).setLastCommand("");
                 switchList.get(i).setLoading(false);
 
                 notifyDataSetChanged();
@@ -910,6 +923,44 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
             }
         }
 
+    }
+
+    public void startToCheckResendCommands() {
+        final int MESSAGE_RESEND_DELAY = 3500;
+        mHandler = new Handler();
+        mRunnable = new Runnable() {
+            @Override
+            public void run() {
+                for (int i = 0; i < switchList.size(); i++) {
+                    if (switchList.get(i).isLoading()) {
+                        long diffInMs = new Date().getTime() - switchList.get(i).getTime().getTime();
+                        long diffInSec = TimeUnit.MILLISECONDS.toSeconds(diffInMs);
+
+                        if (diffInSec > 3 && !switchList.get(i).getLastCommand().isEmpty()) {
+                            if (callCount % 50 == 0) {
+                                ipList = new IPDb(context).ipList();
+                            }
+
+                            String command = switchList.get(i).getLastCommand();
+
+                            if (ipList.contains(switchList.get(i).getSlaveIP())) {
+                                switchSelection.sendUDPCommand(command);
+                            } else {
+                                new SendMQTTMsg(command, switchList.get(i).getSlaveTopic()).execute();
+                            }
+                        }
+                    }
+                }
+                mHandler.postDelayed(this, MESSAGE_RESEND_DELAY);
+            }
+        };
+        mHandler.postDelayed(mRunnable, MESSAGE_RESEND_DELAY);
+    }
+
+    public void stopToCheckResendCommand() {
+        if (mHandler != null) {
+            mHandler.removeCallbacks(mRunnable);
+        }
     }
 
     public interface DimmerChangeCallBack {

@@ -154,6 +154,7 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
             switchDimmerOnOffAdapter = new SwitchDimmerOnOffAdapter(getApplicationContext(), databaseHandler.getAllSwitchesByGroupId(groupid),
                     Globals.GROUP, this);
             switchDimmerOnOffAdapter.setCallBack(this);
+            switchDimmerOnOffAdapter.startToCheckResendCommands();
         } catch (Exception e) {
             //C.connectionError(getApplicationContext());
         }
@@ -764,6 +765,7 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
 
     @Override
     public void onBackPressed() {
+        switchDimmerOnOffAdapter.stopToCheckResendCommand();
         Intent intent = new Intent(getApplicationContext(), MasterGroupActivity.class);
         startActivity(intent);
         finish();
