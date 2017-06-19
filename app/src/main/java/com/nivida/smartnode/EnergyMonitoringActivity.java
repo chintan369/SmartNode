@@ -157,6 +157,12 @@ public class EnergyMonitoringActivity extends AppCompatActivity implements Energ
         try {
             JSONObject object = new JSONObject(message);
             String cmd = object.getString("cmd");
+
+            if (cmd.equals(Cmd.INTERNET)) {
+                C.Toast(getApplicationContext(), object.getString("message"));
+                return;
+            }
+
             if (cmd.equals(Cmd.ENR)) {
                 String slaveID = object.getString("slave");
 

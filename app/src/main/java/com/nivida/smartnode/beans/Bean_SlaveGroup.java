@@ -16,6 +16,7 @@ public class Bean_SlaveGroup {
     String slaveTopic="";
     String slaveToken="";
     String slaveUserType="";
+    String masterDeviceID = "";
 
     public Bean_SlaveGroup() {
     }
@@ -103,5 +104,13 @@ public class Bean_SlaveGroup {
 
     public void setSlaveUserType(String slaveUserType) {
         this.slaveUserType = slaveUserType;
+    }
+
+    public String getMasterDeviceID() {
+        return masterDeviceID;
+    }
+
+    public void setMasterDeviceID(String masterDeviceID) {
+        this.masterDeviceID = masterDeviceID;
     }
 }

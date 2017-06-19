@@ -30,6 +30,7 @@ public class Bean_Switch {
     String switchGroupName = "";
     Date time;
     String lastCommand = "";
+    boolean isDeviceOffline = false;
 
 
     public Bean_Switch() {
@@ -232,5 +233,13 @@ public class Bean_Switch {
 
     public void setLastCommand(String lastCommand) {
         this.lastCommand = lastCommand;
+    }
+
+    public boolean isDeviceOffline() {
+        return isDeviceOffline;
+    }
+
+    public void setDeviceOffline(boolean deviceOffline) {
+        isDeviceOffline = deviceOffline;
     }
 }

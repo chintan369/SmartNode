@@ -3,17 +3,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-    <android.support.v7.widget.Toolbar xmlns:android="http://schemas.android.com/apk/res/android"
-                                       android:id="@+id/toolbar"
-                                       android:layout_width="match_parent"
-                                       android:layout_height="wrap_content"
-                                       android:background="#024c57">
-
-        <!--<ImageView-->
-            <!--android:layout_width="40dp"-->
-            <!--android:layout_height="40dp"-->
-            <!--android:padding="3dp"-->
-            <!--android:src="@drawable/logo"/>-->
+    <android.support.v7.widget.Toolbar
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#024c57">
 
         <TextView
             android:id="@+id/txt_smartnode"
@@ -25,6 +20,26 @@
             android:textSize="14sp"
             />
 
+        <LinearLayout
+            android:id="@+id/btn_select_scene"
+            android:layout_width="wrap_content"
+            android:layout_height="45dp"
+            android:layout_gravity="end"
+            android:background="@color/colorPrimary"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/txt_scenes1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="10dp"
+                android:text="SCENES"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"/>
+
+        </LinearLayout>
+
 
     </android.support.v7.widget.Toolbar>
 
@@ -35,86 +50,82 @@
         android:layout_below="@id/toolbar"
         android:background="@color/white">
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@color/white"
+            android:orientation="vertical"
+            android:padding="5dp"
+
+            >
+
             <LinearLayout
+                android:id="@+id/switch_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:background="@color/white"
                 android:orientation="vertical"
-                android:padding="10dp"
-
                 >
+
                 <LinearLayout
-                    android:id="@+id/switch_view"
+                    android:id="@+id/btn_select_scene1"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    >
-                    <LinearLayout
-                        android:id="@+id/btn_select_scene"
-                        android:layout_width="match_parent"
-                        android:layout_height="45dp"
-                        android:background="@color/colorPrimary"
-                        android:gravity="center"
-                        android:orientation="horizontal">
+                    android:layout_height="45dp"
+                    android:background="@color/colorPrimary"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:visibility="gone">
 
-                        <ImageView
-                            android:layout_width="40dp"
-                            android:layout_height="match_parent"
-                            android:padding="10dp"
-                            android:src="@drawable/scene"/>
-
-                        <TextView
-                            android:id="@+id/txt_scenes"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:padding="10dp"
-                            android:text="SCENES"
-                            android:textColor="#FFFFFF"
-                            android:textSize="13sp"/>
-
-                        <ImageView
-                            android:layout_width="40dp"
-                            android:layout_height="match_parent"
-                            android:padding="10dp"
-                            android:src="@drawable/scene"/>
-
-                    </LinearLayout>
-
-                    <android.support.v7.widget.RecyclerView
-                        android:id="@+id/recyclerView"
-                        android:layout_width="match_parent"
+                    <ImageView
+                        android:layout_width="40dp"
                         android:layout_height="match_parent"
-                        android:scrollbars="vertical"/>
+                        android:padding="10dp"
+                        android:src="@drawable/scene"/>
 
-                    <GridView
-                        android:id="@+id/added_switchlist"
-                        android:layout_width="match_parent"
+                    <TextView
+                        android:id="@+id/txt_scenes"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:padding="10dp"
+                        android:text="SCENES"
+                        android:textColor="#FFFFFF"
+                        android:textSize="13sp"/>
+
+                    <ImageView
+                        android:layout_width="40dp"
                         android:layout_height="match_parent"
-                        android:layout_gravity="center"
-                        android:layout_marginTop="5dp"
-                        android:background="@color/white"
-                        android:columnWidth="120dp"
-                        android:gravity="center"
-                        android:horizontalSpacing="4dp"
-                        android:listSelector="@android:color/transparent"
-                        android:numColumns="2"
-                        android:padding="5dp"
-                        android:smoothScrollbar="true"
-                        android:stretchMode="columnWidth"
-                        android:verticalSpacing="4dp"
-                        />
+                        android:padding="10dp"
+                        android:src="@drawable/scene"/>
 
                 </LinearLayout>
-                <View
+
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/recyclerView"
                     android:layout_width="match_parent"
-                    android:layout_height="0.5dp"
-                    android:layout_marginBottom="2dp"
-                    android:layout_marginTop="2dp"
-                    android:background="#666"
+                    android:layout_height="match_parent"
+                    android:scrollbars="vertical"/>
+
+                <GridView
+                    android:id="@+id/added_switchlist"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="5dp"
+                    android:background="@color/white"
+                    android:columnWidth="120dp"
+                    android:gravity="center"
+                    android:horizontalSpacing="4dp"
+                    android:listSelector="@android:color/transparent"
+                    android:numColumns="2"
+                    android:padding="5dp"
+                    android:smoothScrollbar="true"
+                    android:stretchMode="columnWidth"
+                    android:verticalSpacing="4dp"
                     />
 
             </LinearLayout>
+
         </LinearLayout>
+    </LinearLayout>
 </RelativeLayout>

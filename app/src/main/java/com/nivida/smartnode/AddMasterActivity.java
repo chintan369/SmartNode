@@ -27,6 +27,7 @@ import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -50,10 +51,10 @@ import com.nivida.smartnode.adapter.CustomAdapter;
 import com.nivida.smartnode.adapter.MasterDeviceAdapter;
 import com.nivida.smartnode.app.AppConstant;
 import com.nivida.smartnode.app.AppPreference;
+import com.nivida.smartnode.app.SmartNode;
 import com.nivida.smartnode.beans.Bean_Master;
 import com.nivida.smartnode.beans.Bean_SlaveGroup;
 import com.nivida.smartnode.model.DatabaseHandler;
-import com.nivida.smartnode.model.IPDb;
 import com.nivida.smartnode.services.AddMasterService;
 import com.nivida.smartnode.services.UDPService;
 import com.nivida.smartnode.utils.NetworkUtility;
@@ -97,7 +98,7 @@ public class AddMasterActivity extends AppCompatActivity {
     String masterNameForRename = "";
     ProgressBar progressbar;
     ProgressDialog dialog;
-    boolean isDialogShowing=false;
+    boolean isDialogShowing = false;
     DatagramSocket client_socket;
     AlertDialog.Builder dialogBuilder;
     AlertDialog b;
@@ -106,20 +107,24 @@ public class AddMasterActivity extends AppCompatActivity {
     String subscribedMessage = "";
     BroadcastReceiver receiver;
     boolean isUserCredentialTrue = false;
-    String selectedMasterName="";
-    String masterType="";
+    String selectedMasterName = "";
+    String masterType = "";
+    String selectedMasterDeviceID = "";
     ArrayAdapter<String> spn_adp;
     ArrayList<String> master_names = new ArrayList<>();
-    ArrayList<String> master_ips=new ArrayList<>();
-    ArrayList<String> master_deviceIDs=new ArrayList<>();
-    String ipAddress="";
+    ArrayList<String> master_ips = new ArrayList<>();
+    ArrayList<String> master_deviceIDs = new ArrayList<>();
+    String ipAddress = "";
     ConnectivityManager manager;
-    boolean isCalledToShowMST=false;
-    String[] perms = { Manifest.permission.SYSTEM_ALERT_WINDOW,Manifest.permission.WRITE_SETTINGS,Manifest.permission.WRITE_SECURE_SETTINGS,Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_PHONE_STATE,Manifest.permission.ACCESS_NETWORK_STATE};
+    boolean isCalledToShowMST = false;
+    String[] perms = {Manifest.permission.SYSTEM_ALERT_WINDOW, Manifest.permission.WRITE_SETTINGS, Manifest.permission.WRITE_SECURE_SETTINGS, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_PHONE_STATE, Manifest.permission.ACCESS_NETWORK_STATE};
+    ProgressDialog renameProgressDialog;
+    Handler renameHandler;
+    Runnable renameRunnable;
     private AppPreference preference;
     private boolean isDrawerOpen = false;
     private NetworkUtility netcheck;
-    private int code=1;
+    private int code = 1;
 
     public static boolean isMarshmallowPlusDevice() {
 
@@ -152,13 +157,30 @@ public class AddMasterActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_master);
         tf = Typeface.createFromAsset(getAssets(), "fonts/raleway.ttf");
-        dialog=new ProgressDialog(this);
+        dialog = new ProgressDialog(this);
         dialog.setTitle("Please Wait");
         dialog.setIndeterminate(true);
         dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
 
+        renameProgressDialog = new ProgressDialog(this);
+        renameProgressDialog.setMessage("Renaming Device");
+        renameProgressDialog.setIndeterminate(true);
+        renameProgressDialog.setCancelable(false);
 
-        if(isMarshmallowPlusDevice())
+        renameProgressDialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
+            @Override
+            public boolean onKey(DialogInterface dialogInterface, int i, KeyEvent keyEvent) {
+                if (i == KeyEvent.KEYCODE_BACK) {
+                    renameProgressDialog.dismiss();
+                    masteridForRename = 0;
+                    masterNameForRename = "";
+                }
+                return true;
+            }
+        });
+
+
+        if (isMarshmallowPlusDevice())
             isPermissionRequestRequired(this, perms, code);
 
         manager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
@@ -194,54 +216,56 @@ public class AddMasterActivity extends AppCompatActivity {
             public void onReceive(Context context, Intent intent) {
                 Bundle bundle = intent.getExtras();
                 String master_name = "";
-                if(dialog.isShowing())
+                if (dialog.isShowing())
                     dialog.dismiss();
                 if (bundle != null) {
 
                     subscribedMessage = bundle.getString(AddMasterService.MESSAGETOSEND);
 
 
-                    String UDPMessage=bundle.getString(UDPService.MESSAGEJSON);
-                    ipAddress=bundle.getString(UDPService.DEVICEIP);
+                    String UDPMessage = bundle.getString(UDPService.MESSAGEJSON);
+                    ipAddress = bundle.getString(UDPService.DEVICEIP);
 
-                    if(UDPMessage!=null && UDPMessage.equalsIgnoreCase(Status.ERROR)){
-                        C.Toast(getApplicationContext(),Status.ERRORMSG);
-                    }
-                    else if(UDPMessage!=null){
+                    if (UDPMessage != null && UDPMessage.equalsIgnoreCase(Status.ERROR)) {
+                        C.Toast(getApplicationContext(), Status.ERRORMSG);
+                    } else if (UDPMessage != null) {
                         try {
-                            JSONObject object=new JSONObject(UDPMessage);
+                            JSONObject object = new JSONObject(UDPMessage);
 
-                            String command=object.getString("cmd");
-                            if(command.equalsIgnoreCase(Cmd.MST)){
-                                Log.e("json",object.getString("m_name"));
+                            String command = object.getString("cmd");
+                            if (command.equals(Cmd.INTERNET)) {
+                                C.Toast(getApplicationContext(), object.getString("message"));
+                                return;
+                            }
 
-                                String deviceID=String.valueOf(object.getInt("device_id"));
+                            if (command.equalsIgnoreCase(Cmd.MST)) {
+                                Log.e("json", object.getString("m_name"));
 
-                                if(!master_deviceIDs.contains(deviceID)){
+                                String deviceID = String.valueOf(object.getInt("device_id"));
 
-                                    Log.e("Master Device ID","New One");
+                                if (!master_deviceIDs.contains(deviceID)) {
+
+                                    //Log.e("Master Device ID","New One");
 
                                     master_names.add(object.getString("m_name"));
                                     master_ips.add(ipAddress);
                                     master_deviceIDs.add(deviceID);
                                     spn_adp.notifyDataSetChanged();
                                 }
-                                if(b==null || !b.isShowing()){
-                                    if(isCalledToShowMST)
-                                    {
+                                if (b == null || !b.isShowing()) {
+                                    if (isCalledToShowMST) {
                                         showDialog(object.getString("type"));
                                     }
                                 }
 
                                 //master_names.clear();
 
-                            }
-                            else if(command.equalsIgnoreCase(Cmd.LIN) && !b.isShowing()){
-                                String status=object.getString("status");
-                                Log.e("Status",status+"->");
-                                if(status.equalsIgnoreCase(Status.SUCCESS) && !selectedMasterName.isEmpty()){
-                                    Bean_Master master=new Bean_Master();
-                                    master.setId(databaseHandler.getLastIDForMaster()+1);
+                            } else if (command.equalsIgnoreCase(Cmd.LIN) && !b.isShowing()) {
+                                String status = object.getString("status");
+                                Log.e("Status", status + "->");
+                                if (status.equalsIgnoreCase(Status.SUCCESS) && !selectedMasterName.isEmpty()) {
+                                    Bean_Master master = new Bean_Master();
+                                    master.setId(databaseHandler.getLastIDForMaster() + 1);
                                     master.setName(selectedMasterName);
                                     master.setType(object.getString("type"));
                                     master.setTopic(object.getString("topic"));
@@ -249,20 +273,20 @@ public class AddMasterActivity extends AppCompatActivity {
                                     master.setMasterID(object.getString("slave"));
                                     master.setIpAddress(ipAddress);
                                     master.setUserType(Cmd.LIN);
+                                    master.setDeviceID(selectedMasterDeviceID);
                                     preference.setToken(object.getString("token"));
                                     preference.setTopic(object.getString("topic"));
                                     preference.setMasterUser(true);
 
-                                    if(!databaseHandler.isMasterAdded(master.getMasterID())){
+                                    if (!databaseHandler.isMasterAdded(master.getMasterID())) {
                                         databaseHandler.addMasterDeviceItem(master);
 
-                                        if(object.getString("type").equalsIgnoreCase(Status.STANDALONE)){
-                                            Bean_SlaveGroup beanSlaveGroup=new Bean_SlaveGroup();
-                                            if(databaseHandler.getSlaveDataCounts()==1){
+                                        if (object.getString("type").equalsIgnoreCase(Status.STANDALONE)) {
+                                            Bean_SlaveGroup beanSlaveGroup = new Bean_SlaveGroup();
+                                            if (databaseHandler.getSlaveDataCounts() == 1) {
                                                 beanSlaveGroup.setId(1);
-                                            }
-                                            else {
-                                                beanSlaveGroup.setId(databaseHandler.getSlaveLastId()+1);
+                                            } else {
+                                                beanSlaveGroup.setId(databaseHandler.getSlaveLastId() + 1);
                                             }
                                             beanSlaveGroup.setName(selectedMasterName);
                                             beanSlaveGroup.setHasSwitches("0");
@@ -272,29 +296,29 @@ public class AddMasterActivity extends AppCompatActivity {
                                             beanSlaveGroup.setSlaveToken(object.getString("token"));
                                             beanSlaveGroup.setSlaveTopic(object.getString("topic"));
                                             beanSlaveGroup.setSlaveUserType(Cmd.LIN);
+                                            beanSlaveGroup.setMasterDeviceID(selectedMasterDeviceID);
 
-                                            Log.e("master ID",databaseHandler.getLastIDForMaster()+"->");
+                                            Log.e("master ID", databaseHandler.getLastIDForMaster() + "->");
                                             databaseHandler.addSlaveItem(beanSlaveGroup);
                                         }
-                                        C.Toast(getApplicationContext(),"Device Added Successfully");
-                                        selectedMasterName="";
+                                        C.Toast(getApplicationContext(), "Device Added Successfully");
+                                        selectedMasterName = "";
+                                        selectedMasterDeviceID = "";
                                     }
                                     masterDeviceAdapter.notifyDataSetChanged();
-                                    if(databaseHandler.getMastersCounts()>1){
+                                    if (databaseHandler.getMastersCounts() > 1) {
                                         layout_no_addedslave.setVisibility(View.GONE);
                                         layout_addedslave.setVisibility(View.VISIBLE);
                                     }
+                                } else if (status.equalsIgnoreCase(Status.ERROR)) {
+                                    C.Toast(getApplicationContext(), "Invalid Username or PIN you entered!");
                                 }
-                                else if(status.equalsIgnoreCase(Status.ERROR)){
-                                    C.Toast(getApplicationContext(),"Invalid Username or PIN you entered!");
-                                }
-                            }
-                            else if(command.equalsIgnoreCase(Cmd.ULN) && !b.isShowing()){
-                                String status=object.getString("status");
-                                Log.e("Status",status+"->");
-                                if(status.equalsIgnoreCase(Status.SUCCESS) && !selectedMasterName.isEmpty()){
-                                    Bean_Master master=new Bean_Master();
-                                    master.setId(databaseHandler.getLastIDForMaster()+1);
+                            } else if (command.equalsIgnoreCase(Cmd.ULN) && !b.isShowing()) {
+                                String status = object.getString("status");
+                                Log.e("Status", status + "->");
+                                if (status.equalsIgnoreCase(Status.SUCCESS) && !selectedMasterName.isEmpty()) {
+                                    Bean_Master master = new Bean_Master();
+                                    master.setId(databaseHandler.getLastIDForMaster() + 1);
                                     master.setName(selectedMasterName);
                                     master.setType(object.getString("type"));
                                     master.setTopic(object.getString("topic"));
@@ -302,22 +326,22 @@ public class AddMasterActivity extends AppCompatActivity {
                                     master.setMasterID(object.getString("slave"));
                                     master.setIpAddress(ipAddress);
                                     master.setUserType(Cmd.ULN);
+                                    master.setDeviceID(selectedMasterDeviceID);
                                     preference.setToken(object.getString("token"));
 
-                                    Log.e("Topic","->"+object.getString("topic"));
+                                    Log.e("Topic", "->" + object.getString("topic"));
                                     preference.setTopic(object.getString("topic"));
                                     preference.setMasterUser(false);
 
-                                    if(!databaseHandler.isMasterAdded(master.getMasterID())){
+                                    if (!databaseHandler.isMasterAdded(master.getMasterID())) {
                                         databaseHandler.addMasterDeviceItem(master);
 
-                                        if(object.getString("type").equalsIgnoreCase(Status.STANDALONE)){
-                                            Bean_SlaveGroup beanSlaveGroup=new Bean_SlaveGroup();
-                                            if(databaseHandler.getSlaveDataCounts()==1){
+                                        if (object.getString("type").equalsIgnoreCase(Status.STANDALONE)) {
+                                            Bean_SlaveGroup beanSlaveGroup = new Bean_SlaveGroup();
+                                            if (databaseHandler.getSlaveDataCounts() == 1) {
                                                 beanSlaveGroup.setId(1);
-                                            }
-                                            else {
-                                                beanSlaveGroup.setId(databaseHandler.getSlaveLastId()+1);
+                                            } else {
+                                                beanSlaveGroup.setId(databaseHandler.getSlaveLastId() + 1);
                                             }
                                             beanSlaveGroup.setName(selectedMasterName);
                                             beanSlaveGroup.setHasSwitches("0");
@@ -327,59 +351,79 @@ public class AddMasterActivity extends AppCompatActivity {
                                             beanSlaveGroup.setSlaveToken(object.getString("token"));
                                             beanSlaveGroup.setSlaveTopic(object.getString("topic"));
                                             beanSlaveGroup.setSlaveUserType(Cmd.ULN);
+                                            beanSlaveGroup.setMasterDeviceID(selectedMasterDeviceID);
 
-                                            Log.e("master ID",databaseHandler.getLastIDForMaster()+"->");
+                                            Log.e("master ID", databaseHandler.getLastIDForMaster() + "->");
                                             databaseHandler.addSlaveItem(beanSlaveGroup);
                                         }
-                                        C.Toast(getApplicationContext(),"Device Added Successfully");
-                                        selectedMasterName="";
+                                        C.Toast(getApplicationContext(), "Device Added Successfully");
+                                        selectedMasterName = "";
+                                        selectedMasterDeviceID = "";
                                     }
                                     masterDeviceAdapter.notifyDataSetChanged();
-                                    if(databaseHandler.getMastersCounts()>1){
+                                    if (databaseHandler.getMastersCounts() > 1) {
                                         layout_no_addedslave.setVisibility(View.GONE);
                                         layout_addedslave.setVisibility(View.VISIBLE);
                                     }
+                                } else if (status.equalsIgnoreCase(Status.ERROR)) {
+                                    C.Toast(getApplicationContext(), "Invalid Username or PIN you entered!");
                                 }
-                                else if(status.equalsIgnoreCase(Status.ERROR)){
-                                    C.Toast(getApplicationContext(),"Invalid Username or PIN you entered!");
-                                }
-                            }
-                            else if(command.equalsIgnoreCase(Cmd.MRN)){
-                                String status=object.getString("status");
+                            } else if (command.equalsIgnoreCase(Cmd.MRN)) {
+                                String status = object.getString("status");
+                                renameProgressDialog.dismiss();
 
-                                if(status.equalsIgnoreCase(Status.SUCCESS)){
+                                if (status.equalsIgnoreCase(Status.SUCCESS)) {
                                     if (!masterNameForRename.isEmpty()) {
                                         databaseHandler.renameMaster(masteridForRename, masterNameForRename);
                                         masterDeviceAdapter.notifyDataSetChanged();
                                     }
+                                } else {
+                                    C.Toast(getApplicationContext(), "Failed to Rename Device!");
                                 }
-                            }
-                            else{
-                                //C.Toast(getApplicationContext(),UDPMessage);
+
+                                masteridForRename = 0;
+                                masterNameForRename = "";
+                            } else {
+                                //C.Toast(getApplicationContext(),"Failed to Rename Device");
                             }
 
                         } catch (JSONException e) {
                             e.printStackTrace();
-                            Log.e("Exception",e.getMessage());
+                            Log.e("Exception", e.getMessage());
                         }
-                    }
-                    else if (subscribedMessage == null || subscribedMessage.equals("")) {
+                    } else if (subscribedMessage == null || subscribedMessage.equals("")) {
                         //Toast.makeText(getApplicationContext(), "Sorry, Device is not ready yet.", Toast.LENGTH_SHORT).show();
                         master_name = "No Master Found";
                     } else {
                         try {
                             JSONObject jsonMaster = new JSONObject(subscribedMessage);
                             String cmd = jsonMaster.getString("cmd");
+
+                            if (cmd.equals(Cmd.INTERNET)) {
+                                C.Toast(getApplicationContext(), jsonMaster.getString("message"));
+                                return;
+                            }
+
                             if (cmd.equalsIgnoreCase("MST")) {
                                 master_name = jsonMaster.getString("m_name");
                             } else if (cmd.equalsIgnoreCase("MRN")) {
                                 String status = jsonMaster.getString("status");
+                                renameProgressDialog.dismiss();
+                                if (renameHandler != null) {
+                                    renameHandler.removeCallbacks(renameRunnable);
+                                }
                                 if (status.equalsIgnoreCase("success")) {
                                     if (masteridForRename != 0 && !masterNameForRename.equals("")) {
                                         databaseHandler.renameMaster(masteridForRename, masterNameForRename);
                                         masterDeviceAdapter.notifyDataSetChanged();
                                     }
+                                } else {
+                                    C.Toast(getApplicationContext(), "Failed to Rename Device!");
                                 }
+
+                                masteridForRename = 0;
+                                masterNameForRename = "";
+
                             }
                         } catch (JSONException e) {
                             Log.e("JSON Message : ", e.getMessage());
@@ -436,7 +480,7 @@ public class AddMasterActivity extends AppCompatActivity {
     }
 
     private void fetchid() {
-        progressbar=(ProgressBar) findViewById(R.id.progressbar);
+        progressbar = (ProgressBar) findViewById(R.id.progressbar);
 
         txt_smartnode = (TextView) findViewById(R.id.txt_smartnode);
         txt_1 = (TextView) findViewById(R.id.txt_1);
@@ -490,9 +534,9 @@ public class AddMasterActivity extends AppCompatActivity {
                     //showAddNewSlaveDialog();
                 } else {
                     Log.d("M_id", String.valueOf(masterid));
-                    boolean isMaster=masterDeviceAdapter.isMasterType(position);
+                    boolean isMaster = masterDeviceAdapter.isMasterType(position);
 
-                    if(isMaster){
+                    if (isMaster) {
                         Intent i = new Intent(getApplicationContext(), AddSlaveActivity.class);
                         preference.setMasterNameForDevice(databaseHandler.getMasterNameById(masterid));
                         preference.setMasterIDForDevice(masterid);
@@ -500,13 +544,13 @@ public class AddMasterActivity extends AppCompatActivity {
                         preference.setSlaveActivityFromMaster(true);
                         preference.setFromDirectMaster(false);
                         finish();
-                    }
-                    else {
-                        String slave_hexID=databaseHandler.getSlaveHexIdForMaster(masterid);
-                        Log.e("Slave HEX ID",slave_hexID);
+                    } else {
+                        String slave_hexID = databaseHandler.getSlaveHexIdForMaster(masterid);
+                        Log.e("Slave HEX ID", slave_hexID);
                         Intent i = new Intent(getApplicationContext(), AddSwitchActivity.class);
                         i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                        i.putExtra("slave_hex_id",slave_hexID);
+                        i.putExtra("slave_hex_id", slave_hexID);
+                        i.putExtra("master_name", databaseHandler.getMasterNameById(masterid));
                         startActivity(i);
                         preference.setFromDirectMaster(true);
                         finish();
@@ -520,7 +564,7 @@ public class AddMasterActivity extends AppCompatActivity {
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
                 final int master_id = databaseHandler.getMasterDeviceIdAtCurrentPosition(position);
                 final String master_name = databaseHandler.getMasterNameById(master_id);
-                final String masterLocalIP=databaseHandler.getMasterIPById(master_id);
+                final String masterLocalIP = databaseHandler.getMasterIPById(master_id);
 
                 if (master_id == 200) {
                     return false;
@@ -535,7 +579,7 @@ public class AddMasterActivity extends AppCompatActivity {
 
                             switch (item.getItemId()) {
                                 case R.id.rename:
-                                    showRenameMasterDialog(master_id, master_name,masterLocalIP);
+                                    showRenameMasterDialog(master_id, master_name, masterLocalIP);
                                     break;
                                 case R.id.remove:
                                     showRemoveMasterDialog(master_id);
@@ -680,38 +724,63 @@ public class AddMasterActivity extends AppCompatActivity {
                                 C.Toast(AddMasterActivity.this, "Device name already exists\nplease enter different Device name");
                             } else {
 
-                                String renameMaster=edt_device_name.getText().toString().trim();
+                                renameProgressDialog.show();
 
-                                String command="";
+                                String renameMaster = edt_device_name.getText().toString().trim();
 
-                                String slaveID=databaseHandler.getSlaveHexIdForMaster(master_id);
+                                String command = "";
 
-                                JSONObject object=new JSONObject();
+                                final String slaveID = databaseHandler.getSlaveHexIdForMaster(master_id);
+
+                                JSONObject object = new JSONObject();
                                 try {
-                                    object.put("cmd",Cmd.MRN);
-                                    object.put("data",renameMaster);
+                                    object.put("cmd", Cmd.MRN);
+                                    object.put("data", renameMaster);
                                     object.put("slave", slaveID);
-                                    object.put("token",databaseHandler.getSlaveToken(slaveID));
-                                    command=object.toString();
+                                    object.put("token", databaseHandler.getSlaveToken(slaveID));
+                                    command = object.toString();
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
 
-                                List<String> ipList=new IPDb(getApplicationContext()).ipList();
-
-                                Log.e("Command",command);
-
-                                if(ipList.contains(databaseHandler.getMasterIPBySlaveID(slaveID))){
-                                    new SendUDP(command).execute();
-                                }
-                                else {
-                                    new SendRenameForMaster(command).execute();
-                                }
-
-                                //Log.e("MRN cmd",sts);
+                                Log.e("Command", command);
 
                                 masteridForRename = master_id;
                                 masterNameForRename = renameMaster;
+
+                                if (SmartNode.slavesInLocal.contains(slaveID)) {
+                                    new SendUDP(command).execute();
+                                } else {
+                                    new SendRenameForMaster(databaseHandler.getSlaveTopic(slaveID), command).execute();
+                                }
+
+                                int DELAY_TIME = 5000;
+                                if (SmartNode.slavesInLocal.contains(slaveID)) DELAY_TIME = 500;
+
+                                renameHandler = new Handler();
+                                final String finalCommand = command;
+                                final int finalDELAY_TIME = DELAY_TIME;
+                                renameRunnable = new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        if (renameProgressDialog.isShowing()) {
+                                            Log.e("Command", finalCommand);
+                                            if (SmartNode.slavesInLocal.contains(slaveID)) {
+                                                Log.e("Sent", "UDP");
+                                                new SendUDP(finalCommand).execute();
+                                            } else {
+                                                Log.e("Sent", "MQTT");
+                                                new SendRenameForMaster(databaseHandler.getSlaveTopic(slaveID), finalCommand).execute();
+                                            }
+                                            renameHandler.postDelayed(this, finalDELAY_TIME);
+                                        } else {
+                                            renameHandler.removeCallbacks(renameRunnable);
+                                        }
+                                    }
+                                };
+                                renameHandler.postDelayed(renameRunnable, DELAY_TIME);
+
+                                //Log.e("MRN cmd",sts);
 
                                 b.dismiss();
                             }
@@ -729,25 +798,24 @@ public class AddMasterActivity extends AppCompatActivity {
 
     private void fetchMasterDeviceFromServer() {
         if (netcheck.isOnline()) {
-            if(manager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).isConnectedOrConnecting()){
-                if(!dialog.isShowing())
+            if (manager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).isConnectedOrConnecting()) {
+                if (!dialog.isShowing())
                     dialog.show();
-                isCalledToShowMST=true;
+                isCalledToShowMST = true;
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        if(dialog.isShowing()){
+                        if (dialog.isShowing()) {
                             stopService(new Intent(getApplicationContext(), UDPService.class));
                             startService(new Intent(getApplicationContext(), UDPService.class));
-                            Log.e("Started","--");
-                            new SendUDP(AppConstant.CMD_GET_MASTER_TOKEN,true).execute();
+                            Log.e("Started", "--");
+                            new SendUDP(AppConstant.CMD_GET_MASTER_TOKEN, true).execute();
                         }
                     }
-                },10000);
-                new SendUDP(AppConstant.CMD_GET_MASTER_TOKEN,true).execute();
-            }
-            else {
-                C.Toast(getApplicationContext(),"Please Connect to Wi-Fi First to Add Device");
+                }, 1000);
+                new SendUDP(AppConstant.CMD_GET_MASTER_TOKEN, true).execute();
+            } else {
+                C.Toast(getApplicationContext(), "Please Connect to Wi-Fi First to Add Device");
             }
         } else {
             Toast.makeText(getApplicationContext(), "No connection found,\nplease check your connection first",
@@ -760,8 +828,8 @@ public class AddMasterActivity extends AppCompatActivity {
     }
 
     private void showAddNewSlaveDialog(final String type) {
-        isCalledToShowMST=false;
-        isDialogShowing=true;
+        isCalledToShowMST = false;
+        isDialogShowing = true;
         dialogBuilder = new AlertDialog.Builder(this);
         dialogBuilder.setCancelable(false);
         LayoutInflater inflater = this.getLayoutInflater();
@@ -773,7 +841,7 @@ public class AddMasterActivity extends AppCompatActivity {
 
         final TextView txt_name = (TextView) dialogView.findViewById(R.id.txt_slave_name);
         final Spinner spn_master = (Spinner) dialogView.findViewById(R.id.spn_master);
-        final RadioGroup rdo_userType=(RadioGroup) dialogView.findViewById(R.id.radiogroup_type);
+        final RadioGroup rdo_userType = (RadioGroup) dialogView.findViewById(R.id.radiogroup_type);
         final EditText edt_username = (EditText) dialogView.findViewById(R.id.edt_username);
         final EditText edt_pin = (EditText) dialogView.findViewById(R.id.edt_pin);
 
@@ -791,7 +859,7 @@ public class AddMasterActivity extends AppCompatActivity {
                 btn_cancel.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        isDialogShowing=false;
+                        isDialogShowing = false;
                         master_names.clear();
                         master_ips.clear();
                         master_deviceIDs.clear();
@@ -806,7 +874,7 @@ public class AddMasterActivity extends AppCompatActivity {
                             Toast.makeText(getApplicationContext(), "No master found on server\nplease check connection first", Toast.LENGTH_SHORT).show();
                         } else if (spn_master.getSelectedItem().toString().contains("No Master")) {
                             Toast.makeText(getApplicationContext(), "Please select Master", Toast.LENGTH_SHORT).show();
-                        } else if (databaseHandler.isSameMasterName(spn_master.getSelectedItem().toString())) {
+                        } else if (databaseHandler.isSameMasterName(master_deviceIDs.get(spn_master.getSelectedItemPosition()))) {
                             Toast.makeText(getApplicationContext(), "Master you selected is already added\nplease select another Master", Toast.LENGTH_SHORT).show();
                         } else {
 
@@ -826,65 +894,39 @@ public class AddMasterActivity extends AppCompatActivity {
                                         C.Toast(getApplicationContext(), "Please enter User Name");
                                     } else if (pin.isEmpty()) {
                                         C.Toast(getApplicationContext(), "Please enter User PIN");
-                                    } else if (pin.length()<4){
-                                        C.Toast(getApplicationContext(),"Please enter 4 Digit PIN");
-                                    }else {
+                                    } else if (pin.length() < 4) {
+                                        C.Toast(getApplicationContext(), "Please enter 4 Digit PIN");
+                                    } else {
 
-                                        String loginCommand="";
+                                        String loginCommand = "";
 
-                                        JSONObject loginObj=new JSONObject();
+                                        JSONObject loginObj = new JSONObject();
 
                                         try {
-                                            if(rdo_userType.getCheckedRadioButtonId()==R.id.radio_admin){
-                                                //loginCommand=AppConstant.CMD_ADMIN_LOGIN_1+username
-                                                        //+AppConstant.CMD_ADMIN_LOGIN_2+pin+AppConstant.CMD_ADMIN_LOGIN_3;
-                                                loginObj.put("cmd",Cmd.LIN);
-                                            }
-                                            else if(rdo_userType.getCheckedRadioButtonId()==R.id.radio_guest){
-                                                //loginCommand=AppConstant.CMD_GUEST_LOGIN_1+username
-                                                        //+AppConstant.CMD_GUEST_LOGIN_2+pin+AppConstant.CMD_GUEST_LOGIN_3;
-                                                loginObj.put("cmd",Cmd.ULN);
+                                            if (rdo_userType.getCheckedRadioButtonId() == R.id.radio_admin) {
+                                                loginObj.put("cmd", Cmd.LIN);
+                                            } else if (rdo_userType.getCheckedRadioButtonId() == R.id.radio_guest) {
+                                                loginObj.put("cmd", Cmd.ULN);
                                             }
 
-                                            loginObj.put("user",username);
-                                            loginObj.put("pin",pin);
-                                            loginObj.put("device_id",master_deviceIDs.get(spn_master.getSelectedItemPosition()));
+                                            loginObj.put("user", username);
+                                            loginObj.put("pin", pin);
+                                            loginObj.put("device_id", master_deviceIDs.get(spn_master.getSelectedItemPosition()));
                                         } catch (JSONException e) {
                                             e.printStackTrace();
                                         }
 
-                                        loginCommand=loginObj.toString();
-                                        Log.e("loginCmd",loginCommand);
+                                        loginCommand = loginObj.toString();
+                                        Log.e("loginCmd", loginCommand);
 
-                                        int positionSelectedMaster=spn_master.getSelectedItemPosition();
+                                        int positionSelectedMaster = spn_master.getSelectedItemPosition();
 
-                                        new SendUDP(loginCommand,spn_master.getSelectedItem().toString(),type,master_ips.get(positionSelectedMaster)).execute();
+                                        new SendUDP(loginCommand, spn_master.getSelectedItem().toString(), type, master_ips.get(positionSelectedMaster), master_deviceIDs.get(positionSelectedMaster)).execute();
                                         b.dismiss();
                                         master_names.clear();
                                         master_ips.clear();
                                         master_deviceIDs.clear();
-                                        isDialogShowing=false;
-
-                                        /*Bean_Master bean_master = new Bean_Master();
-                                        if (databaseHandler.getMastersCounts() == 1) {
-                                            bean_master.setId(1);
-                                        } else {
-                                            bean_master.setId(databaseHandler.getMasterDeviceLastId() + 1);
-                                        }
-                                        bean_master.setName(spn_master.getSelectedItem().toString());
-
-                                        databaseHandler.addMasterDeviceItem(bean_master);
-
-                                        masterDeviceAdapter.notifyDataSetChanged();
-
-                                        if (databaseHandler.getMastersCounts() > 1) {
-                                            layout_no_addedslave.setVisibility(View.GONE);
-                                            layout_addedslave.setVisibility(View.VISIBLE);
-                                        }
-                                        Toast.makeText(getApplicationContext(), "Master Added Successfully", Toast.LENGTH_SHORT).show();
-                                        b.dismiss();
-                                    } else {
-                                        Toast.makeText(getApplicationContext(), "Please enter correct username and password", Toast.LENGTH_SHORT).show();*/
+                                        isDialogShowing = false;
                                     }
                                 }
                             });
@@ -1066,10 +1108,11 @@ public class AddMasterActivity extends AppCompatActivity {
             //progressbar.setVisibility(View.VISIBLE);
         }
 
-        public SendUDP(String message, String masterName, String type, String ipAddress) {
+        public SendUDP(String message, String masterName, String type, String ipAddress, String masterDevID) {
             this.message = message;
             this.masterName = masterName;
             selectedMasterName = masterName;
+            selectedMasterDeviceID = masterDevID;
             masterType = type;
             this.type = type;
             showMaster = false;
@@ -1093,35 +1136,12 @@ public class AddMasterActivity extends AppCompatActivity {
                 InetSocketAddress server_addr;
                 DatagramPacket packet;
 
-                //Log.e("IP Address Saved","->"+preference.getIpaddress());
-
-                /*if (preference.getIpaddress().isEmpty() || !C.isValidIP(preference.getIpaddress())) {*/
-
-                /*if (showMaster) {*/
-                    server_addr = new InetSocketAddress(C.getBroadcastAddress(getApplicationContext()).getHostAddress(), 13001);
-                    packet = new DatagramPacket(senddata, senddata.length, server_addr);
-                    socket.setReuseAddress(true);
-                    socket.setBroadcast(true);
-                    socket.send(packet);
-                    Log.e("Packet", "Sent");
-                /*} else {
-                    server_addr = new InetSocketAddress(this.ipAddress, 13001);
-                    Log.e("IP Address", this.ipAddress);
-                    preference.setIpaddress(this.ipAddress);
-                    packet = new DatagramPacket(senddata, senddata.length, server_addr);
-                    socket.setReuseAddress(true);
-                    socket.setBroadcast(true);
-                    socket.send(packet);
-                    Log.e("Packet", "Sent");
-                }*/
-                /*} else {
-                    server_addr = new InetSocketAddress(preference.getIpaddress(), 13001);
-                    packet = new DatagramPacket(senddata, senddata.length, server_addr);
-                    socket.setReuseAddress(true);
-                    //socket.setBroadcast(true);
-                    socket.send(packet);
-                    Log.e("Packet","Sent");
-                }*/
+                server_addr = new InetSocketAddress(C.getBroadcastAddress(getApplicationContext()).getHostAddress(), 13001);
+                packet = new DatagramPacket(senddata, senddata.length, server_addr);
+                socket.setReuseAddress(true);
+                socket.setBroadcast(true);
+                socket.send(packet);
+                Log.e("Packet", "Sent");
 
                 socket.disconnect();
                 socket.close();
@@ -1140,46 +1160,6 @@ public class AddMasterActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String text) {
             super.onPostExecute(text);
-            //progressbar.setVisibility(View.GONE);
-
-            /*Log.e("text", "<->" + text);
-
-            if (text != null) {
-                try {
-                    master_names.clear();
-                    JSONObject jsonMaster = new JSONObject(text);
-                    String cmd = jsonMaster.getString("cmd");
-                    if (cmd.equalsIgnoreCase("MST")) {
-                        master_names.add(jsonMaster.getString("m_name"));
-                        spn_adp.notifyDataSetChanged();
-
-                        if (master_names.size() > 0) {
-                            showDialog(jsonMaster.getString("type"));
-                        } else {
-                            C.Toast(getApplicationContext(), "No Device Found");
-                        }
-                    } else if (cmd.equalsIgnoreCase("MRN")) {
-                        String status = jsonMaster.getString("status");
-                        if (status.equalsIgnoreCase("success")) {
-                            if (masteridForRename != 0 && !masterNameForRename.equals("")) {
-                                databaseHandler.renameMaster(masteridForRename, masterNameForRename);
-                                masterDeviceAdapter.notifyDataSetChanged();
-                            }
-                        }
-                    }
-                    else if(cmd.equalsIgnoreCase("LIN")){
-                      String status=jsonMaster.getString("status");
-                        if(status.equalsIgnoreCase("success")){
-
-                        }
-                    }
-
-                } catch (Exception j) {
-                    C.Toast(getApplicationContext(), j.getLocalizedMessage());
-                }
-            }*/
-
-
         }
     }
 
@@ -1218,9 +1198,11 @@ public class AddMasterActivity extends AppCompatActivity {
 
         public ProgressDialog statusDialog;
         String masterName;
+        String topic = "";
 
-        public SendRenameForMaster(String masterName) {
+        public SendRenameForMaster(String topic, String masterName) {
             this.masterName = masterName;
+            this.topic = topic;
         }
 
         @Override
@@ -1229,7 +1211,7 @@ public class AddMasterActivity extends AppCompatActivity {
             statusDialog.setMessage("Please wait...");
             statusDialog.setIndeterminate(false);
             statusDialog.setCancelable(false);
-            statusDialog.show();
+            //statusDialog.show();
         }
 
         @Override
@@ -1242,10 +1224,11 @@ public class AddMasterActivity extends AppCompatActivity {
                 connectOptions.setUserName(AppConstant.MQTT_USERNAME);
                 connectOptions.setPassword(AppConstant.getPassword());
                 mqttClient.connect(connectOptions);
+                mqttClient.subscribe(topic + AppConstant.MQTT_SUBSCRIBE_TOPIC);
                 //String renameCommand = AppConstant.START_CMD_RENAME_MASTER + masterName+AppConstant.CMD_KEY_TOKEN+databaseHandler.getSlaveToken(databaseHandler.getSlaveHexIdForMaster(masteridForRename)) + AppConstant.END_CMD_RENAME_MASTER;
                 MqttMessage mqttMessage = new MqttMessage(masterName.getBytes());
                 mqttMessage.setRetained(true);
-                mqttClient.publish(AppConstant.MQTT_PUBLISH_TOPIC, mqttMessage);
+                mqttClient.publish(topic + AppConstant.MQTT_PUBLISH_TOPIC, mqttMessage);
                 isDone = "1";
                 mqttClient.disconnect();
 
@@ -1253,6 +1236,8 @@ public class AddMasterActivity extends AppCompatActivity {
                 Log.e("Exception : ", e.getMessage());
                 Toast.makeText(getApplicationContext(), "Unable to make server connection", Toast.LENGTH_SHORT).show();
                 e.printStackTrace();
+            } catch (Exception e) {
+                Log.e("Exception", e.getMessage());
             }
 
             return isDone;
@@ -1260,7 +1245,7 @@ public class AddMasterActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(String s) {
-            statusDialog.dismiss();
+            //statusDialog.dismiss();
         }
     }
 }

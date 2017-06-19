@@ -1,7 +1,5 @@
 package com.nivida.smartnode.beans;
 
-import android.graphics.Bitmap;
-
 /**
  * Created by Chintak Patel on 14-Jul-16.
  */
@@ -16,6 +14,7 @@ public class Bean_Master {
     String userType="";
     String masterID="";
     String ipAddress="";
+    String deviceID = "";
 
     public Bean_Master() {
     }
@@ -96,5 +95,13 @@ public class Bean_Master {
 
     public void setIpAddress(String ipAddress) {
         this.ipAddress = ipAddress;
+    }
+
+    public String getDeviceID() {
+        return deviceID;
+    }
+
+    public void setDeviceID(String deviceID) {
+        this.deviceID = deviceID;
     }
 }

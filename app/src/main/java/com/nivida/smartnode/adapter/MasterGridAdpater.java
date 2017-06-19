@@ -1,31 +1,19 @@
 package com.nivida.smartnode.adapter;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.graphics.Bitmap;
-import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.BaseAdapter;
-import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.github.siyamed.shapeimageview.CircularImageView;
-import com.nivida.smartnode.GroupSwitchOnOffActivity;
-import com.nivida.smartnode.MasterGroupActivity;
 import com.nivida.smartnode.R;
 import com.nivida.smartnode.beans.Bean_MasterGroup;
 import com.nivida.smartnode.model.DatabaseHandler;
-import com.nivida.smartnode.utils.BitmapUtility;
 
 import java.io.File;
 import java.util.List;
@@ -35,11 +23,11 @@ import java.util.List;
  */
 public class MasterGridAdpater extends BaseAdapter {
 
+    private static int RESULT_LOAD_IMAGE = 1;
+    public Bitmap imageToGroup = null;
     Context context;
     Activity activity;
     List<Bean_MasterGroup> masterGroupList;
-    private static int RESULT_LOAD_IMAGE = 1;
-    public Bitmap imageToGroup=null;
     private DatabaseHandler handler;
     private MasterGridCallBack callback;
 
@@ -113,11 +101,7 @@ public class MasterGridAdpater extends BaseAdapter {
 
         txt_item.setText(masterGroup.getName());
 
-        view.setClickable(true);
-
-        view.setLongClickable(true);
-
-        view.setOnClickListener(new View.OnClickListener() {
+        /*view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
@@ -131,18 +115,19 @@ public class MasterGridAdpater extends BaseAdapter {
                 }
                 else {
                     if(handler.hasSwitchesInGroup(masterGroup.getId())>0){
+                        System.gc();
                         Intent intent=new Intent(context,GroupSwitchOnOffActivity.class);
                         intent.putExtra("group_id",masterGroup.getId());
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         context.startActivity(intent);
-                        activity.finish();
+                        Log.e("Activity","Started");
                     }
                     else {
                         Toast.makeText(context,"No switch / dimmer in this group",Toast.LENGTH_SHORT).show();
                     }
                 }
             }
-        });
+        });*/
 
         return view;
     }
@@ -151,14 +136,14 @@ public class MasterGridAdpater extends BaseAdapter {
         this.callback=masterGridCallBack;
     }
 
-    public interface MasterGridCallBack{
-        public void showDialog();
-    }
-
     @Override
     public void notifyDataSetChanged() {
         masterGroupList.clear();
         masterGroupList=handler.getAllMasterGroupData();
         super.notifyDataSetChanged();
+    }
+
+    public interface MasterGridCallBack {
+        public void showDialog();
     }
 }

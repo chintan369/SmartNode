@@ -44,10 +44,10 @@ import com.nivida.smartnode.adapter.DimmerListAdapter;
 import com.nivida.smartnode.adapter.SwitchListAdapter;
 import com.nivida.smartnode.app.AppConstant;
 import com.nivida.smartnode.app.AppPreference;
+import com.nivida.smartnode.app.SmartNode;
 import com.nivida.smartnode.beans.Bean_MasterGroup;
 import com.nivida.smartnode.beans.Bean_Switch;
 import com.nivida.smartnode.model.DatabaseHandler;
-import com.nivida.smartnode.model.IPDb;
 import com.nivida.smartnode.services.AddDeviceService;
 import com.nivida.smartnode.services.UDPService;
 import com.nivida.smartnode.utils.ImagePath;
@@ -82,6 +82,7 @@ public class AddSwitchActivity extends AppCompatActivity {
     private static final int REQUEST_CAMERA = 0;
     private static final int RESULT_IMAGE_LOAD = 1;
     private static final int REQUEST_CROP_ICON = 2;
+    private static final int[] CHECK_STS_DELAY = {2000};
     ListView switchList, dimmerList;
     Toolbar toolbar;
     TextView txt_smartnode, txt_switchlisting, txt_cancel, txt_addtogroup;
@@ -95,6 +96,7 @@ public class AddSwitchActivity extends AppCompatActivity {
     String userChoosenTask = "";
     String selectedImagePath;
     String slave_hex_id = "";
+    String masterName = "";
     DatabaseHandler databaseHandler;
     AppPreference preference;
     ArrayList<String> button_list = new ArrayList<>();
@@ -133,6 +135,7 @@ public class AddSwitchActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
         slave_hex_id = intent.getStringExtra("slave_hex_id");
+        masterName = intent.getStringExtra("master_name");
         Log.e("slave_hex frm switch", slave_hex_id);
 
         dialogForSTS = new ProgressDialog(this);
@@ -162,7 +165,7 @@ public class AddSwitchActivity extends AppCompatActivity {
                     stopService(new Intent(getApplicationContext(), UDPService.class));
                     startService(new Intent(getApplicationContext(), UDPService.class));
                     sendSTSCommand();
-                    mHandler.postDelayed(this, 2000);
+                    mHandler.postDelayed(this, CHECK_STS_DELAY[0]);
                 }
             }
         };
@@ -195,6 +198,7 @@ public class AddSwitchActivity extends AppCompatActivity {
 
         //generateSwitchDataFromJSON();
         fetchid();
+        txt_smartnode.setText(masterName + " (" + txt_smartnode.getText().toString() + ")");
         txt_smartnode.setTypeface(tf);
         txt_switchlisting.setTypeface(tf);
         txt_cancel.setTypeface(tf);
@@ -210,15 +214,15 @@ public class AddSwitchActivity extends AppCompatActivity {
             object.put("token", databaseHandler.getSlaveToken(slave_hex_id));
             object.put("slave", slave_hex_id);
 
-            String slaveIP = databaseHandler.getMasterIPBySlaveID(slave_hex_id);
+            String deviceID = databaseHandler.getDeviceIDForSlaveHex(slave_hex_id);
 
-            List<String> ipList = new IPDb(this).ipList();
-            if (ipList.contains(slaveIP)) {
-                Log.e("IP Found", "true" + " " + slaveIP);
-                new SendUDP(object.toString(), slaveIP).execute();
+            if (SmartNode.deviceIDs.contains(deviceID)) {
+                CHECK_STS_DELAY[0] = 2000;
+                new SendUDP(object.toString(), "").execute();
             } else {
+                CHECK_STS_DELAY[0] = 5000;
                 Log.e("IP Found", "false");
-                new SendUDP(object.toString(), slaveIP).execute();
+                new SendUDP(object.toString(), "").execute();
                 new PublishMessage(object.toString()).execute();
             }
         } catch (JSONException j) {
@@ -254,6 +258,11 @@ public class AddSwitchActivity extends AppCompatActivity {
             try {
                 JSONObject jsonDevice = new JSONObject(subscribedMessage);
                 String cmd = jsonDevice.getString("cmd");
+                if (cmd.equals(Cmd.INTERNET)) {
+                    C.Toast(getApplicationContext(), jsonDevice.getString("message"));
+                    return;
+                }
+
                 if (cmd.equals("STS") && !isSwitchesListed) {
 
                     if (jsonDevice.has("status") && jsonDevice.getString("status").contains(Status.ERROR)) {
@@ -411,7 +420,7 @@ public class AddSwitchActivity extends AppCompatActivity {
         registerReceiver(receiver, new IntentFilter(AddDeviceService.NOTIFICATION));
         if (!isSwitchesListed) {
             sendSTSCommand();
-            mHandler.postDelayed(mRunnable, 2000);
+            mHandler.postDelayed(mRunnable, CHECK_STS_DELAY[0]);
 
         }
         Log.e("Reciever :", "Registered");

@@ -1,5 +1,6 @@
 package com.nivida.smartnode;
 
+import android.annotation.TargetApi;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -10,13 +11,15 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SimpleItemAnimator;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
@@ -33,12 +36,13 @@ import com.nivida.smartnode.a.Status;
 import com.nivida.smartnode.adapter.CustomSwitchIconAdapter;
 import com.nivida.smartnode.adapter.DimmerOnOffAdapter;
 import com.nivida.smartnode.adapter.SwitchDimmerOnOffAdapter;
+import com.nivida.smartnode.adapter.SwitchDimmerRecyclerAdapter;
 import com.nivida.smartnode.adapter.SwitchOnOffAdapter;
 import com.nivida.smartnode.app.AppConstant;
 import com.nivida.smartnode.app.AppPreference;
+import com.nivida.smartnode.app.SmartNode;
 import com.nivida.smartnode.beans.Bean_Switch;
 import com.nivida.smartnode.model.DatabaseHandler;
-import com.nivida.smartnode.model.IPDb;
 import com.nivida.smartnode.services.AddDeviceService;
 import com.nivida.smartnode.services.UDPService;
 import com.nivida.smartnode.utils.NetworkUtility;
@@ -48,6 +52,7 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -65,6 +70,7 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
 
     //Define MQTT variables here
     public static final String SERVICE_CLASSNAME = "com.nivida.smartnode.services.AddDeviceService";
+    private static final int[] CHECK_STS_AGAIN_TIME_INTERVEL = {5000};
     RecyclerView switchView;
     SwitchOnOffAdapter switchOnOffAdapter;
     DimmerOnOffAdapter dimmerOnOffAdapter;
@@ -75,7 +81,6 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
     GridView added_switchlist,added_dimmerlist;
     Toolbar toolbar;
     AppPreference preference;
-    SwitchDimmerOnOffAdapter switchDimmerOnOffAdapter;
     MqttClient mqttClient;
     String clientId="";
     String subscribedMessage="";
@@ -93,10 +98,15 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
 
     List<String> slaveIds = new ArrayList<>();
 
+    SwitchDimmerRecyclerAdapter recyclerAdapter;
+
     RecyclerView recyclerView;
 
+    boolean isFirstTimeOpened = true;
 
-
+    List<String> slaveSTSReceived = new ArrayList<>();
+    Handler liveStatusHandler;
+    Runnable liveStatusRunnable;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -107,14 +117,17 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
 
         startGroupService();
         startReceiver();
-        getLiveSwitchStatus();
+
 
         try{
-            switchDimmerOnOffAdapter=new SwitchDimmerOnOffAdapter(FavouriteActivity.this,databaseHandler.getAllSwitchesInFavourite(),
-                    Globals.FAVOURITE,this);
-            switchDimmerOnOffAdapter.setCallBack(this);
+            List<Bean_Switch> switchList = databaseHandler.getAllSwitchesInFavourite();
+
+
+            recyclerAdapter = new SwitchDimmerRecyclerAdapter(switchList, this, Globals.FAVOURITE, this);
+            recyclerAdapter.setCallBack(this);
+            recyclerAdapter.startToCheckResendCommands();
         }catch (Exception e){
-            C.connectionError(getApplicationContext());
+            //C.connectionError(getApplicationContext());
         }
 
 
@@ -143,14 +156,6 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
 
     private void startGroupService() {
 
-        stopService(new Intent(this, UDPService.class));
-        Intent udpIntent = new Intent(this, UDPService.class);
-        startService(udpIntent);
-
-        if(!serviceIsRunning()){
-            Intent intent=new Intent(this, AddDeviceService.class);
-            startService(intent);
-        }
     }
 
     private boolean UDPServiceIsRunning() {
@@ -183,18 +188,18 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
                     subscribedMessage=bundle.getString(AddDeviceService.MESSAGETOSEND);
                     String UDPMessage=bundle.getString(UDPService.MESSAGEJSON);
 
-                    Log.e("JSOn fr group ", "" + subscribedMessage + " " + UDPMessage);
+                    //Log.e("JSOn fr group ", "" + subscribedMessage + " " + UDPMessage);
                     if(UDPMessage!=null){
                         handleCommands(UDPMessage);
                     }
                     else if(subscribedMessage==null){
-                        Log.e("JSON Message", "Null");
+                        //Log.e("JSON Message", "Null");
                     }
                     else if(subscribedMessage.equals("")){
                         Toast.makeText(getApplicationContext(), "Sorry, Device is not ready yet.", Toast.LENGTH_SHORT).show();
                     }
                     else if(subscribedMessage.contains("master")){
-                        Log.e("From Grp actvty ","Device Started...");
+                        //Log.e("From Grp actvty ","Device Started...");
                     }
                     else {
                        handleCommands(subscribedMessage);
@@ -225,6 +230,14 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
 
             }
 
+            if (cmd.equals(Cmd.INTERNET)) {
+                C.Toast(getApplicationContext(), jsonDevice.getString("message"));
+                if (jsonDevice.getString("type").equals(Cmd.NOT_CONNECTED)) {
+                    setAllDeviceOffline();
+                }
+                return;
+            }
+
             if (jsonDevice.has("slave")) {
                 slave_hex_id = jsonDevice.getString("slave");
                 if (!slaveIds.contains(slave_hex_id)) return;
@@ -233,22 +246,22 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
             }
 
             if(cmd.equals("SET")){
-                Log.e("Command :","SET Found");
+                //Log.e("Command :","SET Found");
                 button=jsonDevice.getString("button");
                 val=jsonDevice.getString("val");
                 dval=jsonDevice.getString("dval");
-                String msg=switchDimmerOnOffAdapter.setSwitchItem(slave_hex_id,button,val,dval);
+                String msg = recyclerAdapter.setSwitchItem(slave_hex_id, button, val, dval);
 
                 /*if(msg.equalsIgnoreCase("success")){
                     switchDimmerOnOffAdapter.notifyDataSetChanged();
                 }*/
             }
             else if(cmd.equals("STS")){
-                //Log.e("Command :", "STS Found");
+                ////Log.e("Command :", "STS Found");
                 updateSwitchesAsLive(json);
             }
             else if(cmd.equalsIgnoreCase(Cmd.TL1)){
-                Log.e("Command :","TLK Found");
+                //Log.e("Command :","TLK Found");
                 updateSwitchForLocks(json,true);
             }
             else if(cmd.equals(Cmd.UL1)){
@@ -260,7 +273,7 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
 
 
         } catch (JSONException e) {
-            Log.e("JSON Message : ",e.getMessage());
+            //Log.e("JSON Message : ",e.getMessage());
             e.printStackTrace();
         }
     }
@@ -284,12 +297,12 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
                     //C.connectionError(getApplicationContext());
                 }
 
-                switchDimmerOnOffAdapter.notifyIconChanged();
+                recyclerAdapter.notifyIconChanged();
             } else {
                 C.Toast(getApplicationContext(), getString(R.string.error));
             }
         } catch (Exception e) {
-            Log.e("Exception", e.getMessage());
+            //Log.e("Exception", e.getMessage());
         }
     }
 
@@ -307,62 +320,18 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
                 String sts=String.valueOf(data.charAt(2));
 
                 //switcheItem.setSwitch_btn_num(switchButtonNum);
-                switchDimmerOnOffAdapter.setLockStatusChanged(slaveID, switchButtonNum, sts, isTouchLock);
-                /*try{
-                    if (isTouchLock) {
-                        switcheItem.setTouchLock(sts);
-                        databaseHandler.updateSwitchLocks(switcheItem,true);
-                    } else {
-                        switcheItem.setUserLock(sts);
-                        databaseHandler.updateSwitchLocks(switcheItem,false);
-                    }
-                }catch (Exception e){
-                    C.connectionError(getApplicationContext());
-                }
-
-
-                switchDimmerOnOffAdapter.notifyIconChanged();*/
+                recyclerAdapter.setLockStatusChanged(slaveID, switchButtonNum, sts, isTouchLock);
             } else {
                 C.Toast(getApplicationContext(), "Failed to Perform Lock Operation!");
             }
         } catch (JSONException e) {
-            Log.e("Exception", e.getMessage());
+            //Log.e("Exception", e.getMessage());
         }
-
-        /*try{
-            JSONObject object = new JSONObject(json);
-            if (object.has("status") && object.getString("status").equals(Status.SUCCESS)) {
-                String data = object.getString("data");
-                String slaveID = object.getString("slave");
-                Bean_Switch switcheItem = new Bean_Switch();
-                switcheItem.setSwitchInSlave(slaveID);
-
-                String switchButtonNum=String.valueOf(data.charAt(0))+String.valueOf(data.charAt(1));
-                String sts=String.valueOf(data.charAt(2));
-
-                switcheItem.setSwitch_btn_num(switchButtonNum);
-                if (isTouchLock) {
-                    switcheItem.setTouchLock(sts);
-                    databaseHandler.updateSwitchLocks(switcheItem,true);
-                } else {
-                    switcheItem.setUserLock(sts);
-                    databaseHandler.updateSwitchLocks(switcheItem,false);
-                }
-
-                switchDimmerOnOffAdapter.notifyDataSetChanged();
-            }
-            else {
-                C.Toast(getApplicationContext(),"Failed to Perform Lock Operation!");
-            }
-        }catch (JSONException e){
-            Log.e("Exception",e.getMessage());
-        }*/
     }
 
     private void getLiveSwitchStatus() {
         if(netcheck.isOnline()){
-            slaveIds = databaseHandler.getSlaveHexIdsForFavourite();
-            List<String> ipList=new IPDb(this).ipList();
+
             for(int i=0; i<slaveIds.size() ; i++){
 
                 JSONObject object=new JSONObject();
@@ -371,7 +340,7 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
                     object.put("slave",slaveIds.get(i));
                     object.put("token",databaseHandler.getSlaveToken(slaveIds.get(i)));
 
-                    if(ipList.contains(databaseHandler.getMasterIPBySlaveID(slaveIds.get(i)))){
+                    if (SmartNode.slavesInLocal.contains(slaveIds.get(i))) {
                         new SendUDP(object.toString()).execute();
                     }
                     else {
@@ -389,6 +358,50 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
 
     }
 
+    private void setAllDeviceOffline() {
+        List<String> workingSlaves = new ArrayList<>();
+        workingSlaves.addAll(SmartNode.slavesWorking);
+        for (int i = 0; i < workingSlaves.size(); i++) {
+            if (!SmartNode.slavesInLocal.contains(workingSlaves.get(i))) {
+                SmartNode.slavesWorking.remove(workingSlaves.get(i));
+                recyclerAdapter.setAllSwitchesOffline(workingSlaves.get(i));
+
+            }
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.KITKAT)
+    private void setCommandsFromCache(String commandInCache, String slaveID) {
+        //Log.e("CommandInCache", commandInCache);
+        try {
+            JSONArray array = new JSONArray(commandInCache);
+
+            for (int i = 0; i < array.length(); i++) {
+                JSONObject object = array.getJSONObject(i);
+                handleCommands(object.toString());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void sendSTSCommand(boolean onLAN, String slaveID) {
+        try {
+            if (onLAN) {
+                CHECK_STS_AGAIN_TIME_INTERVEL[0] = 2000;
+                String mqttCommand = AppConstant.START_CMD_STATUS_OF_SLAVE + slaveID + AppConstant.CMD_KEY_TOKEN + databaseHandler.getSlaveToken(slaveID) + AppConstant.END_CMD_STATUS_OF_SLAVE;
+
+                //Log.e("command", mqttCommand);
+                new SendUDP(mqttCommand).execute();
+            } else {
+                CHECK_STS_AGAIN_TIME_INTERVEL[0] = 5000;
+                new GetLiveStatus(slaveID).execute();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     private void updateSwitchesAsLive(String subscribedMessage) {
         String slave_id="";
 
@@ -396,7 +409,7 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
             JSONObject jsonSwitches=new JSONObject(subscribedMessage);
             slave_id=jsonSwitches.getString("slave");
 
-            List<Bean_Switch> switchesInDB=databaseHandler.getAllSwitchesByFavourite(slave_id);
+            if (!slaveSTSReceived.contains(slave_id)) slaveSTSReceived.add(slave_id);
 
             button_list.clear();
             buttonType.clear();
@@ -412,7 +425,7 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
             int j=0;
             for(int i=0; i<buttons.length() ; i+=2){
                 button_list.add(String.valueOf(buttons.charAt(i))+String.valueOf(buttons.charAt(i+1)));
-                Log.e("Button Added :",button_list.get(j));
+                //Log.e("Button Added :",button_list.get(j));
                 j++;
             }
 
@@ -420,14 +433,14 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
 
             for(int i=0;i<dimmerValue.length();i++){
                 buttonType.add(String.valueOf(dimmerValue.charAt(i)));
-                Log.e("Dimmer Value :",buttonType.get(i));
+                //Log.e("Dimmer Value :",buttonType.get(i));
             }
 
             String buttonStatusValues=jsonSwitches.getString("val");
 
             for(int i=0;i<buttonStatusValues.length();i++){
                 buttonStatus.add(String.valueOf(buttonStatusValues.charAt(i)));
-                Log.e("Switch status :",buttonStatus.get(i));
+                //Log.e("Switch status :",buttonStatus.get(i));
             }
 
             for(int i=0; i<userLock.length(); i++){
@@ -469,7 +482,7 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
                     databaseHandler.setSwitchHasSchedule(slave_id, button_list.get(i), false);
                 }
             }
-            switchDimmerOnOffAdapter.notifyDataSetChanged();
+            recyclerAdapter.notifyIconChanged(slave_id);
 
         } catch (JSONException e) {
             e.printStackTrace();
@@ -482,36 +495,40 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
     protected void onResume() {
         super.onResume();
         registerReceiver(receiver,new IntentFilter(AddDeviceService.NOTIFICATION));
-        Log.e("Reciever :","Registered");
+        //Log.e("Reciever :","Registered");
+        if (!isFirstTimeOpened) {
+            slaveSTSReceived.clear();
+            new WatchForLiveStatus().execute();
+        }
+
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         unregisterReceiver(receiver);
-        Log.e("Reciever :","UnRegistered");
+        //Log.e("Reciever :","UnRegistered");
     }
 
     private void fetchID() {
 
+        slaveIds = databaseHandler.getSlaveHexIdsForFavourite();
+
         recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
         RecyclerView.LayoutManager mLayoutManager = new GridLayoutManager(this, 2, LinearLayoutManager.VERTICAL, false);
         recyclerView.setLayoutManager(mLayoutManager);
-        //recyclerView.setAdapter(switchDimmerOnOffAdapter);
-        recyclerView.setVisibility(View.GONE);
+        recyclerView.setAdapter(recyclerAdapter);
+
+        RecyclerView.ItemAnimator animator = recyclerView.getItemAnimator();
+        if (animator instanceof SimpleItemAnimator) {
+            ((SimpleItemAnimator) animator).setSupportsChangeAnimations(false);
+        }
 
         added_switchlist=(GridView) findViewById(R.id.added_switchlist);
-        added_switchlist.setAdapter(switchDimmerOnOffAdapter);
-
-        /*switchView=(RecyclerView) findViewById(R.id.recycler_switchview);
-        LinearLayoutManager layoutManager=new LinearLayoutManager(this);
-        layoutManager.setOrientation(LinearLayout.HORIZONTAL);
-        switchView.setLayoutManager(layoutManager);*/
 
         switch_view=(LinearLayout) findViewById(R.id.switch_view);
         hasFavourites=(LinearLayout) findViewById(R.id.hasFavoutites);
         favourite_not_found=(LinearLayout) findViewById(R.id.favourite_not_found);
-        //dimmer_view=(LinearLayout) findViewById(R.id.dimmer_view);
 
         if(databaseHandler.getSwitchesInFavoutite()==0){
             switch_view.setVisibility(View.GONE);
@@ -521,27 +538,14 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
         else {
             favourite_not_found.setVisibility(View.GONE);
             hasFavourites.setVisibility(View.VISIBLE);
+            isFirstTimeOpened = false;
+            new WatchForLiveStatus().execute();
         }
-
-        /*if(databaseHandler.getDimmersInFavourite()==0){
-            dimmer_view.setVisibility(View.GONE);
-        }
-*/
-       /* if(databaseHandler.getDimmersInFavourite()==0 && databaseHandler.getSwitchesInFavoutite()==0){
-
-        }*/
-
-        /*added_dimmerlist=(GridView) findViewById(R.id.added_dimmerlist);
-
-        dimmerOnOffAdapter=new DimmerOnOffAdapter(getApplicationContext(),databaseHandler.getAllDimmersInFavourite());
-        added_dimmerlist.setAdapter(dimmerOnOffAdapter);
-
-        switchOnOffAdapter=new SwitchOnOffAdapter(getApplicationContext(),databaseHandler.getAllSwitchesInFavourite());
-        switchView.setAdapter(switchOnOffAdapter);*/
     }
 
     @Override
     public void onBackPressed() {
+        recyclerAdapter.stopToCheckResendCommand();
         Intent intent=new Intent(getApplicationContext(),MasterGroupActivity.class);
         startActivity(intent);
         finish();
@@ -549,78 +553,75 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
 
     @Override
     public void stopScrolling() {
-        added_switchlist.setVerticalScrollBarEnabled(false);
+
     }
 
     @Override
     public void startScrolling() {
-        added_switchlist.setVerticalScrollBarEnabled(true);
+
     }
 
     @Override
     public void showOptionMenu(final int position, View view) {
 
-        final int groupID=switchDimmerOnOffAdapter.getGroupIdAtPosition(position);
-        final int switchID=switchDimmerOnOffAdapter.getSwitchIdAtPosition(position);
-        final String switch_name=switchDimmerOnOffAdapter.getSwitchName(position);
-        final Boolean isSwitch=switchDimmerOnOffAdapter.isSwitch(position);
-        final String switch_num = switchDimmerOnOffAdapter.getSwitchNumber(position);
-        final String slaveID = switchDimmerOnOffAdapter.getSlaveIDForSwitch(position);
-        Log.e("isSwitch or :",""+isSwitch);
-
-        final CharSequence[] items = {"Rename", "Change Icon", "Change to Switch/Dimmer", "Remove"};
+        final int groupID = recyclerAdapter.getGroupIdAtPosition(position);
+        final int switchID = recyclerAdapter.getSwitchIdAtPosition(position);
+        final String switch_name = recyclerAdapter.getSwitchName(position);
+        final Boolean isSwitch = recyclerAdapter.isSwitch(position);
+        final String switch_num = recyclerAdapter.getSwitchNumber(position);
+        final String slaveID = recyclerAdapter.getSlaveIDForSwitch(position);
+        //Log.e("isSwitch or :",""+isSwitch);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(switch_name);
-        //builder.setCancelable(false);
-        builder.setItems(items, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int item) {
-                switch (item) {
-                    case 0:
-                        showRenameDeviceDialog(groupID, switchID, switch_name, position);
-                        break;
-                    case 1:
-                        showChangeSwitchIconDialog(groupID, switchID, switch_name);
-                        break;
-                    case 2:
-                        changeTypefrom(groupID, switchID, position, isSwitch, switch_num, slaveID);
-                        break;
-                    case 3:
-                        showRemoveItemFromGroupDialog(groupID, switchID, position);
-                        break;
+
+        if (isSwitch) {
+            final CharSequence[] items = {"Rename", "Change Icon", "Change to Switch/Dimmer", "Remove"};
+
+
+            //builder.setCancelable(false);
+            builder.setItems(items, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int item) {
+                    switch (item) {
+                        case 0:
+                            showRenameDeviceDialog(groupID, switchID, switch_name, position);
+                            break;
+                        case 1:
+                            showChangeSwitchIconDialog(groupID, switchID, switch_name);
+                            break;
+                        case 2:
+                            changeTypefrom(groupID, switchID, position, isSwitch, switch_num, slaveID);
+                            break;
+                        case 3:
+                            showRemoveItemFromGroupDialog(groupID, switchID, position);
+                            break;
+                    }
                 }
-            }
-        });
+            });
+        } else {
+            final CharSequence[] items = {"Rename", "Change to Switch/Dimmer", "Remove"};
+
+
+            //builder.setCancelable(false);
+            builder.setItems(items, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int item) {
+                    switch (item) {
+                        case 0:
+                            showRenameDeviceDialog(groupID, switchID, switch_name, position);
+                            break;
+                        case 1:
+                            changeTypefrom(groupID, switchID, position, isSwitch, switch_num, slaveID);
+                            break;
+                        case 2:
+                            showRemoveItemFromGroupDialog(groupID, switchID, position);
+                            break;
+                    }
+                }
+            });
+        }
         builder.show();
-
-        /*PopupMenu popupMenu=new PopupMenu(FavouriteActivity.this,view);
-        popupMenu.getMenuInflater().inflate(R.menu.menu_edit_switch,popupMenu.getMenu());
-
-        popupMenu.setGravity(Gravity.CENTER);
-
-        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                switch (item.getItemId()){
-                    case R.id.rename:
-                        showRenameDeviceDialog(groupID,switchID,switch_name,position);
-                        break;
-                    case R.id.change_icon:
-                        showChangeSwitchIconDialog(groupID,switchID,switch_name);
-                        break;
-                    case R.id.remove:
-                        showRemoveItemFromGroupDialog(groupID,switchID,position);
-                        break;
-                    case R.id.change_type:
-                        changeTypefrom(groupID,switchID,position,isSwitch,switch_num, slaveID);
-                        break;
-                }
-                return true;
-            }
-        });
-
-        popupMenu.show();*/
     }
 
     private void changeTypefrom(final int groupID, final int switchID, int position, final Boolean isSwitch, String switch_num, String slaveID) {
@@ -640,13 +641,12 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
 
             String command = object.toString();
 
-            Log.e("command", command);
+            //Log.e("command", command);
 
             if (NetworkUtility.isOnline(getApplicationContext())) {
 
-                List<String> ipList=new IPDb(this).ipList();
-
-                if(ipList.contains(databaseHandler.getMasterIPBySlaveID(slaveID))){
+                recyclerAdapter.setViewLoading(position, true, command);
+                if (SmartNode.slavesInLocal.contains(slaveID)) {
                     new SendUDP(command).execute();
                 }
                 else {
@@ -656,37 +656,8 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
                 C.Toast(getApplicationContext(), getString(R.string.nointernet));
             }
         } catch (Exception e) {
-            Log.e("Exception", e.getMessage());
+            //Log.e("Exception", e.getMessage());
         }
-
-        /*AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
-        dialogBuilder.setTitle("Change to Switch/Dimmer");
-        dialogBuilder.setMessage("What would you like to make it ?");
-        dialogBuilder.setPositiveButton("DIMMER", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                if(isSwitch){
-                    databaseHandler.changeSwitchType(groupID,switchID,"d");
-                    switchDimmerOnOffAdapter.notifyDataSetChanged();
-                    Toast.makeText(getApplicationContext(),"Switch Chnaged to Dimmer",Toast.LENGTH_SHORT).show();
-                }
-                dialog.dismiss();
-            }
-        });
-        dialogBuilder.setNegativeButton("SWITCH", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                if(!isSwitch){
-                    databaseHandler.changeSwitchType(groupID,switchID,"s");
-                    switchDimmerOnOffAdapter.notifyDataSetChanged();
-                    Toast.makeText(getApplicationContext(),"Dimmer Chnaged to Switch",Toast.LENGTH_SHORT).show();
-                }
-                dialog.dismiss();
-            }
-        });
-
-        AlertDialog b = dialogBuilder.create();
-        b.show();*/
     }
 
     private void showChangeSwitchIconDialog(final int groupid, final int switchID, String switch_name) {
@@ -725,7 +696,7 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
                     public void onClick(View view) {
 
                         databaseHandler.changeSwitchIcon(groupid,switchID,switch_icon[0]);
-                        switchDimmerOnOffAdapter.notifyIconChanged();
+                        recyclerAdapter.notifyIconChanged();
                         b.dismiss();
                     }
                 });
@@ -770,10 +741,10 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
                         else
                         {
                             databaseHandler.renameSwitch(group_id,switch_id,edt_device_name.getText().toString().trim());
-                            databaseHandler.renameSwitchInScenes((Bean_Switch)switchDimmerOnOffAdapter.getItem(position), edt_device_name.getText().toString());
+                            databaseHandler.renameSwitchInScenes((Bean_Switch) recyclerAdapter.getItem(position), edt_device_name.getText().toString());
                             Toast.makeText(FavouriteActivity.this,"Switch renamed successfully",Toast.LENGTH_SHORT).show();
 
-                            switchDimmerOnOffAdapter.notifyIconChanged();
+                            recyclerAdapter.notifyIconChanged();
                             b.dismiss();
                         }
                     }
@@ -793,9 +764,9 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
             public void onClick(DialogInterface dialog, int which) {
 
                 databaseHandler.removeSwitchFromGroup(switchID);
-                databaseHandler.removeSwitchFromScenes((Bean_Switch) switchDimmerOnOffAdapter.getItem(position));
+                databaseHandler.removeSwitchFromScenes((Bean_Switch) recyclerAdapter.getItem(position));
                 Toast.makeText(getApplicationContext(), "Switch removed successfully", Toast.LENGTH_SHORT).show();
-                switchDimmerOnOffAdapter.notifyIconChanged();
+                recyclerAdapter.notifyIconChanged();
                 dialog.dismiss();
             }
         });
@@ -812,6 +783,120 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
     @Override
     public void sendUDPCommand(String command) {
         new SendUDP(command).execute();
+    }
+
+    private class WatchForLiveStatus extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected Void doInBackground(Void... voids) {
+            if (netcheck.isOnline()) {
+                return null;
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+
+            if (netcheck.isOnline()) {
+
+                int commandNotInCache = 0;
+
+                try {
+
+                    for (int i = 0; i < slaveIds.size(); i++) {
+
+                        //String slaveIPAddress = databaseHandler.getMasterIPBySlaveID(slaveIds.get(i));
+                        if (SmartNode.slavesInLocal.contains(slaveIds.get(i))) {
+                            CHECK_STS_AGAIN_TIME_INTERVEL[0] = 2000;
+
+                            String commandInCache = SmartNode.slaveCommands.get(slaveIds.get(i));
+                            //Log.e("send from","UDP");
+                            if (commandInCache != null && !commandInCache.isEmpty()) {
+                                setCommandsFromCache(commandInCache, slaveIds.get(i));
+                            } else {
+                                //dialog.show();
+                                commandNotInCache++;
+                                sendSTSCommand(true, slaveIds.get(i));
+                            }
+                        } else {
+                            CHECK_STS_AGAIN_TIME_INTERVEL[0] = 5000;
+                            String commandInCache = SmartNode.slaveCommands.get(slaveIds.get(i));
+                            if (commandInCache != null && !commandInCache.isEmpty()) {
+                                setCommandsFromCache(commandInCache, slaveIds.get(i));
+
+                                if (!SmartNode.slavesWorking.contains(slaveIds.get(i))) {
+                                    sendSTSCommand(false, slaveIds.get(i));
+                                }
+
+                            } else {
+                                //dialog.show();
+
+                                if (!SmartNode.slavesWorking.contains(slaveIds.get(i))) {
+                                    recyclerAdapter.setAllSwitchesOffline(slaveIds.get(i));
+                                }
+                                commandNotInCache++;
+                                sendSTSCommand(false, slaveIds.get(i));
+                            }
+                        }
+                    }
+
+
+                } catch (Exception e) {
+                    //Log.e("Window", "Leaked");
+                }
+
+                liveStatusHandler = new Handler();
+                liveStatusRunnable = new Runnable() {
+                    @Override
+                    public void run() {
+
+                        int sendCommandAgain = 0;
+                        if (slaveSTSReceived.size() == slaveIds.size()) {
+                            liveStatusHandler.removeCallbacks(liveStatusRunnable);
+                        } else {
+                            for (int i = 0; i < slaveIds.size(); i++) {
+
+                                if (!slaveSTSReceived.contains(slaveIds.get(i))) {
+                                    if (SmartNode.slavesInLocal.contains(slaveIds.get(i))) {
+                                        CHECK_STS_AGAIN_TIME_INTERVEL[0] = 2000;
+
+                                        String commandInCache = SmartNode.slaveCommands.get(slaveIds.get(i));
+                                        if (commandInCache != null && !commandInCache.isEmpty()) {
+                                            setCommandsFromCache(commandInCache, slaveIds.get(i));
+                                        } else {
+                                            sendSTSCommand(true, slaveIds.get(i));
+                                            sendCommandAgain++;
+                                        }
+                                    } else {
+                                        //Log.e("send from","MQTT");
+
+                                        CHECK_STS_AGAIN_TIME_INTERVEL[0] = 5000;
+                                        String commandInCache = SmartNode.slaveCommands.get(slaveIds.get(i));
+                                        if (commandInCache != null && !commandInCache.isEmpty()) {
+                                            setCommandsFromCache(commandInCache, slaveIds.get(i));
+                                        } else {
+                                            recyclerAdapter.setAllSwitchesOffline(slaveIds.get(i));
+                                            liveStatusHandler.removeCallbacks(liveStatusRunnable);
+                                        }
+                                    }
+                                }
+
+                            }
+                            if (sendCommandAgain > 0) {
+                                liveStatusHandler.postDelayed(this, CHECK_STS_AGAIN_TIME_INTERVEL[0]);
+                            }
+                        }
+                    }
+                };
+
+                if (commandNotInCache > 0) {
+                    liveStatusHandler.postDelayed(liveStatusRunnable, CHECK_STS_AGAIN_TIME_INTERVEL[0]);
+                }
+            } else {
+                C.Toast(getApplicationContext(), "No internet connection found\nplease try again later");
+            }
+        }
     }
 
     private class SendMQTT extends AsyncTask<Void, Void, Void> {
@@ -834,16 +919,16 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
                 connectOptions.setPassword(AppConstant.getPassword());
                 mqttClient.connect(connectOptions);
 
-                Log.e("Command Fired :", command);
+                //Log.e("Command Fired :", command);
 
                 MqttMessage mqttMessage = new MqttMessage(command.getBytes());
                 mqttMessage.setRetained(false);
                 mqttClient.publish(topic, mqttMessage);
-                //Log.e("topic msg", databaseHandler.getSlaveTopic(slaveID) + AppConstant.MQTT_PUBLISH_TOPIC + " " + mqttMessage);
+                ////Log.e("topic msg", databaseHandler.getSlaveTopic(slaveID) + AppConstant.MQTT_PUBLISH_TOPIC + " " + mqttMessage);
                 //mqttClient.disconnect();
 
             } catch (MqttException e) {
-                Log.e("Exception : ", e.getMessage());
+                //Log.e("Exception : ", e.getMessage());
                 e.printStackTrace();
             }
 
@@ -864,7 +949,7 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
             loadingView.setMessage("Please wait...");
             loadingView.setIndeterminate(false);
             loadingView.setCancelable(false);
-            loadingView.show();
+            //loadingView.show();
             this.slave_hex_id=slave_hex_id;
         }
 
@@ -891,7 +976,7 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
                 mqttMessage.setQos(0);
                 mqttMessage.setRetained(false);
                 mqttClient.publish(databaseHandler.getSlaveTopic(slave_hex_id)+AppConstant.MQTT_PUBLISH_TOPIC,mqttMessage);
-                Log.e("Mqtt Message","Published for STS 1st");
+                //Log.e("Mqtt Message","Published for STS 1st");
                 mqttClient.disconnect();
 
             } catch (MqttException e) {
@@ -902,7 +987,7 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
 
         @Override
         protected void onPostExecute(Void o) {
-            loadingView.dismiss();
+            //loadingView.dismiss();
         }
     }
 
@@ -933,7 +1018,7 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
                 InetSocketAddress server_addr;
                 DatagramPacket packet;
 
-                Log.e("IP Address Saved","->"+preference.getIpaddress());
+                //Log.e("IP Address Saved","->"+preference.getIpaddress());
 
                 /*if (preference.getIpaddress().isEmpty() || !C.isValidIP(preference.getIpaddress())) {*/
                     server_addr = new InetSocketAddress(C.getBroadcastAddress(getApplicationContext()).getHostAddress(), 13001);
@@ -941,23 +1026,23 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
                     socket.setReuseAddress(true);
                     socket.setBroadcast(true);
                     socket.send(packet);
-                    Log.e("Packet","Sent");
+                //Log.e("Packet","Sent");
                 /*} else {
                     server_addr = new InetSocketAddress(preference.getIpaddress(), 13001);
                     packet = new DatagramPacket(senddata, senddata.length, server_addr);
                     socket.setReuseAddress(true);
                     //socket.setBroadcast(true);
                     socket.send(packet);
-                    Log.e("Packet","Sent");
+                    //Log.e("Packet","Sent");
                 }*/
 
                 socket.disconnect();
                 socket.close();
             } catch (SocketException s) {
-                Log.e("Exception", "->" + s.getLocalizedMessage());
+                //Log.e("Exception", "->" + s.getLocalizedMessage());
                 preference.setOnline(true);
             } catch (IOException e) {
-                Log.e("Exception", "->" + e.getLocalizedMessage());
+                //Log.e("Exception", "->" + e.getLocalizedMessage());
                 preference.setOnline(true);
             }
             return null;
@@ -968,4 +1053,6 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
             super.onPostExecute(text);
         }
     }
+
+
 }

@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteCantOpenDatabaseException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteDatabaseLockedException;
+import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -35,7 +36,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public static final String Lock = "dblock";
     //Define Database version
-    private static final int DATABASE_VERSION = 4;
+    private static final int DATABASE_VERSION = 1;
     // Put your Database name
     private static final String DATABASE_NAME = Environment.getExternalStorageDirectory() + "/Smartnode/" + "smartnodedb.db";
     //put your Table name here
@@ -62,6 +63,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String MASTER_USERTYPE = "m_usertype";
     private static final String MASTER_ID = "m_masterID";
     private static final String MASTER_IP = "m_ipAddress";
+    private static final String MASTER_DEV_ID = "m_devid";
     //define columns for TABLE_SLAVEs here
     private static final String SLAVE_GEN_ID = "id";
     private static final String SLAVE_HEX_ID = "hex_id";
@@ -73,6 +75,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String SLAVE_TOPIC = "slave_topic";
     private static final String SLAVE_USERTYPE = "slave_utype";
     private static final String SLAVE_TOTAL_SWITCH = "slave_tsw";
+    private static final String SLAVE_MDEVID = "slave_mdevid";
     //define columns for TABLE_SWITCH_ICONS here
     private static final String SWICON_GEN_ID = "id";
     private static final String SWICON_ON = "sw_on";
@@ -146,7 +149,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
 
         db.setLocale(Locale.ENGLISH);
-        db.setLockingEnabled(true);
+        db.setLockingEnabled(false);
 
         String createTableGroup = "CREATE TABLE " + TABLE_GROUPS + "(" +
                 GROUP_GEN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -154,7 +157,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         String createTableMaster = "CREATE TABLE " + TABLE_MASTER + "(" +
                 MASTER_GEN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
-                MASTER_NAME + " TEXT," + MASTER_TYPE + " TEXT, " + MASTER_TOPIC + " TEXT, " + MASTER_ENCKEY + " TEXT," + MASTER_USERTYPE + " TEXT," + MASTER_ID + " TEXT, " + MASTER_IP + " TEXT" + ")";
+                MASTER_NAME + " TEXT," + MASTER_TYPE + " TEXT, " + MASTER_TOPIC + " TEXT, " + MASTER_ENCKEY + " TEXT," + MASTER_USERTYPE + " TEXT," + MASTER_ID + " TEXT, " + MASTER_IP + " TEXT,"
+                + MASTER_DEV_ID + " TEXT" + ")";
 
         String createTableSwitchIcons = "CREATE TABLE " + TABLE_SWITCH_ICONS + "(" +
                 SWICON_GEN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -163,7 +167,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         String createTableSlave = "CREATE TABLE " + TABLE_SLAVES + "(" +
                 SLAVE_GEN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
                 SLAVE_NAME + " TEXT," + SLAVE_HAS_SWITCHES + " TEXT," + SLAVE_HAS_DIMMERS + " TEXT," +
-                SLAVE_HEX_ID + " TEXT," + SLAVE_IN_GROUP + " INT," + SLAVE_TOKEN + " TEXT, " + SLAVE_TOPIC + " TEXT, " + SLAVE_USERTYPE + " TEXT," + SLAVE_TOTAL_SWITCH + " INT" + ")";
+                SLAVE_HEX_ID + " TEXT," + SLAVE_IN_GROUP + " INT," + SLAVE_TOKEN + " TEXT, " + SLAVE_TOPIC + " TEXT, " + SLAVE_USERTYPE + " TEXT," + SLAVE_TOTAL_SWITCH + " INT," + SLAVE_MDEVID + " TEXT" + ")";
 
         String createTableSwitch = "CREATE TABLE " + TABLE_SWITCHES + "(" +
                 SWITCH_GEN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -216,6 +220,21 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         onCreate(db);
     }
 
+    @Override
+    public void onOpen(SQLiteDatabase db) {
+        super.onOpen(db);
+        if (!db.isReadOnly()) {
+            db.execSQL("PRAGMA foreign_keys=ON;");
+            Cursor c = db.rawQuery("PRAGMA foreign_keys", null);
+            if (c.moveToFirst()) {
+                int result = c.getInt(0);
+            }
+            if (!c.isClosed()) {
+                c.close();
+            }
+        }
+    }
+
     public void setMasterSlaveIP(String slaveHex, String currentIP) {
         synchronized (Lock) {
 
@@ -226,6 +245,25 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 cv.put(MASTER_IP, currentIP);
 
                 db.update(TABLE_MASTER, cv, MASTER_TOPIC + "=?", new String[]{slaveHex});
+
+                db.close();
+
+            } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
+
+            }
+        }
+    }
+
+    public void setMasterSlaveIPByDeviceID(String deviceID, String currentIP) {
+        synchronized (Lock) {
+
+            try {
+                SQLiteDatabase db = this.getWritableDatabase();
+
+                ContentValues cv = new ContentValues();
+                cv.put(MASTER_IP, currentIP);
+
+                db.update(TABLE_MASTER, cv, MASTER_DEV_ID + "=?", new String[]{deviceID});
 
                 db.close();
 
@@ -335,6 +373,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                     master.setUserType(cursor.getString(5));
                     master.setMasterID(cursor.getString(6));
                     master.setIpAddress(cursor.getString(7));
+                    master.setDeviceID(cursor.getString(8));
                     masterList.add(master);
                 } while (cursor.moveToNext());
             }
@@ -365,6 +404,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                         master.setUserType(cursor.getString(5));
                         master.setMasterID(cursor.getString(6));
                         master.setIpAddress(cursor.getString(7));
+                        master.setDeviceID(cursor.getString(8));
                         masterList.add(master);
                     }
                 } while (cursor.moveToNext());
@@ -613,13 +653,13 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return isSame;
     }
 
-    public boolean isSameMasterName(String masterName) {
+    public boolean isSameMasterName(String deviceID) {
         boolean isSame = false;
         synchronized (Lock) {
             try {
                 SQLiteDatabase db = this.getReadableDatabase();
 
-                Cursor cursor = db.query(TABLE_MASTER, new String[]{MASTER_NAME}, MASTER_NAME + "=? COLLATE NOCASE", new String[]{masterName},
+                Cursor cursor = db.query(TABLE_MASTER, new String[]{MASTER_NAME}, MASTER_DEV_ID + "=? COLLATE NOCASE", new String[]{deviceID},
                         null, null, null, null);
                 int count = cursor.getCount();
 
@@ -744,6 +784,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             contentValues.put(SLAVE_TOPIC, bean_slaveGroup.getSlaveTopic());
             contentValues.put(SLAVE_TOKEN, bean_slaveGroup.getSlaveToken());
             contentValues.put(SLAVE_USERTYPE, bean_slaveGroup.getSlaveUserType());
+            contentValues.put(SLAVE_MDEVID, bean_slaveGroup.getMasterDeviceID());
 
             db.insert(TABLE_SLAVES, null, contentValues);
             db.close();
@@ -802,6 +843,25 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         }
     }
 
+    public void renameMaster(String deviceID, String master_name) {
+
+        synchronized (Lock) {
+            try {
+                SQLiteDatabase db = this.getWritableDatabase();
+
+                ContentValues contentValuesGroup = new ContentValues();
+                contentValuesGroup.put(MASTER_NAME, master_name);
+                db.update(TABLE_MASTER, contentValuesGroup, MASTER_DEV_ID + "=?",
+                        new String[]{deviceID});
+
+                db.close();
+            } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
+                //waitFor();
+                //renameMaster(master_id, master_name);
+            }
+        }
+    }
+
     public void addMasterDeviceItem(Bean_Master bean_master) {
 
         synchronized (Lock) {
@@ -817,6 +877,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 contentValues.put(MASTER_USERTYPE, bean_master.getUserType());
                 contentValues.put(MASTER_ID, bean_master.getMasterID());
                 contentValues.put(MASTER_IP, bean_master.getIpAddress());
+                contentValues.put(MASTER_DEV_ID, bean_master.getDeviceID());
 
                 db.insert(TABLE_MASTER, null, contentValues);
                 db.close();
@@ -1332,6 +1393,72 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return switchList;
     }
 
+    public List<Bean_Switch> getAllSwitchesByGroupId(int groupid, boolean withLoading) {
+        List<Bean_Switch> switchList = new ArrayList<>();
+        synchronized (Lock) {
+            try {
+                SQLiteDatabase db = this.getWritableDatabase();
+
+                Cursor cursor = db.query(TABLE_SWITCHES, new String[]{SWITCH_GEN_ID, SWITCH_NAME, SWITCH_IS_ON, SWITCH_IN_GRP, SWITCH_IS_FAV, IS_SWITCH,
+                                DIMMER_VALUE, SWITCH_IN_SLAVE, SWITCH_BUTTON_NUM, SWITCH_ICON, SWITCH_USERLOCK, SWITCH_TOUCHLOCK, SWITCH_HAS_SCHEDULE},
+                        SWITCH_IN_GRP + "=? AND " + SWITCH_IS_ADDED + "=?",
+                        new String[]{String.valueOf(groupid), String.valueOf(1)}, null, null, null, null);
+
+                if (cursor.moveToFirst()) {
+                    do {
+                        Bean_Switch beanSwitch = new Bean_Switch();
+                        beanSwitch.setSwitch_id(cursor.getInt(0));
+                        beanSwitch.setSwitch_name(cursor.getString(1));
+                        beanSwitch.setIsSwitchOn(cursor.getInt(2));
+                        beanSwitch.setSwitchInGroup(cursor.getInt(3));
+                        beanSwitch.setIsFavourite(cursor.getInt(4));
+                        beanSwitch.setIsSwitch(cursor.getString(5));
+                        beanSwitch.setDimmerValue(cursor.getInt(6));
+                        beanSwitch.setSwitchInSlave(cursor.getString(7));
+                        if (withLoading) {
+                            beanSwitch.setLoading(true);
+                        }
+
+                        Cursor slaveTopicCursor = db.query(TABLE_MASTER, new String[]{MASTER_TOPIC, MASTER_IP}, MASTER_ID + "=?", new String[]{cursor.getString(7)}, null, null, null);
+
+                        if (slaveTopicCursor.moveToFirst()) {
+                            beanSwitch.setSlaveTopic(slaveTopicCursor.getString(0));
+                            beanSwitch.setSlaveIP(slaveTopicCursor.getString(1));
+                        }
+
+                        slaveTopicCursor.close();
+
+                        Cursor slaveTokenCursor = db.query(TABLE_SLAVES, new String[]{SLAVE_TOKEN, SLAVE_USERTYPE}, SLAVE_HEX_ID + "=?", new String[]{cursor.getString(7)}, null, null, null);
+
+                        if (slaveTokenCursor.moveToFirst()) {
+                            beanSwitch.setSlaveToken(slaveTokenCursor.getString(0));
+                            beanSwitch.setSlaveUserType(slaveTokenCursor.getString(1));
+                        }
+
+                        slaveTokenCursor.close();
+
+                        beanSwitch.setSwitch_btn_num(cursor.getString(8));
+                        beanSwitch.setSwitch_icon(cursor.getInt(9));
+                        beanSwitch.setUserLock(cursor.getString(10));
+                        beanSwitch.setTouchLock(cursor.getString(11));
+                        beanSwitch.setHasSchedule(cursor.getInt(12));
+                        switchList.add(beanSwitch);
+                    } while (cursor.moveToNext());
+                }
+
+                cursor.close();
+                db.close();
+            } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
+                //waitFor();
+                //this.close();
+                //switchList=getAllSwitchesByGroupId(groupid);
+                return switchList;
+            }
+        }
+
+        return switchList;
+    }
+
     public Bean_Switch getSingleSwitchesByGroupId(int switch_id) {
         Bean_Switch beanSwitch = new Bean_Switch();
         synchronized (Lock) {
@@ -1796,6 +1923,14 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                         slaveTokenCursor.close();
 
+                        Cursor groupNameCursor = db.query(TABLE_GROUPS, new String[]{GROUP_NAME}, GROUP_GEN_ID + "=?", new String[]{String.valueOf(cursor.getInt(3))}, null, null, null);
+
+                        if (groupNameCursor.moveToFirst()) {
+                            beanSwitch.setSwitchGroupName(groupNameCursor.getString(0));
+                        }
+
+                        groupNameCursor.close();
+
                         beanSwitch.setSwitch_btn_num(cursor.getString(8));
                         beanSwitch.setSwitch_icon(cursor.getInt(9));
                         beanSwitch.setUserLock(cursor.getString(10));
@@ -1815,46 +1950,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         }
 
         return switchList;
-    }
-
-    public List<Bean_Dimmer> getAllDimmersInFavourite() {
-        List<Bean_Dimmer> dimmerList = new ArrayList<>();
-
-        SQLiteDatabase db = this.getWritableDatabase();
-
-        Cursor cursor = db.query(TABLE_DIMMERS, new String[]{DIMMER_GEN_ID, DIMMER_NAME, DIMMER_VALUE, DIMMER_IN_GRP, DIMMER_IS_FAV},
-                DIMMER_IS_FAV + "=?",
-                new String[]{String.valueOf(1)}, null, null, null, null);
-
-        if (cursor.moveToFirst()) {
-            do {
-                Bean_Dimmer beanDimmer = new Bean_Dimmer();
-                beanDimmer.setDimmer_id(cursor.getInt(0));
-                beanDimmer.setDimmer_name(cursor.getString(1));
-                beanDimmer.setDimmerValue(cursor.getInt(2));
-                beanDimmer.setDimmerInGroup(cursor.getInt(3));
-                beanDimmer.setIsFavourite(cursor.getInt(4));
-
-                dimmerList.add(beanDimmer);
-            } while (cursor.moveToNext());
-        }
-
-        return dimmerList;
-    }
-
-    public int getUnusedSwitchesCount() {
-        int hasSwitches = 0;
-
-        SQLiteDatabase db = this.getWritableDatabase();
-
-        Cursor cursor = db.query(TABLE_SWITCHES, new String[]{SWITCH_GEN_ID}, SWITCH_IS_ADDED + "=?", new String[]{"0"},
-                null, null, null, null);
-
-        hasSwitches = cursor.getCount();
-        cursor.close();
-        db.close();
-
-        return hasSwitches;
     }
 
     public void removeSwitchFromGroup(int switchID) throws SQLiteCantOpenDatabaseException {
@@ -1984,7 +2079,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             SQLiteDatabase db = this.getReadableDatabase();
 
             Cursor cursor = db.query(TABLE_SWITCHES, new String[]{SWITCH_GEN_ID, SWITCH_NAME, SWITCH_IS_ON, SWITCH_IN_GRP, SWITCH_IS_FAV, IS_SWITCH,
-                            DIMMER_VALUE, SWITCH_IN_SLAVE, SWITCH_BUTTON_NUM, SWITCH_ICON},
+                            DIMMER_VALUE, SWITCH_IN_SLAVE, SWITCH_BUTTON_NUM, SWITCH_ICON, SWITCH_USERLOCK, SWITCH_TOUCHLOCK, SWITCH_HAS_SCHEDULE},
                     SWITCH_IN_GRP + "=? AND " + SWITCH_IS_ADDED + "=? AND " + SWITCH_IN_SLAVE + "=?",
                     new String[]{String.valueOf(groupid), String.valueOf(1), slave_hex_id}, null, null, null, null);
 
@@ -2001,6 +2096,93 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                     beanSwitch.setSwitchInSlave(cursor.getString(7));
                     beanSwitch.setSwitch_btn_num(cursor.getString(8));
                     beanSwitch.setSwitch_icon(cursor.getInt(9));
+                    beanSwitch.setUserLock(cursor.getString(10));
+                    beanSwitch.setTouchLock(cursor.getString(11));
+                    beanSwitch.setHasSchedule(cursor.getInt(12));
+
+                    Cursor slaveTopicCursor = db.query(TABLE_MASTER, new String[]{MASTER_TOPIC, MASTER_IP}, MASTER_ID + "=?", new String[]{cursor.getString(7)}, null, null, null);
+
+                    if (slaveTopicCursor.moveToFirst()) {
+                        beanSwitch.setSlaveTopic(slaveTopicCursor.getString(0));
+                        beanSwitch.setSlaveIP(slaveTopicCursor.getString(1));
+                    }
+
+                    slaveTopicCursor.close();
+
+                    Cursor slaveTokenCursor = db.query(TABLE_SLAVES, new String[]{SLAVE_TOKEN, SLAVE_USERTYPE}, SLAVE_HEX_ID + "=?", new String[]{cursor.getString(7)}, null, null, null);
+
+                    if (slaveTokenCursor.moveToFirst()) {
+                        beanSwitch.setSlaveToken(slaveTokenCursor.getString(0));
+                        beanSwitch.setSlaveUserType(slaveTokenCursor.getString(1));
+                    }
+
+                    slaveTokenCursor.close();
+
+                    switchList.add(beanSwitch);
+                } while (cursor.moveToNext());
+            }
+
+            cursor.close();
+            db.close();
+        }
+
+        return switchList;
+    }
+
+    public List<Bean_Switch> getAllSwitchesFavourite(int groupid, String slave_hex_id) throws SQLiteCantOpenDatabaseException {
+        List<Bean_Switch> switchList = new ArrayList<>();
+
+        synchronized (Lock) {
+            SQLiteDatabase db = this.getReadableDatabase();
+
+            Cursor cursor = db.query(TABLE_SWITCHES, new String[]{SWITCH_GEN_ID, SWITCH_NAME, SWITCH_IS_ON, SWITCH_IN_GRP, SWITCH_IS_FAV, IS_SWITCH,
+                            DIMMER_VALUE, SWITCH_IN_SLAVE, SWITCH_BUTTON_NUM, SWITCH_ICON, SWITCH_USERLOCK, SWITCH_TOUCHLOCK, SWITCH_HAS_SCHEDULE},
+                    SWITCH_IN_GRP + "=? AND " + SWITCH_IS_ADDED + "=? AND " + SWITCH_IN_SLAVE + "=? AND " + SWITCH_IS_FAV + "=?",
+                    new String[]{String.valueOf(groupid), String.valueOf(1), slave_hex_id, String.valueOf(1)}, null, null, null, null);
+
+            if (cursor.moveToFirst()) {
+                do {
+                    Bean_Switch beanSwitch = new Bean_Switch();
+                    beanSwitch.setSwitch_id(cursor.getInt(0));
+                    beanSwitch.setSwitch_name(cursor.getString(1));
+                    beanSwitch.setIsSwitchOn(cursor.getInt(2));
+                    beanSwitch.setSwitchInGroup(cursor.getInt(3));
+                    beanSwitch.setIsFavourite(cursor.getInt(4));
+                    beanSwitch.setIsSwitch(cursor.getString(5));
+                    beanSwitch.setDimmerValue(cursor.getInt(6));
+                    beanSwitch.setSwitchInSlave(cursor.getString(7));
+                    beanSwitch.setSwitch_btn_num(cursor.getString(8));
+                    beanSwitch.setSwitch_icon(cursor.getInt(9));
+                    beanSwitch.setUserLock(cursor.getString(10));
+                    beanSwitch.setTouchLock(cursor.getString(11));
+                    beanSwitch.setHasSchedule(cursor.getInt(12));
+
+                    Cursor slaveTopicCursor = db.query(TABLE_MASTER, new String[]{MASTER_TOPIC, MASTER_IP}, MASTER_ID + "=?", new String[]{cursor.getString(7)}, null, null, null);
+
+                    if (slaveTopicCursor.moveToFirst()) {
+                        beanSwitch.setSlaveTopic(slaveTopicCursor.getString(0));
+                        beanSwitch.setSlaveIP(slaveTopicCursor.getString(1));
+                    }
+
+                    slaveTopicCursor.close();
+
+                    Cursor slaveTokenCursor = db.query(TABLE_SLAVES, new String[]{SLAVE_TOKEN, SLAVE_USERTYPE}, SLAVE_HEX_ID + "=?", new String[]{cursor.getString(7)}, null, null, null);
+
+                    if (slaveTokenCursor.moveToFirst()) {
+                        beanSwitch.setSlaveToken(slaveTokenCursor.getString(0));
+                        beanSwitch.setSlaveUserType(slaveTokenCursor.getString(1));
+                    }
+
+                    slaveTokenCursor.close();
+
+                    Cursor groupNameCursor = db.query(TABLE_GROUPS, new String[]{GROUP_NAME}, GROUP_GEN_ID + "=?", new String[]{String.valueOf(cursor.getInt(3))}, null, null, null);
+
+                    if (groupNameCursor.moveToFirst()) {
+                        beanSwitch.setSwitchGroupName(groupNameCursor.getString(0));
+                    }
+
+                    groupNameCursor.close();
+
 
                     switchList.add(beanSwitch);
                 } while (cursor.moveToNext());
@@ -2941,6 +3123,124 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             db.close();
         } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
             Log.e("Exception", e.getMessage());
+        }
+    }
+
+    public List<Bean_SlaveGroup> getSlaveHexByDeviceID(ArrayList<String> deviceIDs) {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        List<Bean_SlaveGroup> slaveIDs = new ArrayList<>();
+
+        for (int i = 0; i < deviceIDs.size(); i++) {
+            Cursor cursor = db.query(TABLE_SLAVES, new String[]{SLAVE_HEX_ID, SLAVE_TOKEN, SLAVE_TOPIC}, SLAVE_MDEVID + "=?", new String[]{deviceIDs.get(i)}, null, null, null);
+
+            if (cursor.getCount() > 0 && cursor.moveToFirst()) {
+                Bean_SlaveGroup slaveGroup = new Bean_SlaveGroup();
+                slaveGroup.setHex_id(cursor.getString(0));
+                slaveGroup.setSlaveToken(cursor.getString(1));
+                slaveGroup.setSlaveTopic(cursor.getString(2));
+                slaveIDs.add(slaveGroup);
+            }
+
+            cursor.close();
+        }
+
+        db.close();
+
+        return slaveIDs;
+    }
+
+    public List<Bean_SlaveGroup> getAllSlaveHex() throws SQLiteException {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        List<Bean_SlaveGroup> slaveIDs = new ArrayList<>();
+
+        Cursor cursor = db.query(TABLE_SLAVES, new String[]{SLAVE_HEX_ID, SLAVE_TOKEN, SLAVE_TOPIC, SLAVE_MDEVID}, SLAVE_GEN_ID + "!=?", new String[]{"200"}, null, null, null);
+
+        if (cursor.getCount() > 0 && cursor.moveToFirst()) {
+            do {
+                Bean_SlaveGroup slaveGroup = new Bean_SlaveGroup();
+                slaveGroup.setHex_id(cursor.getString(0));
+                slaveGroup.setSlaveToken(cursor.getString(1));
+                slaveGroup.setSlaveTopic(cursor.getString(2));
+                slaveGroup.setMasterDeviceID(cursor.getString(3));
+                slaveIDs.add(slaveGroup);
+            } while (cursor.moveToNext());
+        }
+
+        cursor.close();
+
+        db.close();
+
+        return slaveIDs;
+    }
+
+    public String getDeviceIDForSlaveHex(String slaveHexID) {
+        String deviceID = "";
+
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query(TABLE_SLAVES, new String[]{SLAVE_MDEVID}, SLAVE_HEX_ID + "=?", new String[]{slaveHexID}, null, null, null);
+
+        if (cursor.getCount() > 0 && cursor.moveToFirst()) {
+            deviceID = cursor.getString(0);
+        }
+
+        cursor.close();
+
+        db.close();
+
+        return deviceID;
+    }
+
+    public void updateScheduleItem(Bean_ScheduleItem scheduleItem, boolean noGeneralID) {
+        synchronized (Lock) {
+            try {
+                SQLiteDatabase db = this.getWritableDatabase();
+
+                ContentValues cv = new ContentValues();
+
+                cv.put(SCH_SWITCH_ID, scheduleItem.getSwitchID());
+                cv.put(SCH_SLAVE_ID, scheduleItem.getSlave_id());
+                cv.put(SCH_SW_BTN_NUM, scheduleItem.getSwitch_btn_num());
+
+                String days = "";
+                for (int i = 0; i < scheduleItem.getDays().length; i++) {
+                    days += scheduleItem.getDays()[i];
+                }
+                cv.put(SCH_DAYS, days);
+                cv.put(SCH_IS_ON, (scheduleItem.isSwitchOn()) ? 1 : 0);
+                cv.put(SCH_REPEAT, scheduleItem.getRepeat());
+                cv.put(SCH_TIME, scheduleItem.getTime());
+                cv.put(SCH_IS_ENABLE, (scheduleItem.isSchEnabled() ? 1 : 0));
+                cv.put(SCH_IS_REPEAT, (scheduleItem.isRepeated() ? 1 : 0));
+                cv.put(SCH_IS_DAILY, (scheduleItem.isDaily() ? 1 : 0));
+                cv.put(SCH_IS_ONCE, scheduleItem.isOnce() ? 1 : 0);
+                cv.put(SCH_SLOT_NUM, scheduleItem.getSlot_num());
+
+                String where = "SELECT MIN(" + SCHEDULE_GEN_ID + ") FROM " + TABLE_SCHEDULE + " WHERE " + SCH_TIME + "='" + scheduleItem.getTime() + "' AND " + SCH_SW_BTN_NUM + "='" + scheduleItem.getSwitch_btn_num() + "' AND " + SCH_IS_ENABLE + "=0";
+
+                Log.e("WHERE", where);
+
+
+                Cursor cursor = db.rawQuery(where, null);
+
+                int id = 0;
+
+                if (cursor.moveToFirst()) {
+                    id = cursor.getInt(0);
+                }
+
+                cursor.close();
+
+
+                db.update(TABLE_SCHEDULE, cv, SCH_TIME + "=? AND " + SCH_SW_BTN_NUM + "=? AND " + SCH_IS_ENABLE + "=? AND " + SCHEDULE_GEN_ID + "=?", new String[]{scheduleItem.getTime(), scheduleItem.getSwitch_btn_num(), String.valueOf(0), String.valueOf(id)});
+
+                db.close();
+            } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
+                //waitFor();
+                //updateScheduleItem(scheduleItem);
+            }
         }
     }
 }

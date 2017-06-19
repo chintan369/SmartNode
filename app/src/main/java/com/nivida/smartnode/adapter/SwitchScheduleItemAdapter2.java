@@ -826,9 +826,66 @@ public class SwitchScheduleItemAdapter2 extends BaseAdapter {
         super.notifyDataSetChanged();
     }
 
+    public void notifyChnagesUpdated() {
+        scheduleItemList = databaseHandler.getAllSchedulesForSwitch(switchID);
+        notifyDataSetChanged();
+    }
+
     private int getCurrentDay() {
         Calendar calendar = Calendar.getInstance();
         return calendar.get(Calendar.DAY_OF_WEEK);
+    }
+
+    public boolean hasAlreadySameSchedule(String switchNum, String time) {
+        boolean isSame = false;
+
+        for (int i = 0; i < scheduleItemList.size(); i++) {
+            if (scheduleItemList.get(i).getTime().equals(time) && scheduleItemList.get(i).getSwitch_btn_num().equals(switchNum) && !scheduleItemList.get(i).isSchEnabled()) {
+                isSame = true;
+                break;
+            }
+        }
+
+        return isSame;
+    }
+
+    public int hasSameTimeScheduleDisabled(String slave, String switchNum, String time) {
+
+        int count = 0;
+
+        for (int i = 0; i < scheduleItemList.size(); i++) {
+            if (scheduleItemList.get(i).getSwitch_btn_num().equals(switchNum) && scheduleItemList.get(i).getTime().equals(time) && !scheduleItemList.get(i).isSchEnabled()) {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    public Bean_ScheduleItem getSameSchedule(String switchNum, String time) {
+        Bean_ScheduleItem scheduleItem = new Bean_ScheduleItem();
+
+        for (int i = 0; i < scheduleItemList.size(); i++) {
+            if (scheduleItemList.get(i).getTime().equals(time) && scheduleItemList.get(i).getSwitch_btn_num().equals(switchNum) && scheduleItemList.get(i).isSchEnabled()) {
+                scheduleItem = scheduleItemList.get(i);
+                break;
+            }
+        }
+
+        return scheduleItem;
+    }
+
+    public boolean hasSameSlotSchedule(String slotNumber) {
+        boolean hasSameSlot = false;
+
+        for (int i = 0; i < scheduleItemList.size(); i++) {
+            if (scheduleItemList.get(i).getSlot_num().equals(slotNumber)) {
+                hasSameSlot = true;
+                break;
+            }
+        }
+
+        return hasSameSlot;
     }
 
     public interface OnScheduleViewSelection {

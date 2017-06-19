@@ -1,12 +1,15 @@
 package com.nivida.smartnode;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ActivityManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -21,15 +24,23 @@ import android.view.View;
 import android.widget.Button;
 
 import com.nivida.smartnode.a.C;
+import com.nivida.smartnode.a.Cmd;
 import com.nivida.smartnode.app.AppConstant;
 import com.nivida.smartnode.app.AppPreference;
+import com.nivida.smartnode.app.SmartNode;
+import com.nivida.smartnode.beans.Bean_SlaveGroup;
 import com.nivida.smartnode.model.DatabaseHandler;
-import com.nivida.smartnode.model.IPDb;
 import com.nivida.smartnode.services.AddDeviceService;
+import com.nivida.smartnode.services.GroupSwitchService;
 import com.nivida.smartnode.services.UDPService;
-import com.nivida.smartnode.utils.NetworkUtility;
 
 import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,6 +55,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import pl.droidsonroids.gif.GifImageView;
+
 import static android.Manifest.permission.CHANGE_WIFI_MULTICAST_STATE;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 
@@ -53,15 +66,25 @@ public class SplashActivity extends AppCompatActivity {
     public static final String MQTTSERVICE_CLASSNAME = "com.nivida.smartnode.services.AddDeviceService";
     public static final String CHECKINGSERVICE_CLASSNAME = "com.nivida.smartnode.services.CheckStatusService";
     private static int SPLASH_TIME_OUT = 2500;
+
+    private static int CHECK_AND_SEND_STS_DELAY = 2000;
+
+    BroadcastReceiver receiver;
+
     AppPreference preference;
     DatabaseHandler databaseHandler;
     String[] perms = {Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.MANAGE_DOCUMENTS, Manifest.permission.INTERNET, Manifest.permission.CAMERA, Manifest.permission.CALL_PHONE, CHANGE_WIFI_MULTICAST_STATE};
     int code = 1;
-    private int[] images={R.drawable.kitchen,R.drawable.bedroom,
+    GifImageView splash_image;
+    int deviceSTSFound = 0;
+    int totalDeviceFound = 0;
+    Handler mHandler;
+    Runnable mRunnable;
+    private int[] images = {R.drawable.kitchen, R.drawable.bedroom,
             R.drawable.mainroom,
-            R.drawable.drawingroom,R.drawable.add_new};
-    private String[] names={"Kitchen","Bed Room","Main Room","Drawing Room",
+            R.drawable.drawingroom, R.drawable.add_new};
+    private String[] names = {"Kitchen", "Bed Room", "Main Room", "Drawing Room",
             "Add New Group"};
 
     public static boolean isMarshmallowPlusDevice() {
@@ -76,7 +99,6 @@ public class SplashActivity extends AppCompatActivity {
             for (String permission : permissions) {
                 if (PERMISSION_GRANTED != activity.checkSelfPermission(permission)) {
                     newPermissionList.add(permission);
-
                 }
             }
             if (newPermissionList.size() > 0) {
@@ -94,14 +116,17 @@ public class SplashActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
+
+        splash_image = (GifImageView) findViewById(R.id.splash_image);
+
+        startReceiver();
+
         preference = new AppPreference(getApplicationContext());
 
         if (preference.isFirstTimeInstalled()) {
             deletePreviousData();
             preference.setMqttClientID(MqttClient.generateClientId());
         }
-
-        new IPDb(this).deleteIP();
 
         String dbFileName = Environment.getExternalStorageDirectory() + "/SmartNode/" + "smartnodedb.db";
 
@@ -113,10 +138,6 @@ public class SplashActivity extends AppCompatActivity {
         databaseHandler = new DatabaseHandler(this);
 
         //Log.e("Client ID", MqttClient.generateClientId());
-
-        if(NetworkUtility.isOnline(this)){
-            startService(new Intent(getApplicationContext(), UDPService.class));
-        }
 
         try {
             Process process = new ProcessBuilder()
@@ -130,28 +151,160 @@ public class SplashActivity extends AppCompatActivity {
         isMarshmallowPlusDevice();
         isPermissionRequestRequired(this, perms, code);
 
+        //startService(new Intent(getApplicationContext(), UDPService.class));
+        //startService(new Intent(this,AddDeviceService.class));
 
         if (Globals.isConnectingToInternet1(getApplicationContext())) {
-            new ReceiveUDP().execute();
+            new ReceiveUDP().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         } else {
             C.Toast(getApplicationContext(), "Please Connect to the Network First");
         }
 
 
         if (preference.isFirstTimeInstalled()) {
-            // splash code
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    if (databaseHandler.getGroupDataCounts() == 0) {
-                        databaseHandler.addDefaultRows(images, names);
-                    }
-                    goToSpecificActivity();
-                    preference.setFirstTimeInstalled(false);
+            preference.setFirstTimeInstalled(false);
+        }
+        // splash code
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (databaseHandler.getGroupDataCounts() == 0) {
+                    databaseHandler.addDefaultRows(images, names);
                 }
-            }, SPLASH_TIME_OUT);
-        } else {
-            goToSpecificActivity();
+                preference.setFirstTimeInstalled(false);
+                if (SmartNode.deviceIDs.size() > 0) {
+                    C.Toast(getApplicationContext(), "You are connected in LAN");
+                }
+                if (databaseHandler.getMastersCounts() <= 1) {
+                    Intent intent = new Intent(getApplicationContext(), AddMasterActivity.class);
+                    startActivity(intent);
+                    finish();
+                } else {
+                    sendSTSCommands();
+                }
+            }
+        }, CHECK_AND_SEND_STS_DELAY);
+
+    }
+
+    private void startReceiver() {
+        receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+
+                Bundle bundle = intent.getExtras();
+
+                if (bundle != null) {
+                    String subscribedMessage = bundle.getString(AddDeviceService.MESSAGETOSEND);
+                    String UDPMessage = bundle.getString(UDPService.MESSAGEJSON);
+
+                    //Log.e("JSOn fr group ", "" + subscribedMessage);
+                    if (UDPMessage != null) {
+                        handleCommands(UDPMessage);
+                    } else if (subscribedMessage != null) {
+                        handleCommands(subscribedMessage);
+                    }
+                }
+            }
+        };
+    }
+
+    private void handleCommands(String message) {
+        try {
+            JSONObject object = new JSONObject(message);
+
+            if (object.getString("cmd").equals(Cmd.STS)) {
+                deviceSTSFound++;
+
+                if (deviceSTSFound == totalDeviceFound) {
+                    if (mHandler != null) {
+                        mHandler.removeCallbacks(mRunnable);
+                    }
+
+                    goToSpecificActivity();
+                }
+            }
+        } catch (JSONException e) {
+            Log.e("Exception", e.getMessage());
+        }
+    }
+
+    private void sendSTSCommands() {
+        totalDeviceFound = SmartNode.deviceIDs.size();
+
+        List<Bean_SlaveGroup> slaveIDs = databaseHandler.getAllSlaveHex();
+
+        List<String> commands = new ArrayList<>();
+
+        for (int i = 0; i < slaveIDs.size(); i++) {
+            final JSONObject object = new JSONObject();
+
+            try {
+                object.put("cmd", Cmd.STS);
+                object.put("token", slaveIDs.get(i).getSlaveToken());
+                object.put("slave", slaveIDs.get(i).getHex_id());
+
+                Log.e("slaveInLocal_" + (i + 1), slaveIDs.get(i).getHex_id());
+
+                if (!SmartNode.slavesInLocal.contains(slaveIDs.get(i).getHex_id()) && SmartNode.deviceIDs.contains(slaveIDs.get(i).getMasterDeviceID())) {
+                    SmartNode.slavesInLocal.add(slaveIDs.get(i).getHex_id());
+                }
+
+                commands.add(object.toString());
+
+                new SendUDP(object.toString()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+        for (int i = slaveIDs.size() - 1; i >= 0; i--) {
+            new SendUDP(commands.get(i)).execute();
+            new SendMQTT(slaveIDs.get(i).getSlaveTopic(), commands.get(i)).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        }
+
+        sendScheduleCommands(slaveIDs);
+
+        mHandler = new Handler();
+        mRunnable = new Runnable() {
+            @Override
+            public void run() {
+                goToSpecificActivity();
+            }
+        };
+        mHandler.postDelayed(mRunnable, 3000);
+    }
+
+    private void sendScheduleCommands(List<Bean_SlaveGroup> slaveIDs) {
+
+        List<String> commands = new ArrayList<>();
+
+        for (int i = slaveIDs.size() - 1; i >= 0; i--) {
+            JSONObject object = new JSONObject();
+
+            try {
+                object.put("cmd", Cmd.SCH);
+                object.put("data", "ALL");
+                object.put("token", slaveIDs.get(i).getSlaveToken());
+                object.put("slave", slaveIDs.get(i).getHex_id());
+
+                commands.add(object.toString());
+
+                if (!SmartNode.slavesInLocal.contains(slaveIDs.get(i).getHex_id()) && SmartNode.deviceIDs.contains(slaveIDs.get(i).getMasterDeviceID())) {
+                    SmartNode.slavesInLocal.add(slaveIDs.get(i).getHex_id());
+                }
+
+                new SendUDP(object.toString()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+        for (int i = slaveIDs.size() - 1; i >= 0; i--) {
+            new SendMQTT(slaveIDs.get(i).getSlaveTopic(), commands.get(i)).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         }
     }
 
@@ -179,12 +332,12 @@ public class SplashActivity extends AppCompatActivity {
     }
 
     public void goToSpecificActivity() {
-        if(databaseHandler.getMastersCounts()>1){
-            Intent intent=new Intent(getApplicationContext(),MasterGroupActivity.class);
+        unregisterReceiver(receiver);
+        if (databaseHandler.getMastersCounts() > 1) {
+            Intent intent = new Intent(getApplicationContext(), MasterGroupActivity.class);
             startActivity(intent);
-        }
-        else {
-            Intent intent=new Intent(getApplicationContext(),AddMasterActivity.class);
+        } else {
+            Intent intent = new Intent(getApplicationContext(), AddMasterActivity.class);
             startActivity(intent);
         }
         finish();
@@ -192,29 +345,16 @@ public class SplashActivity extends AppCompatActivity {
 
     @Override
     protected void onResume() {
+        registerReceiver(receiver, new IntentFilter(GroupSwitchService.NOTIFICATION));
         startRequiredServices();
         super.onResume();
     }
 
-    private void startRequiredServices(){
-        if(serviceIsRunning()){
-            stopService(new Intent(getApplicationContext(),UDPService.class));
-        }
-        if(!serviceIsRunning()){
-            Intent intent=new Intent(this, UDPService.class);
-            startService(intent);
-        }
+    private void startRequiredServices() {
 
-        if(!MQTTserviceIsRunning()){
-            Intent intent=new Intent(this, AddDeviceService.class);
-            startService(intent);
-        }
 
-        /*if(!CheckingServiceIsRunning()){
-            Intent intent=new Intent(this, CheckStatusService.class);
-            startService(intent);
-            Log.e("Check Service","Started");
-        }*/
+        /*Intent intent = new Intent(this, AddDeviceService.class);
+        startService(intent);*/
     }
 
     private void showWarningDialog() {
@@ -310,6 +450,7 @@ public class SplashActivity extends AppCompatActivity {
         return false;
     }
 
+    @SuppressLint("WifiManagerLeak")
     public void run() {
         //Looper.prepare();
         try {
@@ -342,9 +483,9 @@ public class SplashActivity extends AppCompatActivity {
 
             //String encrypted=CustomEncryption.EncryptedCommand(message,"fe434d98558ce2b347171198542f112d");
 
-           //Log.e("ASCII", encrypted);
+            //Log.e("ASCII", encrypted);
             //Log.e("ASCII De", CustomEncryption.decryptedCommand(encrypted,"fe434d98558ce2b347171198542f112d"));
-           // Log.e("Hex to Int", "-- "+CustomEncryption.hexToInteger("fe434d98558ce2b347171198542f112d"));
+            // Log.e("Hex to Int", "-- "+CustomEncryption.hexToInteger("fe434d98558ce2b347171198542f112d"));
 
             run();
             try {
@@ -355,16 +496,16 @@ public class SplashActivity extends AppCompatActivity {
                 InetSocketAddress server_addr;
                 DatagramPacket packet;
 
-                Log.e("message",message);
+                Log.e("message", message);
 
                 Log.e("IP Address Saved", "->" + preference.getIpaddress());
 
                 /*if (preference.getIpaddress().isEmpty() || !C.isValidIP(preference.getIpaddress())) {*/
-                    server_addr = new InetSocketAddress(C.getBroadcastAddress(getApplicationContext()).getHostAddress(), 13001);
-                    packet = new DatagramPacket(senddata, senddata.length, server_addr);
-                    socket.setReuseAddress(true);
-                    socket.setBroadcast(true);
-                    socket.send(packet);
+                server_addr = new InetSocketAddress(C.getBroadcastAddress(getApplicationContext()).getHostAddress(), 13001);
+                packet = new DatagramPacket(senddata, senddata.length, server_addr);
+                socket.setReuseAddress(true);
+                socket.setBroadcast(true);
+                socket.send(packet);
                 /*} else {
                     server_addr = new InetSocketAddress(preference.getIpaddress(), 13001);
                     packet = new DatagramPacket(senddata, senddata.length, server_addr);
@@ -403,31 +544,99 @@ public class SplashActivity extends AppCompatActivity {
 
                 Log.e("Received port :", String.valueOf(port));
                 Log.e("Received Pac Data", recvpacket.getData().toString());*/
-            } catch (SocketException s) {
-                preference.setOnline(true);
-                preference.setCurrentIPAddr("");
-                //C.Toast(getApplicationContext(), s.getLocalizedMessage());
-                Log.e("Exception", "->" + s.getLocalizedMessage());
             } catch (IOException e) {
-                preference.setOnline(true);
-                preference.setCurrentIPAddr("");
-                //C.Toast(getApplicationContext(), e.getLocalizedMessage());
+                e.printStackTrace();
+            }
+            return null;
+        }
+    }
+
+    private class SendUDP extends AsyncTask<Void, Void, String> {
+        String message;
+        String masterName;
+        String type;
+        boolean showMaster = true;
+
+        public SendUDP(String message) {
+            this.message = message;
+            showMaster = true;
+            //progressbar.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected String doInBackground(Void[] params) {
+
+            try {
+                DatagramSocket socket = new DatagramSocket();
+                byte[] senddata = new byte[message.length()];
+                senddata = message.getBytes();
+
+                InetSocketAddress server_addr;
+                DatagramPacket packet;
+
+                server_addr = new InetSocketAddress(C.getBroadcastAddress(getApplicationContext()).getHostAddress(), 13001);
+                packet = new DatagramPacket(senddata, senddata.length, server_addr);
+                socket.setReuseAddress(true);
+                socket.setBroadcast(true);
+                socket.send(packet);
+
+                socket.disconnect();
+                socket.close();
+            } catch (SocketException s) {
+                Log.e("Exception", "-->" + s.getLocalizedMessage());
+            } catch (IOException e) {
                 Log.e("Exception", "->" + e.getLocalizedMessage());
             }
             return null;
         }
 
         @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
+        protected void onPostExecute(String text) {
+            super.onPostExecute(text);
+        }
+    }
 
-            if (s == null || s.isEmpty()) {
-                preference.setOnline(true);
-                //C.Toast(getApplicationContext(), "You are Connected with Internet");
-            } else {
-                preference.setOnline(false);
-                C.Toast(getApplicationContext(), "You are Connected in LAN");
+    public class SendMQTT extends AsyncTask<Void, Void, Void> {
+
+        String topic = "";
+        String command = "";
+
+        public SendMQTT(String topic, String command) {
+            this.topic = topic;
+            this.command = command;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            try {
+                String clientID = MqttClient.generateClientId();
+                MqttClient mqttClient = new MqttClient(AppConstant.MQTT_BROKER_URL, clientID, new MemoryPersistence());
+                MqttConnectOptions connectOptions = new MqttConnectOptions();
+                connectOptions.setUserName(AppConstant.MQTT_USERNAME);
+                connectOptions.setPassword(AppConstant.getPassword());
+                connectOptions.setConnectionTimeout(3);
+                mqttClient.connect(connectOptions);
+
+
+                MqttMessage mqttMessage = new MqttMessage(command.getBytes());
+                mqttMessage.setQos(0);
+                mqttMessage.setRetained(false);
+                mqttClient.publish(topic + AppConstant.MQTT_PUBLISH_TOPIC, mqttMessage);
+                mqttClient.disconnect();
+
+            } catch (MqttException e) {
+                Log.e("Exception M: ", e.getMessage());
+                e.printStackTrace();
+                SmartNode.isConnectedToInternet = false;
+            } catch (Exception e) {
+                Log.e("Exception : ", e.getMessage());
             }
+            return null;
         }
     }
 }

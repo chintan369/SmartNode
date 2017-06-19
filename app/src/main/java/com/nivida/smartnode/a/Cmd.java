@@ -30,4 +30,13 @@ public class Cmd {
     public static final String SCENE="000";
 
     public static final String INVALID_TOKEN="token_invalid";
+
+    public static final String INTERNET = "INTERNET";
+    public static final String NO_INTERNET = "Internet Connection Lost!";
+    public static final String REINTERNET = "Internet Re-Connected";
+    public static final String INTERNET_UNAVAILABLE = "Internet is not Available!";
+    public static final String DEVICE_OFFLINE = "Device is Offline!";
+
+    public static final String CONNECTED = "1";
+    public static final String NOT_CONNECTED = "0";
 }

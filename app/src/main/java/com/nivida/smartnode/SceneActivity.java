@@ -10,9 +10,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -25,8 +25,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,11 +33,10 @@ import com.nivida.smartnode.a.Cmd;
 import com.nivida.smartnode.adapter.SceneAdapter;
 import com.nivida.smartnode.app.AppConstant;
 import com.nivida.smartnode.app.AppPreference;
-import com.nivida.smartnode.beans.Bean_Master;
+import com.nivida.smartnode.app.SmartNode;
 import com.nivida.smartnode.beans.Bean_Scenes;
 import com.nivida.smartnode.beans.Bean_Switch;
 import com.nivida.smartnode.model.DatabaseHandler;
-import com.nivida.smartnode.model.IPDb;
 import com.nivida.smartnode.services.AddDeviceService;
 import com.nivida.smartnode.services.UDPService;
 import com.nivida.smartnode.utils.NetworkUtility;
@@ -59,28 +56,15 @@ import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 public class SceneActivity extends AppCompatActivity {
 
-    private Toolbar toolbar;
-    private TextView actionBarTitle;
-    private GridView sceneGrid;
-    private Typeface typeface_raleway;
-    ImageView img_add,img_home;
-
-    public List<Bean_Scenes> scenesList=new ArrayList<>();
-    private List<Bean_Switch> switchList=new ArrayList<>();
-
-    private ArrayList<String> updateCommands=new ArrayList<>();
-
-    public SceneAdapter sceneAdapter;
-    private DatabaseHandler dbhandler;
-    private AppPreference preference;
-    int serialID=0;
-
     //Define MQTT variables here
     public static final String SERVICE_CLASSNAME = "com.nivida.smartnode.services.AddDeviceService";
+    public List<Bean_Scenes> scenesList=new ArrayList<>();
+    public SceneAdapter sceneAdapter;
+    ImageView img_add, img_home;
+    int serialID=0;
     MqttClient mqttClient;
     String clientId=MqttClient.generateClientId();
     String subscribedMessage="";
@@ -89,15 +73,19 @@ public class SceneActivity extends AppCompatActivity {
     boolean isUserCredentialTrue=false;
     NetworkUtility netcheck;
     PublishMessage publishMessage;
-
     Handler handler;
     Runnable runnable;
-
     ProgressDialog dialog;
-
     int fireTime=0;
-
     int groupid=0;
+    private Toolbar toolbar;
+    private TextView actionBarTitle;
+    private GridView sceneGrid;
+    private Typeface typeface_raleway;
+    private List<Bean_Switch> switchList = new ArrayList<>();
+    private ArrayList<String> updateCommands = new ArrayList<>();
+    private DatabaseHandler dbhandler;
+    private AppPreference preference;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,18 +103,6 @@ public class SceneActivity extends AppCompatActivity {
 
         //startAddSwitchService();
         startReceiver();
-
-        handler=new Handler();
-        runnable=new Runnable() {
-            @Override
-            public void run() {
-                if(dialog.isShowing()){
-                    updateCommands.clear();
-                    dialog.dismiss();
-                    C.Toast(getApplicationContext(),"It might Device not Responding or Your Connection is Poor.\nPlease Try Again Later!");
-                }
-            }
-        };
 
         Intent intent=getIntent();
         groupid=intent.getIntExtra("group_id",0);
@@ -178,6 +154,11 @@ public class SceneActivity extends AppCompatActivity {
             JSONObject object=new JSONObject(json);
 
             String cmd=object.getString("cmd");
+
+            if (cmd.equals(Cmd.INTERNET)) {
+                C.Toast(getApplicationContext(), object.getString("message"));
+                return;
+            }
             int serialNum=object.getInt("serial");
 
             /*if(cmd.equalsIgnoreCase(Cmd.SET)){
@@ -290,7 +271,6 @@ public class SceneActivity extends AppCompatActivity {
                 int scene_id=sceneAdapter.getSceneID(position);
 
                 dialog.show();
-                handler.postDelayed(runnable,13000);
                 if(scene_id==1){
                     setAllSwitchesOn();
                     //Set All Switches ON
@@ -377,10 +357,9 @@ public class SceneActivity extends AppCompatActivity {
     private void generateCommandsForUpdateSpecific(int scene_id) {
 
         List<Bean_Switch> switchList=dbhandler.getSceneSwitches(scene_id,groupid);
-        List<String> ipList=new IPDb(this).ipList();
         updateCommands.clear();
 
-        ArrayList<String> slaveIDsInGrp=new ArrayList<>();
+        final ArrayList<String> slaveIDsInGrp = new ArrayList<>();
         for(int i=0; i<switchList.size(); i++){
             if(!slaveIDsInGrp.contains(switchList.get(i).getSwitchInSlave())){
                 slaveIDsInGrp.add(switchList.get(i).getSwitchInSlave());
@@ -388,7 +367,7 @@ public class SceneActivity extends AppCompatActivity {
         }
 
         for(int i=0; i<slaveIDsInGrp.size(); i++) {
-            JSONObject object = new JSONObject();
+            final JSONObject object = new JSONObject();
             try {
                 object.put("cmd",Cmd.SCENE);
                 object.put("slave",slaveIDsInGrp.get(i));
@@ -427,57 +406,53 @@ public class SceneActivity extends AppCompatActivity {
 
                 updateCommands.add(object.toString());
 
-                if(ipList.contains(dbhandler.getSlaveIPAddr(slaveIDsInGrp.get(i)))){
-                    new SendUDP(object.toString()).execute();
+                if (SmartNode.slavesInLocal.contains(slaveIDsInGrp.get(i))) {
+                    new SendUDP(object.toString()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 }
                 else {
-                    new PublishMessage(object.toString(),slaveIDsInGrp.get(i)).execute();
+                    new PublishMessage(object.toString(), slaveIDsInGrp.get(i)).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 }
+
+                handler = new Handler();
+                final int finalI = i;
+                final int DELAY_TIME[] = {7000};
+                if (SmartNode.slavesInLocal.contains(slaveIDsInGrp.get(i))) DELAY_TIME[0] = 500;
+                runnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        if (dialog.isShowing()) {
+                            boolean hasToGo = true;
+                            if (!SmartNode.slavesInLocal.contains(slaveIDsInGrp.get(finalI)) && SmartNode.slavesWorking.contains(slaveIDsInGrp.get(finalI))) {
+                                hasToGo = false;
+                                dialog.dismiss();
+                                C.Toast(getApplicationContext(), "Device is Offline!\nPlease Try Again Later!");
+                                handler.removeCallbacks(runnable);
+                            }
+                            if (hasToGo) {
+                                if (SmartNode.slavesInLocal.contains(slaveIDsInGrp.get(finalI))) {
+                                    new SendUDP(object.toString()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                                } else {
+                                    new PublishMessage(object.toString(), slaveIDsInGrp.get(finalI)).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                                }
+                                handler.postDelayed(this, DELAY_TIME[0]);
+                            }
+                        } else {
+                            handler.removeCallbacks(runnable);
+                        }
+                    }
+                };
+                handler.postDelayed(runnable, DELAY_TIME[0]);
 
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
-
-        /*for(int i=0;i<switchList.size();i++){
-            Bean_Switch switchItem=switchList.get(i);
-            try{
-                JSONObject object=new JSONObject();
-                if(dbhandler.getSlaveUserType(switchItem.getSwitchInSlave()).equalsIgnoreCase(Cmd.LIN))
-                    object.put("cmd",Cmd.UPD);
-                else
-                    object.put("cmd",Cmd.UUP);
-
-                object.put("token",dbhandler.getSlaveToken(switchItem.getSwitchInSlave()));
-                object.put("slave",switchItem.getSwitchInSlave());
-
-                String data= switchItem.getSwitch_btn_num();
-                data += switchItem.getIsSwitchOn()==1 ? "A": "0";
-                data += switchItem.getIsSwitch().equalsIgnoreCase("s") ? "X" : String.valueOf(switchItem.getDimmerValue());
-
-                object.put("data",data);
-
-                String command=object.toString();
-                Log.e("command",command);
-
-                if(preference.isOnline() || (!preference.isOnline() && !preference.getCurrentIPAddr().equalsIgnoreCase(dbhandler.getMasterIPBySlaveID(switchItem.getSwitchInSlave())))){
-                    new PublishMessage(command,switchItem.getSwitchInSlave()).execute();
-                }
-                else {
-                    new SendUDP(command).execute();
-                }
-            }catch (Exception e){
-                Log.e("Exception",e.getMessage());
-            }
-        }*/
-
     }
 
     private void generateCommandsForUpdate(boolean onOff) {
         updateCommands.clear();
-        List<String> ipList=new IPDb(this).ipList();
 
-        ArrayList<String> slaveIDsInGrp=new ArrayList<>();
+        final ArrayList<String> slaveIDsInGrp = new ArrayList<>();
 
         for(int i=0; i<switchList.size(); i++){
             if(!slaveIDsInGrp.contains(switchList.get(i).getSwitchInSlave())){
@@ -486,7 +461,7 @@ public class SceneActivity extends AppCompatActivity {
         }
 
         for(int i=0; i<slaveIDsInGrp.size(); i++){
-            JSONObject object=new JSONObject();
+            final JSONObject object = new JSONObject();
 
             try {
                 object.put("cmd",Cmd.SCENE);
@@ -526,60 +501,49 @@ public class SceneActivity extends AppCompatActivity {
 
                 updateCommands.add(object.toString());
 
-                if(ipList.contains(dbhandler.getSlaveIPAddr(slaveIDsInGrp.get(i)))){
-                    new SendUDP(object.toString()).execute();
+                if (SmartNode.slavesInLocal.contains(slaveIDsInGrp.get(i))) {
+                    new SendUDP(object.toString()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 }
                 else {
-                    new PublishMessage(object.toString(),slaveIDsInGrp.get(i)).execute();
+                    new PublishMessage(object.toString(), slaveIDsInGrp.get(i)).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 }
+
+                handler = new Handler();
+                final int finalI = i;
+                final int DELAY_TIME[] = {7000};
+                if (SmartNode.slavesInLocal.contains(slaveIDsInGrp.get(i))) DELAY_TIME[0] = 500;
+                runnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        if (dialog.isShowing()) {
+                            boolean hasToGo = true;
+                            if (!SmartNode.slavesInLocal.contains(slaveIDsInGrp.get(finalI)) && SmartNode.slavesWorking.contains(slaveIDsInGrp.get(finalI))) {
+                                hasToGo = false;
+                                SmartNode.slavesWorking.remove(slaveIDsInGrp.get(finalI));
+                                dialog.dismiss();
+                                C.Toast(getApplicationContext(), "Device is Offline!\nPlease Try Again Later!");
+                                handler.removeCallbacks(runnable);
+                            }
+                            if (hasToGo) {
+                                if (SmartNode.slavesInLocal.contains(slaveIDsInGrp.get(finalI))) {
+                                    new SendUDP(object.toString()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                                } else {
+                                    new PublishMessage(object.toString(), slaveIDsInGrp.get(finalI)).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                                }
+                                handler.postDelayed(this, DELAY_TIME[0]);
+                            }
+                        }
+                        else {
+                            handler.removeCallbacks(runnable);
+                        }
+                    }
+                };
+                handler.postDelayed(runnable, DELAY_TIME[0]);
 
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
-
-        /*for(int i=0;i<switchList.size();i++){
-            final Bean_Switch switchItem=switchList.get(i);
-            try{
-                JSONObject object=new JSONObject();
-                if(dbhandler.getSlaveUserType(switchItem.getSwitchInSlave()).equalsIgnoreCase(Cmd.LIN))
-                    object.put("cmd",Cmd.UPD);
-                else
-                    object.put("cmd",Cmd.UUP);
-
-                object.put("token",dbhandler.getSlaveToken(switchItem.getSwitchInSlave()));
-                object.put("slave",switchItem.getSwitchInSlave());
-
-                String data= switchItem.getSwitch_btn_num();
-                data += onOff ? "A": "0";
-                data += switchItem.getIsSwitch().equalsIgnoreCase("s") ? "X" : String.valueOf(switchItem.getDimmerValue());
-
-                object.put("data",data);
-
-                final String command=object.toString();
-                Log.e("command",command);
-
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        if(preference.isOnline()){
-                            new PublishMessage(command,switchItem.getSwitchInSlave()).execute();
-                        }
-                        else {
-                            new SendUDP(command).execute();
-                        }
-                    }
-                },250);
-
-
-
-            }catch (Exception e){
-                Log.e("Exception",e.getMessage());
-            }
-
-
-        }*/
-        //Log.i("Switch size ",updateCommands.size()+" "+onOff);
     }
 
     private void showDeleteSceneDialog(final int scene_id, int position) {
@@ -731,11 +695,7 @@ public class SceneActivity extends AppCompatActivity {
              this.slaveID=slave;
             if(netcheck.isOnline()){
                 try{
-                    mqttClient=new MqttClient(AppConstant.MQTT_BROKER_URL,clientId,new MemoryPersistence());
-                    MqttConnectOptions connectOptions=new MqttConnectOptions();
-                    connectOptions.setUserName(AppConstant.MQTT_USERNAME);
-                    connectOptions.setPassword(AppConstant.getPassword());
-                    mqttClient.connect(connectOptions);
+
                 } catch(Exception e){
                     Toast.makeText(SceneActivity.this,e.getMessage(),Toast.LENGTH_SHORT).show();
                 }
@@ -748,6 +708,17 @@ public class SceneActivity extends AppCompatActivity {
         @Override
         protected String doInBackground(Void... params) {
             if(netcheck.isOnline()){
+
+                try {
+                    mqttClient = new MqttClient(AppConstant.MQTT_BROKER_URL, clientId, new MemoryPersistence());
+                    MqttConnectOptions connectOptions = new MqttConnectOptions();
+                    connectOptions.setUserName(AppConstant.MQTT_USERNAME);
+                    connectOptions.setPassword(AppConstant.getPassword());
+                    mqttClient.connect(connectOptions);
+                } catch (MqttException e) {
+                    e.printStackTrace();
+                }
+
                     MqttMessage mqttMessage=new MqttMessage(command.getBytes());
                     mqttMessage.setQos(0);
                     mqttMessage.setRetained(false);
@@ -783,7 +754,7 @@ public class SceneActivity extends AppCompatActivity {
         protected String doInBackground(Void[] params) {
 
             try {
-                DatagramSocket socket = new DatagramSocket(13001);
+                DatagramSocket socket = new DatagramSocket();
                 byte[] senddata = new byte[message.length()];
                 senddata = message.getBytes();
 

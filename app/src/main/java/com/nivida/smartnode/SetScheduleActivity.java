@@ -26,10 +26,10 @@ import com.nivida.smartnode.a.Cmd;
 import com.nivida.smartnode.adapter.SwitchScheduleItemAdapter2;
 import com.nivida.smartnode.app.AppConstant;
 import com.nivida.smartnode.app.AppPreference;
+import com.nivida.smartnode.app.SmartNode;
 import com.nivida.smartnode.beans.Bean_ScheduleItem;
 import com.nivida.smartnode.beans.Bean_Switch;
 import com.nivida.smartnode.model.DatabaseHandler;
-import com.nivida.smartnode.model.IPDb;
 import com.nivida.smartnode.services.AddDeviceService;
 import com.nivida.smartnode.services.AddMasterService;
 import com.nivida.smartnode.services.UDPService;
@@ -40,6 +40,7 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -94,9 +95,9 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
     AlertDialog.Builder builder;
     AlertDialog dialog;
 
-    String switchButtonNumber="";
-    String slaveHexID="";
-    String slaveToken="";
+    String switchButtonNumber = "";
+    String slaveHexID = "";
+    String slaveToken = "";
 
     int positionForDelete = -1;
 
@@ -126,10 +127,10 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
         groupid = intent.getIntExtra("group_id", 0);
         switchID = intent.getIntExtra("switchID", 0);
         switchName = intent.getStringExtra("switchName");
-        switchButtonNumber=databaseHandler.getSwitchButtonNum(switchID);
-        slaveHexID=databaseHandler.getSlaveHexIDForSwitch(switchID);
-        slaveToken=databaseHandler.getSlaveToken(slaveHexID);
-        footerViewLoaidng=getLayoutInflater().inflate(R.layout.list_footer_loading,null);
+        switchButtonNumber = databaseHandler.getSwitchButtonNum(switchID);
+        slaveHexID = databaseHandler.getSlaveHexIDForSwitch(switchID);
+        slaveToken = databaseHandler.getSlaveToken(slaveHexID);
+        footerViewLoaidng = getLayoutInflater().inflate(R.layout.list_footer_loading, null);
 
         startServices();
         startRecevier();
@@ -141,7 +142,7 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
     }
 
     private void startServices() {
-        if (!UDPServiceIsRunning()) {
+        /*if (!UDPServiceIsRunning()) {
             Intent intent = new Intent(this, UDPService.class);
             startService(intent);
         }
@@ -149,7 +150,7 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
         if (!serviceIsRunning()) {
             final Intent intent = new Intent(this, AddDeviceService.class);
             //startService(intent);
-        }
+        }*/
     }
 
     private boolean UDPServiceIsRunning() {
@@ -193,6 +194,11 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
 
             String cmd = object.getString("cmd");
 
+            if (cmd.equals(Cmd.INTERNET)) {
+                C.Toast(getApplicationContext(), object.getString("message"));
+                return;
+            }
+
             String slave = object.getString("slave");
 
             if (cmd.equalsIgnoreCase(Cmd.SCH)) {
@@ -209,15 +215,15 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
                         boolean isAnyAvail = false;
                         String NN = "26";
                         //To get Information which slot is available for creating schudule
-                        for (int i = 0; i < availableSlots.length(); i+=2) {
+                        for (int i = 0; i < availableSlots.length(); i += 2) {
 
-                            String currentSwitchNumber=String.valueOf(availableSlots.charAt(i))+String.valueOf(availableSlots.charAt(i+1));
+                            String currentSwitchNumber = String.valueOf(availableSlots.charAt(i)) + String.valueOf(availableSlots.charAt(i + 1));
 
                             boolean isAvail = currentSwitchNumber.equals("00");
 
                             if (isAvail) {
-                                NN = String.valueOf(i/2);
-                                if ((i/2) < 10)
+                                NN = String.valueOf(i / 2);
+                                if ((i / 2) < 10)
                                     NN = "0" + NN;
                                 isAnyAvail = true;
                                 break;
@@ -233,30 +239,29 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
                         }
                     } else {
 
-                        List<String> ipList=new IPDb(this).ipList();
-                        boolean isOnLAN=ipList.contains(databaseHandler.getMasterIPBySlaveID(slaveHexID));
+                        boolean isOnLAN = SmartNode.slavesInLocal.contains(slaveHexID);
 
-                        boolean isFoundAny=false;
+                        boolean isFoundAny = false;
 
-                        for (int i = 0; i < availableSlots.length(); i+=2) {
+                        for (int i = 0; i < availableSlots.length(); i += 2) {
                             scheduleList.removeFooterView(footerViewLoaidng);
 
-                            String currentSlotNum=String.valueOf(availableSlots.charAt(i))+String.valueOf(availableSlots.charAt(i+1));
+                            String currentSlotNum = String.valueOf(availableSlots.charAt(i)) + String.valueOf(availableSlots.charAt(i + 1));
 
-                            if(currentSlotNum.equals(switchButtonNumber)){
-                                isFoundAny=true;
+                            if (currentSlotNum.equals(switchButtonNumber)) {
+                                isFoundAny = true;
                                 try {
 
                                     JSONObject command = new JSONObject();
                                     command.put("cmd", Cmd.SCH);
-                                    command.put("slave",slaveHexID);
+                                    command.put("slave", slaveHexID);
                                     command.put("token", slaveToken);
 
                                     String getData = "G-";
-                                    if ((i/2) < 10)
-                                        getData += "0" + (i/2);
+                                    if ((i / 2) < 10)
+                                        getData += "0" + (i / 2);
                                     else
-                                        getData += (i/2);
+                                        getData += (i / 2);
 
                                     command.put("data", getData);
 
@@ -285,7 +290,7 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
                             }
                         }
 
-                        if(!isFoundAny){
+                        if (!isFoundAny) {
                             scheduleList.removeFooterView(footerViewLoaidng);
                             adapter.setHasNoSchedule();
                         }
@@ -302,11 +307,11 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
                             String dimmerValue = dataItems[7];
                             String repeatValue = dataItems[8];
 
-                            if (!databaseHandler.isAlreadyScheduleAdded(slave, slotNumber, switchNum)) {
+                            if (adapter.hasAlreadySameSchedule(switchNum, time) && adapter.hasSameTimeScheduleDisabled(slave, switchNum, time) > 0) {
+
                                 Bean_ScheduleItem scheduleItem = new Bean_ScheduleItem();
-                                scheduleItem.setScheduleID(databaseHandler.getNewIDForSCH());
-                                scheduleItem.setSlave_id(slave);
                                 scheduleItem.setSwitchID(switchID);
+                                scheduleItem.setSlave_id(slave);
                                 scheduleItem.setTime(time);
                                 scheduleItem.setSlot_num(slotNumber);
                                 scheduleItem.setSwitch_btn_num(switchNum);
@@ -321,16 +326,56 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
 
                                 if (scheduleItem.areAllDaysSelected())
                                     scheduleItem.setDaily(true);
-                                else if (scheduleItem.getRepeat() == 1)
+                                else if (scheduleItem.getRepeat() == 1 && scheduleItem.isSingleDaySelected())
                                     scheduleItem.setOnce(true);
+                                else {
+                                    scheduleItem.setRepeat(0);
+                                    scheduleItem.setOnce(false);
+                                    scheduleItem.setRepeated(true);
+                                }
 
-                                databaseHandler.addScheduleItem(scheduleItem);
-                                adapter.notifyDataSetChanged();
+                                databaseHandler.updateScheduleItem(scheduleItem, true);
+                                adapter.notifyChnagesUpdated();
+                            } else {
+
+                                if (!adapter.hasSameSlotSchedule(slotNumber)) {
+                                    Bean_ScheduleItem scheduleItem = new Bean_ScheduleItem();
+                                    scheduleItem.setScheduleID(databaseHandler.getNewIDForSCH());
+                                    scheduleItem.setSlave_id(slave);
+                                    scheduleItem.setSwitchID(switchID);
+                                    scheduleItem.setTime(time);
+                                    scheduleItem.setSlot_num(slotNumber);
+                                    scheduleItem.setSwitch_btn_num(switchNum);
+                                    scheduleItem.setSwitchOn(switchStatus.equalsIgnoreCase("ON"));
+                                    scheduleItem.setDimmerValue(dimmerValue);
+                                    scheduleItem.setRepeat(Integer.parseInt(repeatValue));
+                                    scheduleItem.setSchEnabled(true);
+
+                                    for (int i = 0; i < days.length(); i++) {
+                                        scheduleItem.setPerticularDay(i, String.valueOf(days.charAt(i)));
+                                    }
+
+                                    if (scheduleItem.areAllDaysSelected())
+                                        scheduleItem.setDaily(true);
+                                    else if (scheduleItem.getRepeat() == 1 && scheduleItem.isSingleDaySelected())
+                                        scheduleItem.setOnce(true);
+                                    else
+                                        scheduleItem.setRepeated(true);
+
+                                    databaseHandler.addScheduleItem(scheduleItem);
+                                    adapter.notifyChnagesUpdated();
+                                }
                             }
+                        } else if (dataItems[2].equalsIgnoreCase("EMPTY")) {
+                            forAddingNewItem = true;
+                            adapter.updateScheduleDeleted(dataItems[1], slave, positionForDelete);
+                            deleteDialog.dismiss();
+                            positionForDelete = -1;
                         }
                     } else {
                         if (dataItems[2].equalsIgnoreCase("EMPTY")) {
-                            C.Toast(getApplicationContext(),"Schedule Removed Successfully");
+                            forAddingNewItem = true;
+                            C.Toast(getApplicationContext(), "Schedule Removed Successfully");
                             adapter.updateScheduleDeleted(dataItems[1], slave, positionForDelete);
                             deleteDialog.dismiss();
                             positionForDelete = -1;
@@ -338,6 +383,7 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
                             C.Toast(getApplicationContext(), "Schedule created Succeddfully");
                             adapter.setScheduleCreated(slave, dataItems[5], dataItems[1]);
                             createSchuduleDialog.dismiss();
+                            forAddingNewItem = true;
                         }
                     }
                 } else if (tag.equalsIgnoreCase("N")) {
@@ -367,7 +413,7 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
 
     private void setDeviceTimeOnServer(String mobileHour, String mobileMinute, final String mobileDate, final String slave) {
 
-        if(dialog==null || !dialog.isShowing()){
+        if (dialog == null || !dialog.isShowing()) {
             builder.setTitle("Change Device Time");
             builder.setMessage("Your device time is inaccurate. Do you want to change it as in your mobile ?");
             builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
@@ -389,12 +435,10 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
                         String command = object.toString();
                         Log.e("command", command);
 
-                        List<String> ipList=new IPDb(getApplicationContext()).ipList();
-
-                        if (ipList.contains(databaseHandler.getMasterIPBySlaveID(slaveHexID))) {
-                            new SendUDP(command).execute();
+                        if (SmartNode.slavesInLocal.contains(slaveHexID)) {
+                            new SendUDP(command).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                         } else {
-                            new PublishMessage(command, slaveHexID).execute();
+                            new PublishMessage(command, slaveHexID).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                         }
                     } catch (Exception e) {
                         Log.e("Exception", e.getMessage());
@@ -462,7 +506,7 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
 
                                 String command = "{\"cmd\":\"SCH\",\"slave\":\"" + databaseHandler.getSlaveHexIDForSwitch(switchID) + "\",\"data\":\"G-" + NN + "\"}";
 
-                                new PublishMessage(command, databaseHandler.getSlaveHexIDForSwitch(switchID)).execute();
+                                new PublishMessage(command, databaseHandler.getSlaveHexIDForSwitch(switchID)).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                             }
 
                             if (i == availables.length() - 1)
@@ -584,13 +628,11 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
             String command = object.toString();
             Log.e("command", command);
 
-            List<String> ipList=new IPDb(this).ipList();
-
             if (NetworkUtility.isOnline(getApplicationContext())) {
-                if (ipList.contains(databaseHandler.getMasterIPBySlaveID(slaveHexID))) {
-                    new SendUDP(command).execute();
+                if (SmartNode.slavesInLocal.contains(slaveHexID)) {
+                    new SendUDP(command).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 } else {
-                    new PublishMessage(command, slaveID).execute();
+                    new PublishMessage(command, slaveID).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 }
             } else {
                 C.Toast(getApplicationContext(), "Failed To get Device Time due to no Internet Connection");
@@ -605,34 +647,61 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
         scheduleList = (ListView) findViewById(R.id.scheduleList);
         scheduleItemList = databaseHandler.getAllSchedulesForSwitch(switchID);
         adapter = new SwitchScheduleItemAdapter2(this, scheduleItemList, this, switchID);
-
+        scheduleList.setAdapter(adapter);
         scheduleList.addFooterView(footerViewLoaidng);
 
         String slave_id = databaseHandler.getSlaveHexIDForSwitch(switchID);
         Log.e("slave_id", switchID + "->" + slave_id);
 
         if (!slave_id.isEmpty() && !slave_id.equalsIgnoreCase("0")) {
-            try {
-                JSONObject object = new JSONObject();
-                object.put("cmd", Cmd.SCH);
-                object.put("slave", slave_id);
-                object.put("data", "ALL");
-                object.put("token", databaseHandler.getSlaveToken(slave_id));
 
-                String command = object.toString();
+            String commandCache = SmartNode.slaveCommands.get(slaveHexID);
+            boolean isSCHFound = false;
+            String schCommand = "";
+            if (commandCache != null && !commandCache.isEmpty()) {
+                try {
+                    JSONArray array = new JSONArray(commandCache);
+                    for (int i = 0; i < array.length(); i++) {
 
-                if (preference.isOnline() || (!preference.isOnline() && !preference.getCurrentIPAddr().equalsIgnoreCase(databaseHandler.getMasterIPBySlaveID(slave_id)))) {
-                    new PublishMessage(command, slave_id).execute();
-                } else {
-                    new SendUDP(command).execute();
+                        JSONObject object = array.getJSONObject(i);
+                        if (object.getString("cmd").equals("SCH")) {
+                            isSCHFound = true;
+                            schCommand = object.toString();
+                        }
+
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-            } catch (Exception e) {
-                Log.e("Exception", e.getMessage());
             }
+
+            if (isSCHFound) {
+                handleJSONCommand(schCommand);
+            } else {
+                try {
+                    JSONObject object = new JSONObject();
+                    object.put("cmd", Cmd.SCH);
+                    object.put("slave", slave_id);
+                    object.put("data", "ALL");
+                    object.put("token", databaseHandler.getSlaveToken(slave_id));
+
+                    String command = object.toString();
+
+                    if (SmartNode.slavesInLocal.contains(slave_id)) {
+                        new SendUDP(command).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                    } else {
+                        new PublishMessage(command, slave_id).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                    }
+                } catch (Exception e) {
+                    Log.e("Exception", e.getMessage());
+                }
+            }
+
+
         }
 
         Log.e("Schedule Items", "" + scheduleItemList.size());
-        scheduleList.setAdapter(adapter);
+
     }
 
     private void setToolBar() {
@@ -704,12 +773,10 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
                 String command = object.toString();
                 Log.e("Command", command);
 
-                List<String> ipList=new IPDb(this).ipList();
-
-                if (ipList.contains(databaseHandler.getMasterIPBySlaveID(scheduleItem.getSlave_id()))) {
-                    new SendUDP(command).execute();
+                if (SmartNode.slavesInLocal.contains(scheduleItem.getSlave_id())) {
+                    new SendUDP(command).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 } else {
-                    new PublishMessage(command, scheduleItem.getSlave_id()).execute();
+                    new PublishMessage(command, scheduleItem.getSlave_id()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 }
             } catch (Exception e) {
                 Log.e("Exception", e.getMessage());
@@ -722,27 +789,49 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
         forAvailInfo = false;
         createSchuduleDialog.setMessage("Gathering Slot Information");
         if (NetworkUtility.isOnline(getApplicationContext())) {
+            String commandCache = SmartNode.slaveCommands.get(slaveHexID);
+            boolean isSCHFound = false;
+            String schCommand = "";
+            if (commandCache != null && !commandCache.isEmpty()) {
+                try {
+                    JSONArray array = new JSONArray(commandCache);
+                    for (int i = 0; i < array.length(); i++) {
+
+                        JSONObject object = array.getJSONObject(i);
+                        if (object.getString("cmd").equals("SCH")) {
+                            isSCHFound = true;
+                            schCommand = object.toString();
+                        }
+
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
             createSchuduleDialog.show();
 
-            List<String> ipList=new IPDb(this).ipList();
-            try {
-                JSONObject object = new JSONObject();
-                object.put("cmd", Cmd.SCH);
-                object.put("slave", slaveID);
-                object.put("data", "ALL");
-                object.put("token", databaseHandler.getSlaveToken(slaveID));
+            if (isSCHFound) {
+                handleJSONCommand(schCommand);
+            } else {
+                try {
+                    JSONObject object = new JSONObject();
+                    object.put("cmd", Cmd.SCH);
+                    object.put("slave", slaveID);
+                    object.put("data", "ALL");
+                    object.put("token", databaseHandler.getSlaveToken(slaveID));
 
-                String command = object.toString();
-                Log.e("command", command);
+                    String command = object.toString();
+                    Log.e("command", command);
 
-                if (preference.isOnline() || (!preference.isOnline() && !preference.getCurrentIPAddr().equalsIgnoreCase(databaseHandler.getMasterIPBySlaveID(slaveID)))) {
-                    new PublishMessage(command, slaveID).execute();
-                } else {
-                    new SendUDP(command).execute();
+                    if (SmartNode.slavesInLocal.contains(slaveID)) {
+                        new SendUDP(command).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                    } else {
+                        new PublishMessage(command, slaveID).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                    }
+
+                } catch (Exception e) {
+                    Log.e("Exception", e.getMessage());
                 }
-
-            } catch (Exception e) {
-                Log.e("Exception", e.getMessage());
             }
         } else {
             C.Toast(getApplicationContext(), getString(R.string.nointernet));
@@ -754,16 +843,14 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
     public void createSchedule(int position, String createCommand, String slaveID) {
 
         Log.e("create SCH", "Called");
-        List<String> ipList=new IPDb(this).ipList();
         forAddingNewItem = false;
         if (NetworkUtility.isOnline(getApplicationContext())) {
             if (createSchuduleDialog.isShowing())
                 createSchuduleDialog.setMessage("Creating Schedule");
-            if(ipList.contains(databaseHandler.getMasterIPBySlaveID(slaveID))){
-                new SendUDP(createCommand).execute();
-            }
-            else {
-                new PublishMessage(createCommand, slaveID).execute();
+            if (SmartNode.slavesInLocal.contains(slaveID)) {
+                new SendUDP(createCommand).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            } else {
+                new PublishMessage(createCommand, slaveID).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
             }
         } else {
             C.Toast(getApplicationContext(), getString(R.string.nointernet));
@@ -834,12 +921,12 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
                 Log.e("IP Address Saved", "->" + preference.getIpaddress());
 
                 /*if (preference.getIpaddress().isEmpty() || !C.isValidIP(preference.getIpaddress())) {*/
-                    server_addr = new InetSocketAddress(C.getBroadcastAddress(getApplicationContext()).getHostAddress(), 13001);
-                    packet = new DatagramPacket(senddata, senddata.length, server_addr);
-                    socket.setReuseAddress(true);
-                    socket.setBroadcast(true);
-                    socket.send(packet);
-                    Log.e("Packet", "Sent");
+                server_addr = new InetSocketAddress(C.getBroadcastAddress(getApplicationContext()).getHostAddress(), 13001);
+                packet = new DatagramPacket(senddata, senddata.length, server_addr);
+                socket.setReuseAddress(true);
+                socket.setBroadcast(true);
+                socket.send(packet);
+                Log.e("Packet", "Sent");
                 /*} else {
                     server_addr = new InetSocketAddress(preference.getIpaddress(), 13001);
                     packet = new DatagramPacket(senddata, senddata.length, server_addr);

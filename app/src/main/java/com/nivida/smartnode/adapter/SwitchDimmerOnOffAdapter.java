@@ -419,11 +419,6 @@ public class SwitchDimmerOnOffAdapter extends BaseAdapter {
             img_ulock.setImageResource(R.drawable.unlock);
         }
 
-        if (databaseHandler.hasScheduleSet(beanSwitch.getSwitchInSlave(), String.valueOf(beanSwitch.getSwitch_id())))
-            img_schedule.setImageResource(R.drawable.has_schedule);
-        else
-            img_schedule.setImageResource(R.drawable.no_schedule);
-
         if (switchList.get(position).getHasSchedule() == 0) {
             img_schedule.setImageResource(R.drawable.no_schedule);
         } else {

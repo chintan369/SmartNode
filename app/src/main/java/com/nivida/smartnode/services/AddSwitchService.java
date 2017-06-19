@@ -65,4 +65,14 @@ public class AddSwitchService extends IntentService implements PushCallBack.Mess
         Log.e("MQTT from swt srvc :", message);
         setMessageToActivity(message);
     }
+
+    @Override
+    public void reSubscribe() {
+
+    }
+
+    @Override
+    public void setConnectionLost() {
+
+    }
 }

@@ -107,7 +107,7 @@ public class MasterGroupActivity extends AppCompatActivity implements MasterGrid
 
         Log.e("Current Version", "-->" + currentVersion);
 
-        new GetVersionCode().execute();
+        //new GetVersionCode().execute();
 
         try{
             masterGroupList=dbhandler.getAllMasterGroupData();
@@ -278,7 +278,6 @@ public class MasterGroupActivity extends AppCompatActivity implements MasterGrid
         groupGrid.setColumnWidth((displayWidth/3)-10);
         groupGrid.setAdapter(masterGridAdpater);
 
-
         groupGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -292,18 +291,19 @@ public class MasterGroupActivity extends AppCompatActivity implements MasterGrid
                 if(group_id!=100){
 
                     if (dbhandler.hasSwitchesInGroup(group_id)>0){
-                        //Toast.makeText(MasterGroupActivity.this, ""+dbhandler.hasSwitchesInGroup(group_id), Toast.LENGTH_SHORT).show();
                         Intent intent=new Intent(MasterGroupActivity.this,GroupSwitchOnOffActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                         intent.putExtra("group_id",group_id);
                         startActivity(intent);
-                        finish();
+                        overridePendingTransition(R.anim.enter_animation, R.anim.exit_animation);
+                        //finish();
 
                     }
                     else {
                         C.Toast(getApplicationContext(),"No switch / dimmer in this group");
                     }
-
-
+                } else if (group_id == 100) {
+                    showDialog();
                 }
             }
         });
@@ -343,7 +343,7 @@ public class MasterGroupActivity extends AppCompatActivity implements MasterGrid
                     AlertDialog dialog=confirmDelete.create();
                     dialog.show();
                 }
-                return false;
+                return true;
             }
         });
 

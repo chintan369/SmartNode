@@ -11,6 +11,7 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by Nivida new on 04-May-17.
@@ -32,6 +33,9 @@ public class IPDb extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
+        db.setLocale(Locale.ENGLISH);
+        db.setLockingEnabled(false);
+
         String createIP="CREATE TABLE "+TABLE_IP+"("+KEY_IP+" TEXT"+")";
 
         db.execSQL(createIP);
@@ -62,6 +66,21 @@ public class IPDb extends SQLiteOpenHelper {
             Log.e(TAG,"Sorry, IP Not Saved");
         } finally {
             if (db != null) db.close();
+        }
+    }
+
+    @Override
+    public void onOpen(SQLiteDatabase db) {
+        super.onOpen(db);
+        if (!db.isReadOnly()) {
+            db.execSQL("PRAGMA foreign_keys=ON;");
+            Cursor c = db.rawQuery("PRAGMA foreign_keys", null);
+            if (c.moveToFirst()) {
+                int result = c.getInt(0);
+            }
+            if (!c.isClosed()) {
+                c.close();
+            }
         }
     }
 

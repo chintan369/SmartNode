@@ -1,7 +1,6 @@
 package com.nivida.smartnode.services;
 
 import android.app.IntentService;
-import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 import android.util.Log;
@@ -65,5 +64,15 @@ public class GroupSwitchService extends IntentService implements PushCallBack.Me
         Log.e("MQTT Sub msg :",subscribedMessage);
         Log.e("MQTT from Grp srvc :", message);
         setMessageToActivity(message);
+    }
+
+    @Override
+    public void reSubscribe() {
+
+    }
+
+    @Override
+    public void setConnectionLost() {
+
     }
 }

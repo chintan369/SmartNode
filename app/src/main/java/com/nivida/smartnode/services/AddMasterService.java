@@ -4,7 +4,6 @@ import android.app.IntentService;
 import android.content.Intent;
 import android.os.IBinder;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.nivida.smartnode.app.AppConstant;
 
@@ -61,5 +60,15 @@ public class AddMasterService extends IntentService implements PushCallBack.Mess
         subscribedMessage=message;
         Log.e("MQTT from service :", message);
         setMessageToActivity(message);
+    }
+
+    @Override
+    public void reSubscribe() {
+
+    }
+
+    @Override
+    public void setConnectionLost() {
+
     }
 }
