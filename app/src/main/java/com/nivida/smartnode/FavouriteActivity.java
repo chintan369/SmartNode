@@ -588,7 +588,7 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
                             showRenameDeviceDialog(groupID, switchID, switch_name, position);
                             break;
                         case 1:
-                            showChangeSwitchIconDialog(groupID, switchID, switch_name);
+                            showChangeSwitchIconDialog(groupID, switchID, switch_name, slaveID);
                             break;
                         case 2:
                             changeTypefrom(groupID, switchID, position, isSwitch, switch_num, slaveID);
@@ -660,7 +660,7 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
         }
     }
 
-    private void showChangeSwitchIconDialog(final int groupid, final int switchID, String switch_name) {
+    private void showChangeSwitchIconDialog(final int groupid, final int switchID, String switch_name, final String slaveID) {
 
         final int[] switch_icon = {1};
         final GridView iconsView=new GridView(this);
@@ -696,7 +696,19 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
                     public void onClick(View view) {
 
                         databaseHandler.changeSwitchIcon(groupid,switchID,switch_icon[0]);
-                        recyclerAdapter.notifyIconChanged();
+                        recyclerAdapter.notifyIconChanged(slaveID);
+                        String commandInCache = SmartNode.slaveCommands.get(slaveID);
+                        if (commandInCache != null && !commandInCache.isEmpty()) {
+                            try {
+                                JSONArray array = new JSONArray(commandInCache);
+                                for (int i = 0; i < array.length(); i++) {
+                                    handleCommands(array.get(i).toString());
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+
+                        }
                         b.dismiss();
                     }
                 });

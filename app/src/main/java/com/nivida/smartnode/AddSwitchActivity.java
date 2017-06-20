@@ -945,7 +945,6 @@ public class AddSwitchActivity extends AppCompatActivity {
                     mqttMessage.setRetained(false);
                     mqttClient.publish(databaseHandler.getSlaveTopic(slave_hex_id) + AppConstant.MQTT_PUBLISH_TOPIC, mqttMessage);
                     Log.e("MQTT ", "Message Published to get Switches");
-                    mqttClient.disconnect();
 
                 } catch (MqttException e) {
                     Log.e("Exception : ", e.getMessage());

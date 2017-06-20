@@ -627,7 +627,6 @@ public class SplashActivity extends AppCompatActivity {
                 mqttMessage.setQos(0);
                 mqttMessage.setRetained(false);
                 mqttClient.publish(topic + AppConstant.MQTT_PUBLISH_TOPIC, mqttMessage);
-                mqttClient.disconnect();
 
             } catch (MqttException e) {
                 Log.e("Exception M: ", e.getMessage());

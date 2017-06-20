@@ -687,7 +687,7 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
         isFirstTimeOpened=false;*/
     }
 
-    private void showChangeSwitchIconDialog(final int groupid, final int switchID, String switch_name) {
+    private void showChangeSwitchIconDialog(final int groupid, final int switchID, String switch_name, final String slaveID) {
 
         final int[] switch_icon = {1};
         final GridView iconsView = new GridView(this);
@@ -726,9 +726,19 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                         } catch (Exception e) {
                             //C.connectionError(getApplicationContext());
                         }
+                        recyclerAdapter.notifyIconChanged(slaveID);
+                        String commandInCache = SmartNode.slaveCommands.get(slaveID);
+                        if (commandInCache != null && !commandInCache.isEmpty()) {
+                            try {
+                                JSONArray array = new JSONArray(commandInCache);
+                                for (int i = 0; i < array.length(); i++) {
+                                    handleCommands(array.get(i).toString());
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
 
-
-                        recyclerAdapter.notifyIconChanged();
+                        }
                         b.dismiss();
                     }
                 });
@@ -870,7 +880,7 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                             showRenameDeviceDialog(groupID, switchID, switch_name, position);
                             break;
                         case 1:
-                            showChangeSwitchIconDialog(groupID, switchID, switch_name);
+                            showChangeSwitchIconDialog(groupID, switchID, switch_name, slaveID);
                             break;
                         case 2:
                             changeTypefrom(groupID, switchID, position, isSwitch, switch_num, slaveID);
@@ -1107,7 +1117,6 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                 mqttMessage.setRetained(false);
                 mqttClient.publish(databaseHandler.getSlaveTopic(slave_hex_id) + AppConstant.MQTT_PUBLISH_TOPIC, mqttMessage);
                 //Log.e("Mqtt Message", "Published for STS 1st\n" + mqttCommand);
-                mqttClient.disconnect();
 
             } catch (MqttException e) {
                 //Log.e("MQTT Exception",e.getMessage());

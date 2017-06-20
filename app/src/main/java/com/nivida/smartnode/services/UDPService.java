@@ -213,13 +213,26 @@ public class UDPService extends IntentService {
                 String commandCache = SmartNode.slaveCommands.get(slaveID);
                 if (commandCache != null && !commandCache.isEmpty()) {
                     JSONArray array = new JSONArray(SmartNode.slaveCommands.get(slaveID));
+
+                    Log.e("Cmd Array", array.toString());
+
                     boolean isNotFoundAny = true;
                     for (int i = 0; i < array.length(); i++) {
                         JSONObject currentObject = array.getJSONObject(i);
+
+                        Log.e("Array Pos", i + " -> " + currentObject.toString());
+
                         if (currentObject.getString("cmd").equals(Cmd.STS)) {
                             isNotFoundAny = false;
-                            array.remove(i);
-                            array.put(object);
+
+                            if (SmartNode.aboveKitkat) {
+                                array.remove(i);
+                                array.put(object);
+                            } else {
+                                array.put(i, object);
+                            }
+
+
                             break;
                         }
                     }
@@ -252,8 +265,12 @@ public class UDPService extends IntentService {
                         JSONObject currentObject = array.getJSONObject(i);
                         if (currentObject.getString("cmd").equals(Cmd.SET) && currentObject.getString("slave").equals(slaveID) && currentObject.getString("button").equals(button)) {
                             isNotFoundAny = false;
-                            array.remove(i);
-                            array.put(object);
+                            if (SmartNode.aboveKitkat) {
+                                array.remove(i);
+                                array.put(object);
+                            } else {
+                                array.put(i, object);
+                            }
                             break;
                         }
                     }
@@ -289,8 +306,12 @@ public class UDPService extends IntentService {
                             JSONObject currentObject = array.getJSONObject(i);
                             if (currentObject.getString("cmd").equals(Cmd.UL1) && currentObject.getString("slave").equals(slaveID) && currentObject.getString("data").startsWith(button)) {
                                 isNotFoundAny = false;
-                                array.remove(i);
-                                array.put(object);
+                                if (SmartNode.aboveKitkat) {
+                                    array.remove(i);
+                                    array.put(object);
+                                } else {
+                                    array.put(i, object);
+                                }
                                 break;
                             }
                         }
@@ -327,8 +348,12 @@ public class UDPService extends IntentService {
                             JSONObject currentObject = array.getJSONObject(i);
                             if (currentObject.getString("cmd").equals(Cmd.TL1) && currentObject.getString("slave").equals(slaveID) && currentObject.getString("data").startsWith(button)) {
                                 isNotFoundAny = false;
-                                array.remove(i);
-                                array.put(object);
+                                if (SmartNode.aboveKitkat) {
+                                    array.remove(i);
+                                    array.put(object);
+                                } else {
+                                    array.put(i, object);
+                                }
                                 break;
                             }
                         }
@@ -454,16 +479,28 @@ public class UDPService extends IntentService {
                                         JSONObject object1 = array1.getJSONObject(a);
 
                                         if (object1.getString("cmd").equals(Cmd.SCH) && object1.getString("slave").equals(slaveID)) {
-                                            array1.remove(a);
-                                            array1.put(schedule);
+                                            if (SmartNode.aboveKitkat) {
+                                                array1.remove(a);
+                                                array1.put(schedule);
+                                            } else {
+                                                array1.put(a, schedule);
+                                            }
+
+
                                         }
                                     }
 
                                     for (int a = 0; a < array1.length(); a++) {
                                         JSONObject object1 = array1.getJSONObject(a);
                                         if (object1.getString("cmd").equals(Cmd.STS) && object1.getString("slave").equals(slaveID)) {
-                                            array1.remove(a);
-                                            array1.put(statusObject);
+
+                                            if (SmartNode.aboveKitkat) {
+                                                array1.remove(a);
+                                                array1.put(statusObject);
+                                            } else {
+                                                array1.put(a, statusObject);
+                                            }
+
                                         }
                                     }
 
@@ -539,16 +576,25 @@ public class UDPService extends IntentService {
                                         JSONObject object1 = array1.getJSONObject(a);
 
                                         if (object1.getString("cmd").equals(Cmd.SCH) && object1.getString("slave").equals(slaveID)) {
-                                            array1.remove(a);
-                                            array1.put(schedule);
+                                            if (SmartNode.aboveKitkat) {
+                                                array1.remove(a);
+                                                array1.put(schedule);
+                                            } else {
+                                                array1.put(a, schedule);
+                                            }
+
                                         }
                                     }
 
                                     for (int a = 0; a < array1.length(); a++) {
                                         JSONObject object1 = array1.getJSONObject(a);
                                         if (object1.getString("cmd").equals(Cmd.STS) && object1.getString("slave").equals(slaveID)) {
-                                            array1.remove(a);
-                                            array1.put(statusObject);
+                                            if (SmartNode.aboveKitkat) {
+                                                array1.remove(a);
+                                                array1.put(statusObject);
+                                            } else {
+                                                array1.put(a, statusObject);
+                                            }
                                         }
                                     }
 
@@ -569,8 +615,13 @@ public class UDPService extends IntentService {
                             JSONObject object1 = array.getJSONObject(a);
 
                             if (object1.getString("cmd").equals(Cmd.SCH) && object1.getString("slave").equals(slaveID)) {
-                                array.remove(a);
-                                array.put(object);
+                                if (SmartNode.aboveKitkat) {
+                                    array.remove(a);
+                                    array.put(object);
+                                } else {
+                                    array.put(a, object);
+                                }
+
                                 isSCHFound = true;
                                 break;
                             }

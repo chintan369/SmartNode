@@ -883,7 +883,6 @@ public class SetScheduleActivity extends AppCompatActivity implements SwitchSche
                     mqttMessage.setRetained(false);
                     mqttMessage.setQos(0);
                     mqttClient.publish(databaseHandler.getSlaveTopic(slaveID) + AppConstant.MQTT_PUBLISH_TOPIC, mqttMessage);
-                    mqttClient.disconnect();
 
                     //Log.e("MQTT SCH", "called");
                 } catch (MqttException e) {

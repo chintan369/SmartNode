@@ -2,6 +2,7 @@ package com.nivida.smartnode.app;
 
 import android.app.Application;
 import android.content.Intent;
+import android.os.Build;
 import android.util.Log;
 
 import com.nivida.smartnode.model.DatabaseHandler;
@@ -29,6 +30,7 @@ public class SmartNode extends Application {
     public static NetworkUtility networkUtility;
     public static boolean isConnectedToInternet = false;
     public static ArrayList<Integer> rSerials = new ArrayList<>();
+    public static boolean aboveKitkat = false;
 
     public static Picasso picassoInstance;
     Timer timer;
@@ -48,7 +50,7 @@ public class SmartNode extends Application {
         stopService(new Intent(this, AddDeviceService.class));
         startService(new Intent(this, UDPService.class));
         startService(new Intent(this, AddDeviceService.class));
-
+        aboveKitkat = checkVersionAboveKitkat();
 
         picasso();
     }
@@ -68,6 +70,10 @@ public class SmartNode extends Application {
             Picasso.Builder builder = new Picasso.Builder(this);
             picassoInstance = builder.build();
         }
+    }
+
+    private boolean checkVersionAboveKitkat() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
     }
 
 
