@@ -14,6 +14,7 @@ import com.github.siyamed.shapeimageview.CircularImageView;
 import com.nivida.smartnode.R;
 import com.nivida.smartnode.beans.Bean_MasterGroup;
 import com.nivida.smartnode.model.DatabaseHandler;
+import com.squareup.picasso.Picasso;
 
 import java.io.File;
 import java.util.List;
@@ -85,8 +86,9 @@ public class MasterGridAdpater extends BaseAdapter {
         else {
             File file=new File(groupImage);
             if(file.exists()){
-                Glide.with(context)
+                Picasso.with(context)
                         .load(file)
+                        .skipMemoryCache()
                         .into(img_item);
             }
             else {
@@ -100,34 +102,6 @@ public class MasterGridAdpater extends BaseAdapter {
 
 
         txt_item.setText(masterGroup.getName());
-
-        /*view.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                Log.e("group_id",""+masterGroup.getId());
-                Log.e("count in grp",""+handler.hasSwitchesInGroup(masterGroup.getId()));
-
-                if(masterGroup.getId()==100){
-                    if(callback != null){
-                        callback.showDialog();
-                    }
-                }
-                else {
-                    if(handler.hasSwitchesInGroup(masterGroup.getId())>0){
-                        System.gc();
-                        Intent intent=new Intent(context,GroupSwitchOnOffActivity.class);
-                        intent.putExtra("group_id",masterGroup.getId());
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        context.startActivity(intent);
-                        Log.e("Activity","Started");
-                    }
-                    else {
-                        Toast.makeText(context,"No switch / dimmer in this group",Toast.LENGTH_SHORT).show();
-                    }
-                }
-            }
-        });*/
 
         return view;
     }
@@ -144,6 +118,6 @@ public class MasterGridAdpater extends BaseAdapter {
     }
 
     public interface MasterGridCallBack {
-        public void showDialog();
+        //public void showDialog();
     }
 }

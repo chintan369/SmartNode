@@ -769,6 +769,26 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     }
 
+    public void updateMasterGroupItem(int groupID, String groupName, String filePath) {
+
+        synchronized (Lock) {
+            SQLiteDatabase db = this.getWritableDatabase();
+
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(GROUP_NAME, groupName);
+            if (filePath != null) {
+                contentValues.put(GROUP_IMAGE, filePath);
+            }
+
+            db.update(TABLE_GROUPS, contentValues, GROUP_GEN_ID + "=?", new String[]{String.valueOf(groupID)});
+
+            Log.e("GRoup Content", "Data updated...");
+            //Toast.makeText(context,""+beanMasterGroup.getId(),Toast.LENGTH_LONG).show();
+            db.close();
+        }
+
+    }
+
     public void addSlaveItem(Bean_SlaveGroup bean_slaveGroup) {
 
         synchronized (Lock) {
@@ -1543,6 +1563,31 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
 
         return groupname;
+    }
+
+    public String getGroupImageById(int groupid) {
+        String imagePath = "";
+        synchronized (Lock) {
+            try {
+                SQLiteDatabase db = this.getReadableDatabase();
+
+                Cursor cursor = db.query(TABLE_GROUPS, new String[]{GROUP_IMAGE}, GROUP_GEN_ID + "=?", new String[]{String.valueOf(groupid)},
+                        null, null, null, null);
+
+                if (cursor.moveToFirst()) {
+                    imagePath = cursor.getString(0);
+                }
+
+                cursor.close();
+                db.close();
+            } catch (SQLiteCantOpenDatabaseException | SQLiteDatabaseLockedException e) {
+                //waitFor();
+                //getGroupnameById(groupid);
+            }
+        }
+
+
+        return imagePath;
     }
 
     public String getMasterNameById(int masterId) {

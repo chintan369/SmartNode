@@ -17,6 +17,7 @@ import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -100,6 +101,20 @@ public class SceneActivity extends AppCompatActivity {
         dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         dialog.setMessage("Please Wait while Activating Scene...");
         typeface_raleway=Typeface.createFromAsset(getAssets(),"fonts/raleway.ttf");
+
+        dialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
+            @Override
+            public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+                if (keyCode == KeyEvent.KEYCODE_BACK) {
+                    if (handler != null && runnable != null) {
+                        handler.removeCallbacks(runnable);
+                    }
+                    dialog.dismiss();
+
+                }
+                return false;
+            }
+        });
 
         //startAddSwitchService();
         startReceiver();
@@ -484,7 +499,7 @@ public class SceneActivity extends AppCompatActivity {
                             if(dbhandler.getSlaveUserType(slaveIDsInGrp.get(i)).equals(Cmd.LIN) ||
                                     (dbhandler.getSlaveUserType(slaveIDsInGrp.get(i)).equals(Cmd.ULN) && !dbhandler.switchHasUserLock(switchNum,slaveIDsInGrp.get(i)))){
                                 data += onOff ? "A": "0";
-                                data += switchList.get(k).getIsSwitch().equalsIgnoreCase("s") ? "X" : String.valueOf(switchList.get(k).getDimmerValue());
+                                data += switchList.get(k).getIsSwitch().equalsIgnoreCase("s") ? "X" : " ";
                                 switchFound=true;
                             }
                             break;

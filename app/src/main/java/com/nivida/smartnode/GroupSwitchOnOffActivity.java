@@ -297,7 +297,7 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                 CHECK_STS_AGAIN_TIME_INTERVEL[0] = 2000;
                 String mqttCommand = AppConstant.START_CMD_STATUS_OF_SLAVE + slaveID + AppConstant.CMD_KEY_TOKEN + databaseHandler.getSlaveToken(slaveID) + AppConstant.END_CMD_STATUS_OF_SLAVE;
 
-                //Log.e("command", mqttCommand);
+                Log.e("command", mqttCommand);
                 new SendUDP(mqttCommand).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
             } else {
                 CHECK_STS_AGAIN_TIME_INTERVEL[0] = 5000;
@@ -1113,7 +1113,7 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                 mqttClient.connect(connectOptions);
                 String mqttCommand = AppConstant.START_CMD_STATUS_OF_SLAVE + slave_hex_id + AppConstant.CMD_KEY_TOKEN + databaseHandler.getSlaveToken(slave_hex_id) + AppConstant.END_CMD_STATUS_OF_SLAVE;
                 MqttMessage mqttMessage = new MqttMessage(mqttCommand.getBytes());
-                mqttMessage.setQos(0);
+                mqttMessage.setQos(C.QoS);
                 mqttMessage.setRetained(false);
                 mqttClient.publish(databaseHandler.getSlaveTopic(slave_hex_id) + AppConstant.MQTT_PUBLISH_TOPIC, mqttMessage);
                 //Log.e("Mqtt Message", "Published for STS 1st\n" + mqttCommand);
@@ -1227,7 +1227,7 @@ public class GroupSwitchOnOffActivity extends AppCompatActivity implements Switc
                 ////Log.e("Command Fired :", command);
 
                 MqttMessage mqttMessage = new MqttMessage(command.getBytes());
-                mqttMessage.setQos(0);
+                mqttMessage.setQos(C.QoS);
                 mqttMessage.setRetained(false);
                 mqttClient.publish(topic, mqttMessage);
                 ////Log.e("topic msg", preference.getTopic() + AppConstant.MQTT_PUBLISH_TOPIC + " " + mqttMessage);

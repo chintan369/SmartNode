@@ -601,6 +601,7 @@ public class SplashActivity extends AppCompatActivity {
         }
     }
 
+    @SuppressLint("StaticFieldLeak")
     public class SendMQTT extends AsyncTask<Void, Void, Void> {
 
         String topic = "";
@@ -624,7 +625,7 @@ public class SplashActivity extends AppCompatActivity {
 
 
                 MqttMessage mqttMessage = new MqttMessage(command.getBytes());
-                mqttMessage.setQos(0);
+                mqttMessage.setQos(C.QoS);
                 mqttMessage.setRetained(false);
                 mqttClient.publish(topic + AppConstant.MQTT_PUBLISH_TOPIC, mqttMessage);
 

@@ -7,8 +7,8 @@ public class AppConstant {
 
     public static final String MQTT_SERVER_IP_ADDRESS="203.109.67.132";
     public static final int MQTT_PORT_NUMBER=1883;
-    //public static final String MQTT_BROKER_URL="tcp://connect.smartnode.in:1883";
-    public static final String MQTT_BROKER_URL="tcp://52.43.171.204:1883";
+    public static final String MQTT_BROKER_URL = "tcp://connect.smartnode.in:1883";
+    //public static final String MQTT_BROKER_URL="tcp://52.43.171.204:1883";
 
     public static final String MQTT_USERNAME="nO1cANsTOPuS";
     public static final String MQTT_PASSWORD="d$2N@8p&1V#1";

@@ -985,7 +985,7 @@ public class FavouriteActivity extends AppCompatActivity implements SwitchDimmer
                 mqttClient.connect(connectOptions);
                 String mqttCommand=AppConstant.START_CMD_STATUS_OF_SLAVE+slave_hex_id+AppConstant.CMD_KEY_TOKEN+databaseHandler.getSlaveToken(slave_hex_id)+AppConstant.END_CMD_STATUS_OF_SLAVE;
                 MqttMessage mqttMessage=new MqttMessage(mqttCommand.getBytes());
-                mqttMessage.setQos(0);
+                mqttMessage.setQos(C.QoS);
                 mqttMessage.setRetained(false);
                 mqttClient.publish(databaseHandler.getSlaveTopic(slave_hex_id)+AppConstant.MQTT_PUBLISH_TOPIC,mqttMessage);
                 //Log.e("Mqtt Message","Published for STS 1st");

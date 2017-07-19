@@ -40,6 +40,8 @@ public class C {
 
     public static final String MQTT_ClientID = "paho37706047793791";
 
+    public static final int QoS = 2;
+
     public static Typeface raleway(Context context){
         return Typeface.createFromAsset(context.getAssets(),"fonts/raleway.ttf");
     }

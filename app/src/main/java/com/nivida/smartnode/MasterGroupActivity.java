@@ -45,6 +45,7 @@ import com.nivida.smartnode.beans.Bean_MasterGroup;
 import com.nivida.smartnode.model.DatabaseHandler;
 import com.nivida.smartnode.utils.ImagePath;
 import com.nivida.smartnode.utils.Utility;
+import com.squareup.picasso.Picasso;
 
 import org.jsoup.Jsoup;
 
@@ -303,7 +304,7 @@ public class MasterGroupActivity extends AppCompatActivity implements MasterGrid
                         C.Toast(getApplicationContext(),"No switch / dimmer in this group");
                     }
                 } else if (group_id == 100) {
-                    showDialog();
+                    showDialog(false, 0);
                 }
             }
         });
@@ -315,38 +316,59 @@ public class MasterGroupActivity extends AppCompatActivity implements MasterGrid
                 final int pos=position;
                 final int g_id=dbhandler.getMasterGroupIdAtCurrentPosition(pos);
 
-                if(g_id==100){
-                    return false;
-                }
-                else {
-                    //C.createShortCut(MasterGroupActivity.this, dbhandler.getGroupnameById(g_id), g_id);
-                    AlertDialog.Builder confirmDelete = new AlertDialog.Builder(MasterGroupActivity.this);
-                    confirmDelete.setTitle("Confirm to delete");
-                    confirmDelete.setMessage("Are you sure to delete this group ?");
-                    confirmDelete.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
+                String[] menuItems = {"Change Title / Icon", "Remove Group"};
 
-                            dbhandler.deleteMasterGroupByGroupId(g_id);
-                            dbhandler.deleteAllSwitchesFromGroup(g_id);
-                            Toast.makeText(MasterGroupActivity.this, "Group deleted successfully", Toast.LENGTH_SHORT).show();
-                            masterGridAdpater.notifyDataSetChanged();
-                            dialog.dismiss();
+                AlertDialog.Builder builder = new AlertDialog.Builder(MasterGroupActivity.this);
+                builder.setItems(menuItems, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        switch (which) {
+                            case 0:
+                                showDialog(true, g_id);
+                                break;
+                            case 1:
+                                showRemoveGroupDialog(g_id);
+                                break;
                         }
-                    });
-                    confirmDelete.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();
-                        }
-                    });
-                    AlertDialog dialog=confirmDelete.create();
-                    dialog.show();
-                }
+
+                    }
+                });
+
+                AlertDialog dialogB = builder.create();
+                dialogB.show();
+
                 return true;
             }
         });
 
+    }
+
+    private void showRemoveGroupDialog(final int groupID) {
+        if (groupID != 100) {
+            //C.createShortCut(MasterGroupActivity.this, dbhandler.getGroupnameById(g_id), g_id);
+            AlertDialog.Builder confirmDelete = new AlertDialog.Builder(MasterGroupActivity.this);
+            confirmDelete.setTitle("Confirm to delete");
+            confirmDelete.setMessage("Are you sure to delete this group ?");
+            confirmDelete.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+
+                    dbhandler.deleteMasterGroupByGroupId(groupID);
+                    dbhandler.deleteAllSwitchesFromGroup(groupID);
+                    Toast.makeText(MasterGroupActivity.this, "Group deleted successfully", Toast.LENGTH_SHORT).show();
+                    masterGridAdpater.notifyDataSetChanged();
+                    dialog.dismiss();
+                }
+            });
+            confirmDelete.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            });
+            AlertDialog dialog = confirmDelete.create();
+            dialog.show();
+        }
     }
 
     private void setFonts() {
@@ -457,11 +479,16 @@ public class MasterGroupActivity extends AppCompatActivity implements MasterGrid
         startActivityForResult(cropIntent, REQUEST_CROP_ICON);
     }
 
-
-    @Override
-    public void showDialog(){
+    public void showDialog(final boolean isEditMode, final int groupID) {
 
         thePic=null;
+        String groupName = "";
+        String imagePath = "";
+        if (isEditMode) {
+            groupName = dbhandler.getGroupnameById(groupID);
+            imagePath = dbhandler.getGroupImageById(groupID);
+        }
+
         final AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
         LayoutInflater inflater = this.getLayoutInflater();
         final View dialogView = inflater.inflate(R.layout.custom_dialog_addnewgroup, null);
@@ -470,6 +497,20 @@ public class MasterGroupActivity extends AppCompatActivity implements MasterGrid
         edt_groupname=(EditText) dialogView.findViewById(R.id.edt_groupname);
         img_selectgroup=(CircularImageView) dialogView.findViewById(R.id.img__select_group);
 
+        if (isEditMode) {
+            edt_groupname.setText(groupName);
+            if (imagePath != null && !imagePath.isEmpty()) {
+                try {
+                    Picasso.with(this)
+                            .load(new File(imagePath))
+                            .skipMemoryCache()
+                            .into(img_selectgroup);
+                } catch (Exception e) {
+                    Log.e("Exception", e.getMessage());
+                }
+            }
+        }
+
         img_selectgroup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -477,8 +518,10 @@ public class MasterGroupActivity extends AppCompatActivity implements MasterGrid
             }
         });
 
-        dialogBuilder.setTitle("Add New Group");
-        dialogBuilder.setPositiveButton("Add Group", null);
+        String buttonTitle = isEditMode ? "Save" : "Add Group";
+        String title = isEditMode ? "Update Group" : "Add New Group";
+        dialogBuilder.setTitle(title);
+        dialogBuilder.setPositiveButton(buttonTitle, null);
         dialogBuilder.setNegativeButton("Cancel", null);
         final AlertDialog b = dialogBuilder.create();
 
@@ -496,33 +539,48 @@ public class MasterGroupActivity extends AppCompatActivity implements MasterGrid
                     public void onClick(View view) {
                         if(edt_groupname.getText().toString().trim().equals("")){
                             Toast.makeText(MasterGroupActivity.this, "Please enter group name", Toast.LENGTH_SHORT).show();
-                        }
-                        else if(thePic==null){
+                        } else if (!isEditMode && thePic == null) {
                             Toast.makeText(MasterGroupActivity.this, "Please select picture", Toast.LENGTH_SHORT).show();
                         }
                         else
                         {
-                            int groupID=dbhandler.getGroupLastId()==99 ? dbhandler.getGroupLastId()+2 : dbhandler.getGroupLastId()+ 1;
+                            if (isEditMode) {
+                                String groupName = edt_groupname.getText().toString().trim();
 
-                            int groupCount=dbhandler.getGroupDataCounts();
-                            Bean_MasterGroup beanMasterGroup=new Bean_MasterGroup();
-                            beanMasterGroup.setId(groupID);
-                            beanMasterGroup.setName(edt_groupname.getText().toString());
-                            beanMasterGroup.setBitmap(thePic);
-                            beanMasterGroup.setHasSwitches("0");
+                                if (thePic == null) {
+                                    dbhandler.updateMasterGroupItem(groupID, groupName, null);
+                                } else {
+                                    img_selectgroup.setDrawingCacheEnabled(true);
+                                    String groupNameID = groupName.replace(" ", "_") + "_" + groupID;
+                                    String path = Environment.getExternalStorageDirectory() + "/SmartNode/Groups/" + groupNameID + ".png";
+                                    File file = new File(path);
+                                    if (file.exists()) file.delete();
+                                    String newImagePath = C.saveGroupImageToLocal(img_selectgroup.getDrawingCache(), groupNameID);
 
-                            if(groupCount<2){
-                                beanMasterGroup.setId(1);
+                                    dbhandler.updateMasterGroupItem(groupID, groupName, newImagePath);
+                                }
+                            } else {
+                                int groupID = dbhandler.getGroupLastId() == 99 ? dbhandler.getGroupLastId() + 2 : dbhandler.getGroupLastId() + 1;
+
+                                int groupCount = dbhandler.getGroupDataCounts();
+                                Bean_MasterGroup beanMasterGroup = new Bean_MasterGroup();
+                                beanMasterGroup.setId(groupID);
+                                beanMasterGroup.setName(edt_groupname.getText().toString());
+                                beanMasterGroup.setBitmap(thePic);
+                                beanMasterGroup.setHasSwitches("0");
+
+                                if (groupCount < 2) {
+                                    beanMasterGroup.setId(1);
+                                }
+                                img_selectgroup.setDrawingCacheEnabled(true);
+
+                                String groupNameID = beanMasterGroup.getName().replace(" ", "_") + "_" + beanMasterGroup.getId();
+                                String imagePath = C.saveGroupImageToLocal(img_selectgroup.getDrawingCache(), groupNameID);
+                                beanMasterGroup.setImgLocalPath(imagePath);
+
+                                //Toast.makeText(MasterGroupActivity.this, ""+dbhandler.getGroupLastId(), Toast.LENGTH_SHORT).show();
+                                dbhandler.addMasterGroupItem(beanMasterGroup);
                             }
-                            img_selectgroup.setDrawingCacheEnabled(true);
-
-                            String groupNameID=beanMasterGroup.getName().replace(" ","_")+"_"+beanMasterGroup.getId();
-                            String imagePath=C.saveGroupImageToLocal(img_selectgroup.getDrawingCache(),groupNameID);
-                            beanMasterGroup.setImgLocalPath(imagePath);
-
-                            //Toast.makeText(MasterGroupActivity.this, ""+dbhandler.getGroupLastId(), Toast.LENGTH_SHORT).show();
-                            dbhandler.addMasterGroupItem(beanMasterGroup);
-
                             masterGridAdpater.notifyDataSetChanged();
 
                             b.dismiss();
@@ -645,7 +703,7 @@ public class MasterGroupActivity extends AppCompatActivity implements MasterGrid
         dialogBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                finish();
+                System.exit(0);
             }
         });
         dialogBuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
